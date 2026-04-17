@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasboard Admin - Toko Budi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="w-full px-4 py-4 text-base">
+    <div class="max-w-2xl mx-auto">
+        <header class="glass rounded-2xl p-4 mb-4">
+            <div class="flex justify-between items-center mb-3">
+                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <div class="flex items-center gap-2">
+                    <span id="admin-email" class="text-xs text-white/60 hidden sm:block"></span>
+                    <button id="logout-btn" class="bg-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs">Logout</button>
+                </div>
+            </div>
+            <!-- NAVIGASI BALIK KE INDEX -->
+            <a href="index.html" class="flex items-center gap-2 text-sm text-amber-400">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Kembali ke Toko
+            </a>
+        </header>
+
+        <!-- TABS -->
+        <div class="flex gap-2 mb-4">
+            <button class="tab-btn sidebar-active px-4 py-2 rounded-xl text-sm font-bold" data-page="produk">Produk</button>
+            <button class="tab-btn px-4 py-2 rounded-xl text-sm font-bold" data-page="pengaturan">Pengaturan</button>
+        </div>
+
+        <!-- PAGE: PRODUK -->
+        <main id="page-produk" class="page active">
+            <div class="actions mb-4">
+                <button id="add-product-btn" class="bg-amber-400 text-black font-bold w-full py-3 rounded-xl text-sm">+ Tambah Produk Baru</button>
+            </div>
+            <div id="products-list" class="space-y-3">
+                <div class="skeleton h-24 rounded-2xl"></div>
+            </div>
+        </main>
+
+        <!-- PAGE: PENGATURAN -->
+        <main id="page-pengaturan" class="page">
+            <div class="glass rounded-2xl p-4">
+                <h2 class="text-base font-bold mb-4">Pengaturan Toko</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm text-white/60">Logo / Foto Profil</label>
+                        <div class="flex items-center gap-3 mt-1">
+                            <img id="logo-preview" src="https://picsum.photos/id/64/200/200" class="w-16 h-16 rounded-full object-cover border border-white/10">
+                            <input type="file" id="logo-file" accept="image/*" class="bg-white/10 p-2 rounded-lg text-xs file:bg-amber-400 file:text-black file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-2">
+                        </div>
+                        <input type="hidden" id="logo-url">
+                    </div>
+                    <div>
+                        <label class="text-sm text-white/60">Username Toko</label>
+                        <input type="text" id="username-input" placeholder="@tokobudi" class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                    </div>
+                    <div>
+                        <label class="text-sm text-white/60">Bio / Deskripsi</label>
+                        <textarea id="bio-input" rows="2" class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-sm text-white/60">Link WhatsApp Utama</label>
+                        <input type="text" id="wa-input" placeholder="https://wa.me/62812..." class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                    </div>
+                    <div>
+                        <label class="text-sm text-white/60">Link Shopee Utama</label>
+                        <input type="text" id="shopee-input" placeholder="https://shopee.co.id/..." class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                    </div>
+                    <button id="save-settings-btn" class="bg-amber-400 text-black font-bold w-full py-3 rounded-xl mt-2 text-sm">Simpan Pengaturan</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Tambah/Edit Produk -->
+    <div id="product-modal" class="modal fixed inset-0 bg-black/70 items-center justify-center hidden" style="display:none;">
+        <div class="modal-content glass rounded-2xl p-4 w-full max-w-sm m-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title" class="text-base font-bold">Tambah Produk</h2>
+                <span class="close-btn cursor-pointer text-2xl">&times;</span>
+            </div>
+            <form id="product-form" class="space-y-3">
+                <input type="hidden" id="product-id">
+                <div>
+                    <label class="text-sm text-white/60">Nama Produk</label>
+                    <input type="text" id="product-name" required class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm text-white/60">Harga</label>
+                        <input type="number" id="product-price" required class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                    </div>
+                    <div>
+                        <label class="text-sm text-white/60">Stok</label>
+                        <input type="number" id="product-stock" required class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm text-white/60">Deskripsi</label>
+                    <textarea id="product-description" rows="2" class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10"></textarea>
+                </div>
+                <!-- TAMBAH LINK WA & SHOPEE PER PRODUK -->
+                <div>
+                    <label class="text-sm text-white/60">Link WA Produk (Opsional)</label>
+                    <input type="text" id="product-wa" placeholder="Kosongkan jika pake WA Utama" class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                </div>
+                <div>
+                    <label class="text-sm text-white/60">Link Shopee Produk (Opsional)</label>
+                    <input type="text" id="product-shopee" placeholder="Kosongkan jika pake Shopee Utama" class="bg-white/10 p-3 rounded-lg w-full mt-1 text-sm border border-white/10">
+                </div>
+                <div>
+                    <label class="text-sm text-white/60">Gambar Produk</label>
+                    <input type="file" id="product-image-file" accept="image/*" class="bg-white/10 p-2 rounded-lg w-full mt-1 text-xs file:bg-amber-400 file:text-black file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-2">
+                    <input type="hidden" id="product-image-url">
+                    <img id="image-preview" src="" alt="Preview" style="display:none;" class="w-24 h-24 object-cover rounded-lg mt-2">
+                </div>
+                <button type="submit" id="save-product-btn" class="bg-amber-400 text-black font-bold w-full py-3 rounded-xl mt-2 text-sm">Simpan Produk</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="./js/admin.js"></script>
+</body>
+</html>

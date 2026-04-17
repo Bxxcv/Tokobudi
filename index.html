@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tokobudi - Link Bio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body class="w-full px-4 py-4 text-base">
+  <div class="max-w-2xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <button id="themeBtn" class="glass p-2 rounded-xl"><i data-lucide="sun" class="lucide"></i></button>
+      <button onclick="shareLink()" class="glass p-2 rounded-xl"><i data-lucide="share-2" class="lucide"></i></button>
+    </div>
+    <header class="text-center mb-6">
+      <img id="profileImg" src="https://picsum.photos/id/64/200/200" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-white/10">
+      <h1 id="username" class="text-2xl font-extrabold">@tokobudi</h1>
+      <p id="bio" class="text-white/60 mt-2 text-sm max-w-xs mx-auto">Loading...</p>
+      
+      <!-- TOMBOL SOSIAL - MUNCUL KALO ADA LINKNYA -->
+      <div class="flex justify-center gap-3 mt-4">
+        <a id="shopeeBtn" href="#" target="_blank" class="w-11 h-11 glass rounded-full flex items-center justify-center hover:bg-white/20 hidden">
+          <i data-lucide="shopping-bag" class="lucide w-5 h-5"></i>
+        </a>
+      </div>
+    </header>
+    <div id="productList" class="grid grid-cols-2 gap-3 mb-6">
+      <div class="skeleton h-48 rounded-2xl"></div>
+      <div class="skeleton h-48 rounded-2xl"></div>
+    </div>
+  </div>
+  <a id="waBtn" href="https://wa.me/6281234567890" class="fixed bottom-5 right-5 z-50 bg-green-500 p-3 rounded-full shadow-lg">
+    <i data-lucide="message-circle" class="lucide text-white w-7 h-7"></i>
+  </a>
+  <script type="module" src="js/script.js"></script>
+</body>
+</html>
