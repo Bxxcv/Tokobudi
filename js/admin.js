@@ -2,12 +2,13 @@ const CLOUDINARY_CLOUD_NAME = "dxq06iq2r";
 const CLOUDINARY_UPLOAD_PRESET = "tokobudi_unsigned";
 
 import { auth, db } from './firebase.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, signOut, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, getDoc, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // DOM Elements - Umum
 const logoutBtn = document.getElementById('logout-btn');
 const adminEmailSpan = document.getElementById('admin-email');
+const saveAccountBtn = document.getElementById('save-account-btn');
 
 // DOM Elements - Produk
 const productsList = document.getElementById('products-list');
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 onAuthStateChanged(auth, (user) => {
   if (user) {
     adminEmailSpan.textContent = user.email;
+    document.getElementById('new-email-input').value = user.email; // Isi email saat ini
     loadProducts();
     loadSettings();
   } else {
@@ -57,6 +59,54 @@ function setupTabs() {
     };
   });
 }
+
+// ==================== KEAMANAN AKUN (BARU) ====================
+saveAccountBtn.addEventListener('click', async () => {
+  const newPassword = document.getElementById('new-password-input').value;
+  const currentPassword = document.getElementById('reauth-password-input').value;
+
+  if (!currentPassword) {
+    return alert('⚠️ Wajib masukkan password lama untuk keamanan!');
+  }
+
+  if (!newPassword) {
+    return alert('Masukkan password baru jika ingin mengganti.');
+  }
+
+  if (newPassword.length < 6) {
+    return alert('Password baru minimal 6 karakter!');
+  }
+
+  saveAccountBtn.disabled = true;
+  saveAccountBtn.textContent = 'Memverifikasi...';
+
+  try {
+    const user = auth.currentUser;
+    // 1. WAJIB: Re-authenticate dulu pakai password lama
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+
+    // 2. Kalau sukses, baru update password
+    await updatePassword(user, newPassword);
+    
+    alert('✅ Password berhasil diubah!');
+    document.getElementById('new-password-input').value = '';
+    document.getElementById('reauth-password-input').value = '';
+    
+  } catch (error) {
+    if (error.code === 'auth/wrong-password') {
+      alert('❌ Password lama yang lu masukkan SALAH!');
+    } else if (error.code === 'auth/weak-password') {
+      alert('❌ Password baru terlalu lemah (min 6 karakter).');
+    } else {
+      alert('Gagal update: ' + error.message);
+    }
+  } finally {
+    saveAccountBtn.disabled = false;
+    saveAccountBtn.innerHTML = '<i data-lucide="key" class="w-4 h-4"></i> Update Password';
+    lucide.createIcons();
+  }
+});
 
 // ==================== PRODUK CRUD ====================
 async function loadProducts() {
@@ -105,6 +155,7 @@ window.addEventListener('click', (e) => { if (e.target == productModal) closeMod
 fileInput.addEventListener('change', () => {
   const file = fileInput.files[0];
   if (file) {
+    if (imagePreview.src.startsWith('blob:')) URL.revokeObjectURL(imagePreview.src);
     imagePreview.src = URL.createObjectURL(file);
     imagePreview.style.display = 'block';
   }
@@ -181,10 +232,11 @@ productForm.addEventListener('submit', async (e) => {
     closeModal();
     loadProducts();
   } catch (error) {
-    alert('Gagal menyimpan produk.');
+    alert('Gagal menyimpan produk: ' + error.message);
   } finally {
     saveProductBtn.disabled = false;
-    saveProductBtn.textContent = 'Simpan Produk';
+    saveProductBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Produk';
+    lucide.createIcons();
   }
 });
 
@@ -204,7 +256,10 @@ async function loadSettings() {
 
 logoFileInput.addEventListener('change', () => {
   const file = logoFileInput.files[0];
-  if (file) logoPreview.src = URL.createObjectURL(file);
+  if (file) {
+    if (logoPreview.src.startsWith('blob:')) URL.revokeObjectURL(logoPreview.src);
+    logoPreview.src = URL.createObjectURL(file);
+  }
 });
 
 saveSettingsBtn.addEventListener('click', async () => {
@@ -219,7 +274,7 @@ saveSettingsBtn.addEventListener('click', async () => {
     finalLogoUrl = await uploadToCloudinary(file);
     if (!finalLogoUrl) {
       saveSettingsBtn.disabled = false;
-      saveSettingsBtn.textContent = 'Simpan Pengaturan';
+      saveSettingsBtn.textContent = 'Simpan Pengaturan Toko';
       return;
     }
   }
@@ -234,13 +289,14 @@ saveSettingsBtn.addEventListener('click', async () => {
   
   try {
     await setDoc(doc(db, "settings", "toko"), settingsData);
-    alert('Pengaturan berhasil disimpan!');
+    alert('Pengaturan toko berhasil disimpan!');
     logoFileInput.value = '';
   } catch (error) {
-    alert('Gagal simpan pengaturan');
+    alert('Gagal simpan pengaturan: ' + error.message);
   } finally {
     saveSettingsBtn.disabled = false;
-    saveSettingsBtn.textContent = 'Simpan Pengaturan';
+    saveSettingsBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Simpan Pengaturan Toko';
+    lucide.createIcons();
   }
 });
 

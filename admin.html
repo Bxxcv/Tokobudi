@@ -52,8 +52,10 @@
 
         <!-- PAGE: PENGATURAN -->
         <main id="page-pengaturan" class="page">
-            <div class="glass rounded-3xl p-6 space-y-5">
-                <h2 class="text-base font-bold flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-white/50"></i> Pengaturan Toko</h2>
+            
+            <!-- PENGATURAN TOKO (LAMA) -->
+            <div class="glass rounded-3xl p-6 space-y-5 mb-4">
+                <h2 class="text-base font-bold flex items-center gap-2"><i data-lucide="store" class="w-5 h-5 text-white/50"></i> Pengaturan Toko</h2>
                 
                 <div class="flex items-center gap-4">
                     <img id="logo-preview" src="https://picsum.photos/id/64/200/200" class="w-20 h-20 rounded-2xl object-cover border-2 border-dashed border-white/20">
@@ -82,13 +84,38 @@
                 </div>
                 
                 <button id="save-settings-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Pengaturan
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Pengaturan Toko
                 </button>
             </div>
+
+            <!-- KEAMANAN AKUN (BARU) -->
+            <div class="glass rounded-3xl p-6 space-y-5 border-t-4 border-red-500/50">
+                <h2 class="text-base font-bold flex items-center gap-2"><i data-lucide="shield" class="w-5 h-5 text-red-400"></i> Keamanan Akun</h2>
+                
+                <div>
+                    <label class="text-xs text-white/40 mb-1 block">Email Saat Ini</label>
+                    <input type="email" id="new-email-input" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10" disabled>
+                </div>
+                
+                <div>
+                    <label class="text-xs text-white/40 mb-1 block">Password Baru</label>
+                    <input type="password" id="new-password-input" placeholder="Kosongkan jika tidak ingin diganti" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
+                </div>
+
+                <div class="pt-2 border-t border-white/10">
+                    <label class="text-xs text-red-400 font-bold mb-1 block">Konfirmasi Password Lama (Wajib diisi!)</label>
+                    <input type="password" id="reauth-password-input" placeholder="Masukkan password lama untuk validasi" class="bg-red-500/5 p-3.5 rounded-xl w-full text-sm border border-red-500/20 focus:border-red-400">
+                </div>
+                
+                <button id="save-account-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="key" class="w-4 h-4"></i> Update Password
+                </button>
+            </div>
+
         </main>
     </div>
 
-    <!-- Modal Overlay (Backdrop Blur) -->
+    <!-- Modal Produk -->
     <div id="product-modal" class="modal fixed inset-0 bg-black/60 backdrop-blur-sm items-center justify-center" style="display:none;">
         <div class="modal-content glass rounded-3xl p-6 w-full max-w-sm m-4 max-h-[90vh] overflow-y-auto border-t-4 border-amber-400">
             <div class="flex justify-between items-center mb-5">
