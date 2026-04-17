@@ -8,20 +8,54 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="w-full px-4 py-4 text-base flex items-center justify-center min-h-screen">
-  <div class="glass w-full max-w-sm rounded-3xl p-6">
-    <h1 class="font-extrabold text-2xl text-center mb-6">Login Admin</h1>
-    <input id="email" type="email" placeholder="Email" class="bg-white/10 placeholder-white/50 p-3 rounded-lg w-full mb-3 text-sm border-white/10">
-    <input id="password" type="password" placeholder="Password" class="bg-white/10 placeholder-white/50 p-3 rounded-lg w-full mb-4 text-sm border-white/10">
-    <button id="loginBtn" class="bg-amber-400 text-black font-bold w-full py-3 rounded-xl">Login</button>
-    <p id="errorMsg" class="text-red-400 text-xs text-center mt-3"></p>
+  
+  <!-- Background Glow Decor -->
+  <div class="fixed top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="glass w-full max-w-sm rounded-3xl p-8 border-t-4 border-amber-400 relative z-10" style="animation: fadeIn 0.6s ease-out;">
+    
+    <div class="flex justify-center mb-6">
+      <div class="w-16 h-16 bg-amber-400/10 rounded-2xl flex items-center justify-center text-amber-400">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+    </div>
+
+    <h1 class="font-extrabold text-3xl text-center mb-2 tracking-tight">Admin Access</h1>
+    <p class="text-center text-white/40 text-sm mb-8">Masuk untuk mengelola toko</p>
+    
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs text-white/40 mb-1 block">Email Address</label>
+        <input id="email" type="email" placeholder="admin@email.com" class="bg-white/5 placeholder-white/30 p-4 rounded-xl w-full text-sm border border-white/10">
+      </div>
+      <div>
+        <label class="text-xs text-white/40 mb-1 block">Password</label>
+        <input id="password" type="password" placeholder="••••••••" class="bg-white/5 placeholder-white/30 p-4 rounded-xl w-full text-sm border border-white/10">
+      </div>
+    </div>
+    
+    <button id="loginBtn" class="w-full mt-6 py-4 rounded-2xl font-bold text-sm bg-gradient-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 transition-all flex items-center justify-center gap-2">
+      Masuk ke Dashboard
+    </button>
+    
+    <p id="errorMsg" class="text-red-400 text-xs text-center mt-4 h-4"></p>
   </div>
+
   <script type="module">
     import { auth } from './js/firebase.js';
     import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     onAuthStateChanged(auth, (user) => { if (user) window.location.href = 'admin.html'; });
     document.getElementById('loginBtn').onclick = () => {
+      const btn = document.getElementById('loginBtn');
+      btn.innerHTML = 'Memproses...';
+      btn.disabled = true;
       signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-       .catch((err) => document.getElementById('errorMsg').innerText = 'Email atau password salah');
+       .then(() => {})
+       .catch((err) => {
+         document.getElementById('errorMsg').innerText = 'Email atau password salah';
+         btn.innerHTML = 'Masuk ke Dashboard';
+         btn.disabled = false;
+       });
     };
   </script>
 </body>
