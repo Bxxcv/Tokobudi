@@ -12,10 +12,21 @@ async function loadSettings() {
     document.getElementById('username').innerText = s.username || '@tokobudi';
     document.getElementById('bio').innerText = s.bio || '';
     document.getElementById('profileImg').src = s.logo || 'https://picsum.photos/id/64/200/200';
+    
     const waUtama = s.wa || 'https://wa.me/';
     document.getElementById('waBtn').href = waUtama;
     document.getElementById('waBtn').dataset.wa = waUtama;
-    if (s.shopee) { const shopeeBtn = document.getElementById('shopeeBtn'); shopeeBtn.href = s.shopee; shopeeBtn.classList.remove('hidden'); }
+    
+    // HUBUNGKAN KE TOMBOL PLATFORM BARU
+    if (s.wa) {
+      document.getElementById('link-wa-main').href = s.wa;
+    }
+    if (s.shopee) {
+      document.getElementById('link-shopee').href = s.shopee;
+      document.getElementById('link-shopee').classList.remove('hidden');
+    }
+    // Opsional: kalau lu simpan link tokopedia/ig di firebase, bisa ditambah di sini
+    
     document.title = `${s.username || '@tokobudi'} - Link Bio`;
   }
 }
