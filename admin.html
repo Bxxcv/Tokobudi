@@ -8,217 +8,143 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* Font Jam Digital */
-        .clock-font { font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }
-    </style>
+    <style>.clock-font { font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; }</style>
 </head>
-<body class="w-full px-4 py-4 text-base">
+<body class="w-full px-4 py-4 text-base bg-[#F9F6F1]">
     
-    <!-- NOTIFIKASI TOAST -->
     <div id="toast" class="fixed top-4 left-4 right-4 z-[100] mx-auto max-w-sm transition-all duration-300 -translate-y-10 opacity-0 pointer-events-none">
-        <div id="toast-box" class="glass rounded-2xl p-4 text-sm font-bold text-center flex items-center justify-center gap-2">
-            <span id="toast-msg">Berhasil!</span>
-        </div>
+        <div id="toast-box" class="earth-card p-4 text-sm font-bold text-center flex items-center justify-center gap-2"></div>
     </div>
 
     <div class="max-w-2xl mx-auto">
-        
-        <!-- HEADER NAVIGASI (DITAMBAH JAM) -->
-        <header class="glass rounded-3xl p-4 mb-6 flex items-center justify-between border-t-4 border-amber-400">
+        <header class="earth-card p-4 mb-6 flex items-center justify-between border-b-4 border-[#3E2723]">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-amber-400/20 rounded-xl flex items-center justify-center text-amber-400">
+                <div class="w-10 h-10 bg-[#3E2723] rounded-xl flex items-center justify-center text-white">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="text-sm font-bold leading-tight">Admin Panel</h1>
+                    <h1 class="text-sm font-bold leading-tight text-[#3E2723]">Admin Panel</h1>
                     <div class="flex items-center gap-1.5">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span id="admin-email" class="text-[10px] text-white/40">Loading...</span>
+                        <div class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+                        <span id="admin-email" class="text-[10px] text-stone-400">Loading...</span>
                     </div>
                 </div>
             </div>
-            
-            <!-- JAM REAL-TIME BARU -->
             <div class="text-right">
-                <div id="live-clock" class="clock-font text-base font-bold text-amber-400">00:00:00</div>
-                <div id="live-date" class="text-[10px] text-white/40">Loading date...</div>
+                <div id="live-clock" class="clock-font text-base font-bold text-[#3E2723]">00:00:00</div>
+                <div id="live-date" class="text-[10px] text-stone-400">Loading date...</div>
             </div>
         </header>
 
-        <!-- NAVIGASI TABS (DITAMBAH DASHBOARD) -->
-        <div class="glass p-1.5 flex gap-1 mb-6 rounded-2xl">
-            <button class="tab-btn sidebar-active flex-1 py-3 rounded-xl text-xs font-bold text-center flex flex-col items-center gap-0.5" data-page="dashboard">
+        <div class="earth-card p-1.5 flex gap-1 mb-6">
+            <button class="tab-btn sidebar-active flex-1 py-3 rounded-xl text-xs font-bold text-center flex flex-col items-center gap-0.5 text-white" data-page="dashboard">
                 <i data-lucide="home" class="w-4 h-4"></i> Home
             </button>
-            <button class="tab-btn flex-1 py-3 rounded-xl text-xs font-bold text-center text-white/50 flex flex-col items-center gap-0.5" data-page="produk">
+            <button class="tab-btn flex-1 py-3 rounded-xl text-xs font-bold text-center flex flex-col items-center gap-0.5 text-stone-500" data-page="produk">
                 <i data-lucide="box" class="w-4 h-4"></i> Produk
             </button>
-            <button class="tab-btn flex-1 py-3 rounded-xl text-xs font-bold text-center text-white/50 flex flex-col items-center gap-0.5" data-page="pengaturan">
+            <button class="tab-btn flex-1 py-3 rounded-xl text-xs font-bold text-center flex flex-col items-center gap-0.5 text-stone-500" data-page="pengaturan">
                 <i data-lucide="settings" class="w-4 h-4"></i> Setting
             </button>
         </div>
 
-        <!-- PAGE: DASHBOARD HOME (HALAMAN BARU) -->
         <main id="page-dashboard" class="page active">
-            <div class="glass rounded-3xl p-6 text-center mb-4 border border-amber-400/20">
-                <p class="text-xs text-white/40 uppercase tracking-widest mb-2">Waktu Server Lokal</p>
+            <div class="earth-card p-6 text-center mb-4 bg-[#3E2723] text-white border-0 shadow-xl">
+                <p class="text-xs text-stone-300 uppercase tracking-widest mb-2">Waktu Server Lokal</p>
                 <div id="big-clock" class="clock-font text-5xl font-extrabold text-white mb-1">00:00:00</div>
-                <div id="big-date" class="text-sm text-white/50">Loading...</div>
+                <div id="big-date" class="text-sm text-stone-300">Loading...</div>
             </div>
-
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <!-- Statistik Produk -->
-                <div class="glass rounded-2xl p-4 text-center">
-                    <div class="w-12 h-12 mx-auto bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400 mb-3">
-                        <i data-lucide="package" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-2xl font-extrabold" id="stat-total">0</h3>
-                    <p class="text-xs text-white/40 mt-1">Total Produk</p>
+                <div class="earth-card p-4 text-center">
+                    <div class="w-12 h-12 mx-auto bg-amber-100 rounded-xl flex items-center justify-center text-amber-700 mb-3"><i data-lucide="package" class="w-6 h-6"></i></div>
+                    <h3 class="text-2xl font-extrabold text-[#3E2723]" id="stat-total">0</h3>
+                    <p class="text-xs text-stone-400 mt-1">Total Produk</p>
                 </div>
-                <!-- Statistik Stok Habis -->
-                <div class="glass rounded-2xl p-4 text-center">
-                    <div class="w-12 h-12 mx-auto bg-red-500/20 rounded-xl flex items-center justify-center text-red-400 mb-3">
-                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-2xl font-extrabold" id="stat-empty">0</h3>
-                    <p class="text-xs text-white/40 mt-1">Stok Habis</p>
+                <div class="earth-card p-4 text-center">
+                    <div class="w-12 h-12 mx-auto bg-red-100 rounded-xl flex items-center justify-center text-red-600 mb-3"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                    <h3 class="text-2xl font-extrabold text-[#3E2723]" id="stat-empty">0</h3>
+                    <p class="text-xs text-stone-400 mt-1">Stok Habis</p>
                 </div>
             </div>
-
-            <button id="logout-btn" class="w-full py-4 rounded-2xl text-sm font-bold bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors flex items-center justify-center gap-2 border border-red-500/20">
+            <button id="logout-btn" class="w-full py-4 rounded-2xl text-sm font-bold bg-white border border-red-200 hover:bg-red-50 text-red-600 transition-colors flex items-center justify-center gap-2">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Logout dari Sistem
             </button>
-            
-            <a href="index.html" class="flex items-center justify-center gap-2 text-sm text-white/30 hover:text-amber-400 transition-colors mt-6 mb-4">
-                <i data-lucide="external-link" class="w-4 h-4"></i>
-                Buka Halaman Toko Publik
+            <a href="index.html" class="flex items-center justify-center gap-2 text-sm text-stone-400 hover:text-[#3E2723] transition-colors mt-6 mb-4">
+                <i data-lucide="external-link" class="w-4 h-4"></i> Buka Halaman Toko Publik
             </a>
         </main>
 
-        <!-- PAGE: PRODUK -->
         <main id="page-produk" class="page">
-            <button id="add-product-btn" class="w-full py-4 rounded-2xl text-sm font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transition-all flex items-center justify-center gap-2 mb-5">
+            <button id="add-product-btn" class="w-full py-4 rounded-2xl text-sm font-bold bg-[#3E2723] text-white shadow-lg hover:bg-[#5D4037] transition-all flex items-center justify-center gap-2 mb-5">
                 <i data-lucide="plus-circle" class="w-5 h-5"></i> Tambah Produk Baru
             </button>
             <div id="products-list" class="space-y-3">
-                <div class="skeleton h-28 rounded-2xl"></div>
-                <div class="skeleton h-28 rounded-2xl"></div>
+                <div class="skeleton h-28 rounded-2xl"></div><div class="skeleton h-28 rounded-2xl"></div>
             </div>
         </main>
 
-        <!-- PAGE: PENGATURAN -->
         <main id="page-pengaturan" class="page">
-            
-            <!-- PENGATURAN TOKO -->
-            <div class="glass rounded-3xl p-6 space-y-5 mb-4">
-                <h2 class="text-base font-bold flex items-center gap-2"><i data-lucide="store" class="w-5 h-5 text-white/50"></i> Pengaturan Toko</h2>
-                
+            <div class="earth-card p-6 space-y-5 mb-4">
+                <h2 class="text-base font-bold flex items-center gap-2 text-[#3E2723]"><i data-lucide="store" class="w-5 h-5 text-stone-400"></i> Pengaturan Toko</h2>
                 <div class="flex items-center gap-4">
-                    <img id="logo-preview" src="https://picsum.photos/id/64/200/200" class="w-20 h-20 rounded-2xl object-cover border-2 border-dashed border-white/20">
+                    <img id="logo-preview" src="https://picsum.photos/id/64/200/200" class="w-20 h-20 rounded-2xl object-cover border-2 border-dashed border-stone-200">
                     <div class="flex-1">
-                        <label class="text-sm text-white/50 mb-1 block font-medium">Logo / Foto Profil</label>
-                        <input type="file" id="logo-file" accept="image/*" class="bg-white/5 p-2.5 rounded-xl text-xs file:bg-amber-400 file:text-black file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:mr-2 file:font-bold w-full">
+                        <label class="text-sm text-stone-500 mb-1 block font-medium">Logo / Foto Profil</label>
+                        <input type="file" id="logo-file" accept="image/*" class="p-2.5 rounded-xl text-xs file:bg-[#3E2723] file:text-white file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:mr-2 file:font-bold w-full">
                     </div>
                     <input type="hidden" id="logo-url">
                 </div>
-
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Username Toko</label>
-                    <input type="text" id="username-input" placeholder="@tokobudi" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Bio / Deskripsi</label>
-                    <textarea id="bio-input" rows="2" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10 resize-none"></textarea>
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Link WhatsApp Utama</label>
-                    <input type="text" id="wa-input" placeholder="https://wa.me/62812..." class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Link Shopee Utama</label>
-                    <input type="text" id="shopee-input" placeholder="https://shopee.co.id/..." class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-                
-                <button id="save-settings-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center gap-2">
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Username Toko</label><input type="text" id="username-input" placeholder="@tokobudi" class="p-3.5 rounded-xl w-full text-sm"></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Bio / Deskripsi</label><textarea id="bio-input" rows="2" class="p-3.5 rounded-xl w-full text-sm resize-none"></textarea></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Link WhatsApp Utama</label><input type="text" id="wa-input" placeholder="https://wa.me/62812..." class="p-3.5 rounded-xl w-full text-sm"></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Link Shopee Utama</label><input type="text" id="shopee-input" placeholder="https://shopee.co.id/..." class="p-3.5 rounded-xl w-full text-sm"></div>
+                <button id="save-settings-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-stone-100 hover:bg-stone-200 text-[#3E2723] transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="save" class="w-4 h-4"></i> Simpan Pengaturan Toko
                 </button>
             </div>
-
-            <!-- KEAMANAN AKUN -->
-            <div class="glass rounded-3xl p-6 space-y-5 border-t-4 border-red-500/50">
-                <h2 class="text-base font-bold flex items-center gap-2"><i data-lucide="shield" class="w-5 h-5 text-red-400"></i> Keamanan Akun</h2>
-                
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Email Saat Ini</label>
-                    <input type="email" id="new-email-input" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
+            <div class="earth-card p-6 space-y-5 border-b-4 border-red-200">
+                <h2 class="text-base font-bold flex items-center gap-2 text-red-700"><i data-lucide="shield" class="w-5 h-5"></i> Keamanan Akun</h2>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Email Saat Ini</label><input type="email" id="new-email-input" class="p-3.5 rounded-xl w-full text-sm"></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Password Baru</label><input type="password" id="new-password-input" placeholder="Kosongkan jika tidak ingin diganti" class="p-3.5 rounded-xl w-full text-sm"></div>
+                <div class="pt-2 border-t border-stone-100">
+                    <label class="text-sm text-red-600 font-bold mb-1 block">Konfirmasi Password Lama (Wajib diisi!)</label>
+                    <input type="password" id="reauth-password-input" placeholder="Masukkan password lama untuk validasi" class="p-3.5 rounded-xl w-full text-sm border-red-200 focus:border-red-400">
                 </div>
-                
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Password Baru</label>
-                    <input type="password" id="new-password-input" placeholder="Kosongkan jika tidak ingin diganti" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-
-                <div class="pt-2 border-t border-white/10">
-                    <label class="text-sm text-red-400 font-bold mb-1 block">Konfirmasi Password Lama (Wajib diisi!)</label>
-                    <input type="password" id="reauth-password-input" placeholder="Masukkan password lama untuk validasi" class="bg-red-500/5 p-3.5 rounded-xl w-full text-sm border border-red-500/20 focus:border-red-400">
-                </div>
-                
-                <button id="save-account-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors flex items-center justify-center gap-2">
+                <button id="save-account-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-red-100 hover:bg-red-200 text-red-700 transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="key" class="w-4 h-4"></i> Update Akun
                 </button>
             </div>
         </main>
     </div>
 
-    <!-- Modal Produk -->
-    <div id="product-modal" class="modal fixed inset-0 bg-black/60 backdrop-blur-sm items-center justify-center" style="display:none;">
-        <div class="modal-content glass rounded-3xl p-6 w-full max-w-sm m-4 max-h-[90vh] overflow-y-auto border-t-4 border-amber-400">
+    <div id="product-modal" class="modal fixed inset-0 bg-black/40 backdrop-blur-sm items-center justify-center" style="display:none;">
+        <div class="modal-content earth-card p-6 w-full max-w-sm m-4 max-h-[90vh] overflow-y-auto border-b-4 border-[#3E2723]">
             <div class="flex justify-between items-center mb-5">
-                <h2 id="modal-title" class="text-lg font-bold">Tambah Produk</h2>
-                <span class="close-btn cursor-pointer text-white/50 hover:text-white text-3xl leading-none">&times;</span>
+                <h2 id="modal-title" class="text-lg font-bold text-[#3E2723]">Tambah Produk</h2>
+                <span class="close-btn cursor-pointer text-stone-400 hover:text-stone-800 text-3xl leading-none">&times;</span>
             </div>
             <form id="product-form" class="space-y-4">
                 <input type="hidden" id="product-id">
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Nama Produk</label>
-                    <input type="text" id="product-name" required class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Nama Produk</label><input type="text" id="product-name" required class="p-3.5 rounded-xl w-full text-sm"></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-sm text-white/50 mb-1 block font-medium">Harga</label>
-                        <input type="number" id="product-price" required class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                    </div>
-                    <div>
-                        <label class="text-sm text-white/50 mb-1 block font-medium">Stok</label>
-                        <input type="number" id="product-stock" required class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                    </div>
+                    <div><label class="text-sm text-stone-500 mb-1 block font-medium">Harga</label><input type="number" id="product-price" required class="p-3.5 rounded-xl w-full text-sm"></div>
+                    <div><label class="text-sm text-stone-500 mb-1 block font-medium">Stok</label><input type="number" id="product-stock" required class="p-3.5 rounded-xl w-full text-sm"></div>
                 </div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Deskripsi</label><textarea id="product-description" rows="2" class="p-3.5 rounded-xl w-full text-sm resize-none"></textarea></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Link WA Produk (Opsional)</label><input type="text" id="product-wa" placeholder="Kosongkan jika pake WA Utama" class="p-3.5 rounded-xl w-full text-sm"></div>
+                <div><label class="text-sm text-stone-500 mb-1 block font-medium">Link Shopee Produk (Opsional)</label><input type="text" id="product-shopee" placeholder="Kosongkan jika pake Shopee Utama" class="p-3.5 rounded-xl w-full text-sm"></div>
                 <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Deskripsi</label>
-                    <textarea id="product-description" rows="2" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10 resize-none"></textarea>
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Link WA Produk (Opsional)</label>
-                    <input type="text" id="product-wa" placeholder="Kosongkan jika pake WA Utama" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Link Shopee Produk (Opsional)</label>
-                    <input type="text" id="product-shopee" placeholder="Kosongkan jika pake Shopee Utama" class="bg-white/5 p-3.5 rounded-xl w-full text-sm border border-white/10">
-                </div>
-                <div>
-                    <label class="text-sm text-white/50 mb-1 block font-medium">Gambar Produk</label>
-                    <input type="file" id="product-image-file" accept="image/*" class="bg-white/5 p-2.5 rounded-xl w-full text-xs file:bg-amber-400 file:text-black file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:mr-2 file:font-bold">
+                    <label class="text-sm text-stone-500 mb-1 block font-medium">Gambar Produk</label>
+                    <input type="file" id="product-image-file" accept="image/*" class="p-2.5 rounded-xl w-full text-xs file:bg-[#3E2723] file:text-white file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:mr-2 file:font-bold">
                     <input type="hidden" id="product-image-url">
-                    <img id="image-preview" src="" alt="Preview" style="display:none;" class="w-24 h-24 object-cover rounded-xl mt-3 border-2 border-dashed border-white/20">
+                    <img id="image-preview" src="" alt="Preview" style="display:none;" class="w-24 h-24 object-cover rounded-xl mt-3 border-2 border-dashed border-stone-200">
                 </div>
-                <button type="submit" id="save-product-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                <button type="submit" id="save-product-btn" class="w-full py-4 rounded-2xl mt-2 text-sm font-bold bg-[#3E2723] text-white shadow-lg hover:bg-[#5D4037] flex items-center justify-center gap-2">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Produk
                 </button>
             </form>
         </div>
     </div>
-
     <script type="module" src="./js/admin.js"></script>
 </body>
 </html>
