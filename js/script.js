@@ -1,40 +1,49 @@
-import { db } from './firebase.js';
+import { db, CONFIG } from './firebase.js';
 import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// LOGO DEFAULT BELIKOPI
-const DEFAULT_LOGO = "https://z-cdn-media.chatglm.cn/files/a23115d8-0689-4e1f-bc14-afc0ce5e5ba7.jpg?auth_key=1876551807-355210f7b76b421689351f421ca298a9-0-b39aa0b90d590f9f38f8318e46e9c790";
 
 function escapeHtml(unsafe) { if (!unsafe) return ''; return String(unsafe).replace(/[&<>"']/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]; }); }
 
 document.addEventListener('DOMContentLoaded', async () => { 
-  document.getElementById('profileImg').src = DEFAULT_LOGO; // SET LOGO LANGSUNG
+  applyTheme(); // TERAPKAN WARNA DARI CONFIG
   await loadSettings(); 
   await loadProducts(); 
 });
+
+// FUNGSI DINAMIS TEMA (BIAR BISA DIUBAH PEMBELI)
+function applyTheme() {
+  document.documentElement.style.setProperty('--text', CONFIG.theme.textColor);
+  document.documentElement.style.setProperty('--card', CONFIG.theme.bgCard);
+}
 
 async function loadSettings() {
   const docSnap = await getDoc(doc(db, "settings", "toko"));
   if (docSnap.exists()) {
     const s = docSnap.data();
-    document.getElementById('username').innerText = s.username || 'belikopi.';
+    document.getElementById('username').innerText = s.username || 'My Store';
     document.getElementById('bio').innerText = s.bio || '';
-    
-    // Ganti logo kalau admin sudah upload logo lain
-    if (s.logo) {
-      document.getElementById('profileImg').src = s.logo;
-    }
+    if (s.logo) document.getElementById('profileImg').src = s.logo;
     
     const waUtama = s.wa || 'https://wa.me/';
     document.getElementById('waBtn').href = waUtama;
     document.getElementById('waBtn').dataset.wa = waUtama;
     
     if (s.wa) document.getElementById('link-wa-main').href = s.wa;
-    if (s.shopee) {
-      document.getElementById('link-shopee').href = s.shopee;
+    
+    // CEK CONFIG BUKAN DATABASE UNTUK PLATFORM (Karena ini statis)
+    if (CONFIG.links.shopee) {
+      document.getElementById('link-shopee').href = CONFIG.links.shopee;
       document.getElementById('link-shopee').classList.remove('hidden');
     }
+    if (CONFIG.links.tokopedia) {
+      document.getElementById('link-tokped').href = CONFIG.links.tokopedia;
+    }
     
-    document.title = `${s.username || 'belikopi.'} - Link Bio`;
+    // LINK SOSMED DARI CONFIG
+    if(CONFIG.links.instagram) document.getElementById('soc-ig').href = CONFIG.links.instagram;
+    if(CONFIG.links.facebook) document.getElementById('soc-fb').href = CONFIG.links.facebook;
+    if(CONFIG.links.tiktok) document.getElementById('soc-tt').href = CONFIG.links.tiktok;
+    
+    document.title = `${s.username || 'My Store'} - Link Bio`;
   }
 }
 
