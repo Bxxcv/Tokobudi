@@ -15,12 +15,11 @@
   <div class="max-w-lg mx-auto">
     
     <div class="flex justify-end items-center mb-6 fade-up">
-      <button onclick="shareLink()" class="earth-card p-3 rounded-xl hover:bg-gray-100 transition text-gray-400">
+      <button onclick="shareLink()" class="earth-card p-3 rounded-xl hover:bg-gray-100 transition text-gray-400 jelly-click">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
       </button>
     </div>
 
-    <!-- LOGO DIKEMBALIKAN KE LINGKARAN -->
     <div class="earth-card p-8 text-center mb-6 fade-up">
       <div class="w-28 h-28 mx-auto mb-5 bg-gray-100 rounded-full p-1 shadow-sm">
         <img id="profileImg" src="https://placehold.co/200x200/F4F4F4/AAAAAA?text=Logo" class="w-full h-full rounded-full object-cover">
@@ -29,30 +28,33 @@
       <p id="bio" class="text-gray-500 mt-2 text-sm max-w-sm mx-auto leading-relaxed min-h-[40px]">Loading...</p>
     </div>
 
-    <!-- TOMBOL PLATFORM DENGAN IKON SVG PREMIUM -->
+    <!-- IKON REALISTIS & TOMBOL JELLY -->
     <div class="earth-card p-4 mb-6 fade-up">
       <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.2em] mb-3 text-center">Pemesanan & Platform</p>
       <div class="space-y-2">
-        <!-- Shopee -->
-        <a id="link-shopee" href="#" target="_blank" class="platform-btn flex items-center gap-3 p-3.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-sm font-semibold text-orange-600 hidden">
-          <div class="w-8 h-8 bg-[#EE4D2D] rounded-lg flex items-center justify-center shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm2.07-7.75l-.9.92C11.45 10.9 11 11.5 11 12H9v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H6c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+        
+        <!-- SHOPEE REALISTIS -->
+        <a id="link-shopee" href="#" target="_blank" class="platform-btn jelly-click flex items-center gap-3 p-3.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-sm font-semibold text-orange-600 hidden">
+          <div class="w-9 h-9 bg-[#EE4D2D] rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12.005 2.004C6.486 2.004 2.005 6.485 2.005 12.004C2.005 17.523 6.486 22.004 12.005 22.004C17.524 22.004 22.005 17.523 22.005 12.004C22.005 6.485 17.524 2.004 12.005 2.004ZM15.96 14.27C15.96 14.27 15.96 14.27 15.96 14.27C16.61 13.76 16.61 13.76 16.61 13.76C17.26 13.25 17.26 13.25 17.26 13.25L15.16 11.15L15.16 9.11L13.71 9.11L13.71 11.15L11.66 11.15L11.66 9.11L10.21 9.11L10.21 11.15L8.16 11.15L8.16 9.11L6.71 9.11L6.71 11.15L4.66 11.15L4.66 13.25L17.34 13.25L17.34 15.35L15.96 14.27Z"/></svg>
           </div>
           Pesan Lewat Shopee
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-auto opacity-40"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <!-- Tokopedia -->
-        <a id="link-tokped" href="#" target="_blank" class="platform-btn flex items-center gap-3 p-3.5 rounded-xl bg-green-50 hover:bg-green-100 text-sm font-semibold text-green-700">
-          <div class="w-8 h-8 bg-[#42B549] rounded-lg flex items-center justify-center shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M8.57 8.57L12 12l3.43-3.43" stroke="#42B549" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <!-- TOKOPEDIA REALISTIS -->
+        <a id="link-tokped" href="#" target="_blank" class="platform-btn jelly-click flex items-center gap-3 p-3.5 rounded-xl bg-green-50 hover:bg-green-100 text-sm font-semibold text-green-700">
+          <div class="w-9 h-9 bg-[#42B549] rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M2 2L9.586 9.586C10.363 10.363 11.635 10.363 12.414 9.586L22 0V24H0L2 2Z"/></svg>
           </div>
           Pesan Lewat Tokopedia
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-auto opacity-40"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <!-- WhatsApp -->
-        <a id="link-wa-main" href="#" target="_blank" class="platform-btn flex items-center gap-3 p-3.5 rounded-xl bg-green-50 hover:bg-green-100 text-sm font-semibold text-green-600">
-          <div class="w-8 h-8 bg-[#25D366] rounded-lg flex items-center justify-center shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+
+        <!-- WHATSAPP REALISTIS -->
+        <a id="link-wa-main" href="#" target="_blank" class="platform-btn jelly-click flex items-center gap-3 p-3.5 rounded-xl bg-green-50 hover:bg-green-100 text-sm font-semibold text-green-600">
+          <div class="w-9 h-9 bg-[#25D366] rounded-xl flex items-center justify-center shadow-sm overflow-hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           </div>
           Pesan Lewat WhatsApp
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-auto opacity-40"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -60,27 +62,25 @@
       </div>
     </div>
 
-    <!-- IKON SOSIAL MEDIA DENGAN ANIMASI BOUNCE -->
-    <div class="flex justify-center gap-3 mb-8 fade-up">
-      <a id="soc-ig" href="#" target="_blank" class="w-11 h-11 rounded-full flex items-center justify-center bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] shadow-sm hover:shadow-md hover:scale-110 active:scale-95 transition-all text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    <!-- SOSIAL MEDIA REALISTIS & JELLY -->
+    <div class="flex justify-center gap-4 mb-8 fade-up">
+      <a id="soc-ig" href="#" target="_blank" class="jelly-click w-12 h-12 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-shadow" style="background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
       </a>
-      <a id="soc-fb" href="#" target="_blank" class="w-11 h-11 rounded-full flex items-center justify-center bg-[#1877F2] shadow-sm hover:shadow-md hover:scale-110 active:scale-95 transition-all text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+      <a id="soc-fb" href="#" target="_blank" class="jelly-click w-12 h-12 rounded-full flex items-center justify-center bg-[#1877F2] shadow-sm hover:shadow-md transition-shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
       </a>
-      <a id="soc-tt" href="#" target="_blank" class="w-11 h-11 rounded-full flex items-center justify-center bg-black shadow-sm hover:shadow-md hover:scale-110 active:scale-95 transition-all text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M9 12a4 4 0 1 0 4 4 4 0 0 0-4-4Z"/><path d="M15 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z"/><path d="M17.8 11.8c.1.6.2 1.2.2 1.8 0 4.2-3.6 7.4-8 7.4S2 17.8 2 13.6c0-4.2 3.6-7.6 8-7.6.6 0 1.2.1 1.8.2"/><path d="M21 7c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2Z"/></svg>
+      <a id="soc-tt" href="#" target="_blank" class="jelly-click w-12 h-12 rounded-full flex items-center justify-center bg-black shadow-sm hover:shadow-md transition-shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 00-.79-.05A6.34 6.34 0 003.15 15.2a6.34 6.34 0 006.34-6.34 6.29 6.29 0 00-1.89-4.53Z"/><path d="M17.8 11.8c0 .6-.2 1.2-.4 1.8a4.89 4.89 0 01-4.4 2.9 4.89 4.89 0 01-4.9-4.9c0-2.7 2.2-4.9 4.9-4.9.7 0 1.4.1 2 .4v-3.5a8.28 8.28 0 00-2-.3 8.28 8.28 0 00-8.3 8.3 8.28 8.28 0 008.3 8.3 8.28 8.28 0 006.7-3.4h3.5a11.78 11.78 0 01-10.2 5.9 11.78 11.78 0 01-11.8-11.8A11.78 11.78 0 0111.8.2h6a11.78 11.78 0 016.8 2.2V6.7a4.85 4.85 0 01-3.8-4.2h3.5a8.27 8.27 0 00-5.4 4.8V2h3.6v4a4.85 4.85 0 013.8 4.2V6.7h-1a4.82 4.82 0 01-3.8 4.2v4.5a8.33 8.33 0 01-4.9-1.6v1.3a11.77 11.77 0 006 1.6h-1.1z"/></svg>
       </a>
     </div>
 
-    <!-- Pembatas -->
     <div class="flex items-center gap-3 mb-5 px-1 fade-up">
       <div class="h-px bg-gray-200 flex-1"></div>
       <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.2em]">Katalog Produk</span>
       <div class="h-px bg-gray-200 flex-1"></div>
     </div>
 
-    <!-- Produk -->
     <div id="productList" class="grid grid-cols-1 gap-4 mb-8">
       <div class="skeleton h-72 rounded-2xl"></div>
     </div>
@@ -90,8 +90,7 @@
     </footer>
   </div>
   
-  <!-- Tombol WA Melayang -->
-  <a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" data-wa="" class="fixed bottom-6 right-6 z-50 bg-[#25D366] p-3.5 rounded-full shadow-lg hover:bg-[#20BD5A] hover:scale-110 active:scale-95 transition-all">
+  <a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" data-wa="" class="fixed bottom-6 right-6 z-50 bg-[#25D366] p-3.5 rounded-full shadow-lg hover:bg-[#20BD5A] jelly-click transition-all">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>
   <script type="module" src="js/script.js"></script>
