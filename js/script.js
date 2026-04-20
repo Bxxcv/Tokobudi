@@ -6,7 +6,7 @@ function escapeHtml(unsafe) { if (!unsafe) return ''; return String(unsafe).repl
 document.addEventListener('DOMContentLoaded', async () => { 
   applyTheme(); 
   setupScrollAnimations(); 
-  setupJellyAnimations(); // NYALAKAN JELLY KLIK
+  setupJellyAnimations(); 
   await loadSettings(); 
   await loadProducts(); 
 });
@@ -47,14 +47,23 @@ async function loadSettings() {
     document.getElementById('waBtn').dataset.wa = waUtama;
     
     if (s.wa) document.getElementById('link-wa-main').href = s.wa;
-    if (CONFIG.links.shopee) {
-      document.getElementById('link-shopee').href = CONFIG.links.shopee;
-      document.getElementById('link-shopee').classList.remove('hidden');
+    
+    // DIBENERIN: Baca link shopee dari database Firestore (variabel s), bukan CONFIG
+    if (s.shopee) {
+      const linkShopee = document.getElementById('link-shopee');
+      if (linkShopee) {
+        linkShopee.href = s.shopee;
+        linkShopee.classList.remove('hidden');
+      }
     }
+    
     if (CONFIG.links.tokopedia) document.getElementById('link-tokped').href = CONFIG.links.tokopedia;
-    if(CONFIG.links.instagram) document.getElementById('soc-ig').href = CONFIG.links.instagram;
-    if(CONFIG.links.facebook) document.getElementById('soc-fb').href = CONFIG.links.facebook;
-    if(CONFIG.links.tiktok) document.getElementById('soc-tt').href = CONFIG.links.tiktok;
+    const socIg = document.getElementById('soc-ig');
+    const socFb = document.getElementById('soc-fb');
+    const socTt = document.getElementById('soc-tt');
+    if(socIg && CONFIG.links.instagram) socIg.href = CONFIG.links.instagram;
+    if(socFb && CONFIG.links.facebook) socFb.href = CONFIG.links.facebook;
+    if(socTt && CONFIG.links.tiktok) socTt.href = CONFIG.links.tiktok;
     
     document.title = `${s.username || 'My Store'} - Link Bio`;
   }
