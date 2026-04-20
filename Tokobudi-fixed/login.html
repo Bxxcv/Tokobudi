@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="w-full px-4 py-4 text-base flex items-center justify-center min-h-screen bg-[#F4F4F4]">
+  <div class="earth-card w-full max-w-sm p-8" style="animation: fadeIn 0.6s ease-out;">
+    <div class="flex justify-center mb-6">
+      <div class="w-14 h-14 bg-black rounded-2xl flex items-center justify-center text-white">
+        <i data-lucide="lock" class="w-6 h-6"></i>
+      </div>
+    </div>
+    <h1 class="font-bold text-2xl text-center mb-1 text-gray-900">Admin Access</h1>
+    <p class="text-center text-gray-400 text-xs mb-8">Masuk untuk mengelola toko</p>
+    <div class="space-y-4">
+      <div><label class="text-xs text-gray-400 mb-1 block">Email</label><input id="email" type="email" placeholder="admin@email.com" class="p-3.5 rounded-xl w-full text-sm"></div>
+      <div><label class="text-xs text-gray-400 mb-1 block">Password</label><input id="password" type="password" placeholder="••••••••" class="p-3.5 rounded-xl w-full text-sm"></div>
+    </div>
+    <button id="loginBtn" class="w-full mt-6 py-3.5 rounded-xl font-semibold text-sm bg-black text-white hover:bg-gray-800 transition-all">Masuk</button>
+    <p id="errorMsg" class="text-red-500 text-xs text-center mt-4 h-4"></p>
+  </div>
+  <script type="module">
+    import { auth } from './js/firebase.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    onAuthStateChanged(auth, (user) => { if (user) window.location.href = 'admin.html'; });
+    document.getElementById('loginBtn').onclick = () => {
+      const btn = document.getElementById('loginBtn'); btn.innerHTML = '...'; btn.disabled = true;
+      signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+       .then(() => {}).catch((err) => { document.getElementById('errorMsg').innerText = 'Email atau password salah'; btn.innerHTML = 'Masuk'; btn.disabled = false; });
+    };
+  </script>
+</body>
+</html>
