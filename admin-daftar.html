@@ -1,53 +1,134 @@
 <!DOCTYPE html>
-<html>
-<head><title>Daftar User - Khusus Admin</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-    <h2 class="font-bold text-xl mb-4">Admin Panel: Daftarkan User Baru</h2>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel: Daftarkan User Baru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">Admin Panel: Daftarkan User Baru</h1>
+    
+    <!-- Form Login Admin -->
     <div id="loginAdmin">
-      <p class="text-sm mb-2">Login sebagai Admin dulu:</p>
-      <input id="adminEmail" placeholder="Email Admin" class="w-full p-2 border rounded mb-2">
+      <p class="mb-4 text-sm text-gray-600">Login sebagai Admin dulu:</p>
+      <input id="adminEmail" type="email" placeholder="Email Admin" class="w-full p-2 border rounded mb-2">
       <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-2 border rounded mb-4">
-      <button onclick="loginAdmin()" class="w-full bg-black text-white p-2 rounded">Login Admin</button>
+      <button onclick="loginAdmin()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login Admin</button>
     </div>
-    <div id="formDaftar" style="display:none">
-      <p class="text-sm mb-4">Login sebagai: <b id="adminYgLogin"></b></p>
-      <input id="emailUser" placeholder="Email user baru" class="w-full p-2 border rounded mb-2">
-      <input id="passUser" placeholder="Password user baru" class="w-full p-2 border rounded mb-4">
-      <button onclick="daftarinUser()" class="w-full bg-black text-white p-2 rounded">Daftarkan User</button>
-      <p id="status" class="text-xs mt-4 text-center"></p>
+
+    <!-- Form Daftar User Baru, sembunyi dulu -->
+    <div id="formDaftar" style="display:none;">
+      <p class="mb-4 text-sm text-green-600">Login sebagai: <span id="adminYgLogin" class="font-semibold"></span></p>
+      <hr class="my-4">
+      <h2 class="text-lg font-semibold mb-2">Daftarkan User/Toko Baru</h2>
+      <input id="namaToko" type="text" placeholder="Nama Toko" class="w-full p-2 border rounded mb-2">
+      <input id="emailUser" type="email" placeholder="Email User Baru" class="w-full p-2 border rounded mb-2">
+      <input id="passUser" type="password" placeholder="Password User Baru" class="w-full p-2 border rounded mb-4">
+      <button onclick="daftarkanUser()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Daftarkan User</button>
+      <button onclick="logoutAdmin()" class="w-full bg-gray-500 text-white p-2 rounded mt-2 hover:bg-gray-600">Logout Admin</button>
     </div>
   </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { APP_CONFIG } from './js/config.js';
 
-  const app = initializeApp(APP_CONFIG.firebaseConfig);
-  const auth = getAuth(app);
-  const EMAIL_ADMIN = 'unrageunrage@gmail.com'; // GANTI INI!
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  window.loginAdmin = () => {
-    signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value).catch(e => alert(e.message));
-  }
-  auth.onAuthStateChanged(user => {
-    if (user && user.email === EMAIL_ADMIN) {
-      loginAdmin.style.display = 'none'; formDaftar.style.display = 'block';
-      adminYgLogin.innerText = user.email;
-    } else {
-      loginAdmin.style.display = 'block'; formDaftar.style.display = 'none';
-      if(user) signOut(auth);
+    // 1. CONFIG FIREBASE LU - GANTI KALO BEDA
+    const APP_CONFIG = {
+      firebaseConfig: {
+        apiKey: "AIzaSyA8ilmyaTqUyGqwtvqJml5PuNAwBcl8784",
+        authDomain: "toko-budi-81421.firebaseapp.com",
+        projectId: "toko-budi-81421",
+        storageBucket: "toko-budi-81421.firebasestorage.app",
+        messagingSenderId: "83251261024",
+        appId: "1:83251261024:web:366c25cb16758dff829d05"
+      }
+    };
+
+    // 2. EMAIL ADMIN YG BOLEH AKSES HALAMAN INI
+    const EMAIL_ADMIN = 'unrageunrage@gmail.com'; // UDAH GUE ISI
+
+    // 3. INISIALISASI
+    const app = initializeApp(APP_CONFIG.firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    // 4. INI YG BIKIN ERROR TADI - UDAH GUE BENERIN
+    const loginAdminDiv = document.getElementById('loginAdmin');
+    const formDaftarDiv = document.getElementById('formDaftar');
+    const adminEmail = document.getElementById('adminEmail');
+    const adminPass = document.getElementById('adminPass');
+    const adminYgLogin = document.getElementById('adminYgLogin');
+
+    // 5. FUNGSI LOGIN ADMIN
+    window.loginAdmin = () => {
+      signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value)
+        .catch(e => alert("Gagal Login: " + e.message));
     }
-  });
-  window.daftarinUser = async () => {
-    const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, "Secondary");
-    const secondaryAuth = getAuth(secondaryApp);
-    try {
-      await createUserWithEmailAndPassword(secondaryAuth, emailUser.value, passUser.value);
-      status.innerText = `Sukses! User ${emailUser.value} terdaftar.`;
-      await signOut(secondaryAuth);
-    } catch (e) { status.innerText = 'Gagal: ' + e.message; }
-  }
-</script>
+    
+    // 6. FUNGSI LOGOUT ADMIN
+    window.logoutAdmin = () => {
+      signOut(auth);
+    }
+
+    // 7. CEK STATUS LOGIN ADMIN
+    onAuthStateChanged(auth, user => {
+      if (user && user.email === EMAIL_ADMIN) {
+        // Kalo yg login bener admin
+        loginAdminDiv.style.display = 'none'; 
+        formDaftarDiv.style.display = 'block';
+        adminYgLogin.innerText = user.email;
+      } else {
+        // Kalo belum login / bukan admin
+        loginAdminDiv.style.display = 'block'; 
+        formDaftarDiv.style.display = 'none';
+        if(user) {
+          alert("Akses ditolak. Akun ini bukan admin.");
+          signOut(auth);
+        }
+      }
+    });
+
+    // 8. FUNGSI DAFTARIN USER BARU PAKE SECONDARY APP BIAR GA KE-LOGOUT
+    window.daftarkanUser = async () => {
+      const namaToko = document.getElementById('namaToko').value;
+      const emailUser = document.getElementById('emailUser').value;
+      const passUser = document.getElementById('passUser').value;
+
+      if (!namaToko || !emailUser || !passUser) {
+        return alert("Isi semua field woy!");
+      }
+      if (passUser.length < 6) {
+        return alert("Password user baru minimal 6 karakter!");
+      }
+
+      // Bikin app kedua khusus buat daftar, biar admin ga ke-logout
+      const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, "Secondary");
+      const secondaryAuth = getAuth(secondaryApp);
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, emailUser, passUser);
+        const user = userCredential.user;
+        
+        // Simpen data toko ke Firestore
+        await setDoc(doc(db, "toko", user.uid), {
+          namaToko: namaToko,
+          email: user.email,
+          dibuatPada: new Date()
+        });
+        
+        alert(`Sukses! User ${emailUser} dengan toko "${namaToko}" berhasil didaftarkan.`);
+        document.getElementById('namaToko').value = '';
+        document.getElementById('emailUser').value = '';
+        document.getElementById('passUser').value = '';
+
+      } catch (error) {
+        alert("Gagal daftar user: " + error.message);
+      }
+    }
+  </script>
 </body>
 </html>
