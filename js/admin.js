@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnHamburger= document.getElementById('btn-hamburger');
   const btnLogout = document.getElementById('btn-logout');
   const adminEmail = document.getElementById('admin-email');
+  const btnCopyLink = document.getElementById('btn-copy-link'); // BARU
 
   const productsList= document.getElementById('products-list');
   const btnAddProd = document.getElementById('btn-add-product');
@@ -64,6 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
   }
+  // Biar bisa dipake global
+  window.showToast = toast;
 
   // ── CLOCK ─────────────────────────────────
   const clockEl = document.getElementById('clock-time');
@@ -93,32 +96,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── AUTH ──────────────────────────────────
-  onAuthStateChanged(auth, user => {
+  // ── AUTH - UDAH DIBENERIN BIAR GA MENTAL ─────────────────────────────
+  onAuthStateChanged(auth, async user => {
     if (user) {
-      adminEmail.textContent = user.email;
-      inpNewEmail.value = user.email;
-      loadProducts();
-      loadSettings();
-      loadStats();
+      // Cek dulu apakah user ini punya data toko
+      const tokoRef = doc(db, 'users', user.uid, 'settings', 'toko');
+      const tokoSnap = await getDoc(tokoRef);
+
+      if (tokoSnap.exists()) {
+        adminEmail.textContent = user.email;
+        inpNewEmail.value = user.email;
+        loadProducts();
+        loadSettings();
+        loadStats();
+      } else {
+        toast('Akun ini belum terdaftar sebagai toko! Hubungi admin.', 'err');
+        setTimeout(() => signOut(auth), 2000);
+      }
     } else {
       window.location.href = 'login-user.html';
     }
   });
-// Tombol Copy Link Toko
-const btnCopyLink = document.getElementById('btn-copy-link');
-if (btnCopyLink) {
-  btnCopyLink.addEventListener('click', () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return showToast('Login dulu!', 'error');
-    const link = `${window.location.origin}/index.html?uid=${uid}`;
-    navigator.clipboard.writeText(link).then(() => {
-      showToast('Link toko berhasil dicopy!');
-    }).catch(() => {
-      showToast('Gagal copy link', 'error');
+
+  // ── COPY LINK TOKO - UDAH DIBENERIN ─────────────────────────────
+  if (btnCopyLink) {
+    btnCopyLink.addEventListener('click', () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return toast('Login dulu!', 'err');
+      const link = `${window.location.origin}/index.html?uid=${uid}`;
+      navigator.clipboard.writeText(link).then(() => {
+        toast('Link toko berhasil dicopy!');
+      }).catch(() => {
+        toast('Gagal copy link', 'err');
+      });
     });
-  });
-}
+  }
+
   btnLogout.addEventListener('click', () => {
     if (confirm('Yakin mau keluar?')) signOut(auth);
   });
