@@ -105,7 +105,20 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'login-user.html';
     }
   });
-
+// Tombol Copy Link Toko
+const btnCopyLink = document.getElementById('btn-copy-link');
+if (btnCopyLink) {
+  btnCopyLink.addEventListener('click', () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return showToast('Login dulu!', 'error');
+    const link = `${window.location.origin}/index.html?uid=${uid}`;
+    navigator.clipboard.writeText(link).then(() => {
+      showToast('Link toko berhasil dicopy!');
+    }).catch(() => {
+      showToast('Gagal copy link', 'error');
+    });
+  });
+}
   btnLogout.addEventListener('click', () => {
     if (confirm('Yakin mau keluar?')) signOut(auth);
   });
