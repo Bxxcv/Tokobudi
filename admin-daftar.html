@@ -3,44 +3,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel: Daftarkan User Baru</title>
+  <title>LINKify Admin: Manajemen User</title>
   <!-- Favicon LINKify -->
-<link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
-<link rel="icon" type="image/png" sizes="16x16" href="logo-linkify.png">
-<link rel="apple-touch-icon" href="logo-linkify.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="logo-linkify.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'lf-dark': '#2E2E2E',
+            'lf-orange': '#EE4D2D',
+            'lf-orange-hover': '#D74121',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-  <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-    <h1 class="text-2xl font-bold mb-4 text-center">Admin Panel: Daftarkan User Baru</h1>
-    
-    <!-- Form Login Admin -->
-    <div id="loginAdmin">
-      <p class="mb-4 text-sm text-gray-600">Login sebagai Admin dulu:</p>
-      <input id="adminEmail" type="email" placeholder="Email Admin" class="w-full p-2 border rounded mb-2">
-      <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-2 border rounded mb-4">
-      <button onclick="loginAdmin()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login Admin</button>
-    </div>
+<body class="bg-gray-100">
+  <div class="flex h-screen overflow-hidden">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="bg-lf-dark text-white w-64 space-y-6 py-7 px-2 absolute inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-30">
+      <div class="flex items-center space-x-2 px-4">
+        <img src="logo-linkify.png" alt="LF" class="w-8 h-8">
+        <span class="text-2xl font-bold">LINKify</span>
+      </div>
+      <nav>
+        <a href="admin.html" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700">📊 Dashboard</a>
+        <a href="admin-daftar.html" class="block py-2.5 px-4 rounded transition duration-200 bg-lf-orange text-white">👥 Manajemen User</a>
+        <a href="#" onclick="logoutAdmin()" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 absolute bottom-4 w-56">🚪 Logout</a>
+      </nav>
+    </aside>
 
-    <!-- Form Daftar User Baru, sembunyi dulu -->
-    <div id="formDaftar" style="display:none;">
-      <p class="mb-4 text-sm text-green-600">Login sebagai: <span id="adminYgLogin" class="font-semibold"></span></p>
-      <hr class="my-4">
-      <h2 class="text-lg font-semibold mb-2">Daftarkan User/Toko Baru</h2>
-      <input id="namaToko" type="text" placeholder="Nama Toko" class="w-full p-2 border rounded mb-2">
-      <input id="emailUser" type="email" placeholder="Email User Baru" class="w-full p-2 border rounded mb-2">
-      <input id="passUser" type="password" placeholder="Password User Baru" class="w-full p-2 border rounded mb-4">
-      <button onclick="daftarkanUser()" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Daftarkan User</button>
-      <button onclick="logoutAdmin()" class="w-full bg-gray-500 text-white p-2 rounded mt-2 hover:bg-gray-600">Logout Admin</button>
+    <!-- KONTEN UTAMA -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- HEADER -->
+      <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="flex items-center justify-between p-4">
+          <div class="flex items-center">
+            <button id="hamburger" class="md:hidden mr-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 class="text-xl font-semibold text-gray-800">Manajemen User</h1>
+          </div>
+          <div id="jam" class="text-sm font-medium text-gray-600">--:--:-- WIB</div>
+        </div>
+      </header>
+
+      <!-- KONTEN SCROLL -->
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+        
+        <!-- HALAMAN LOGIN ADMIN -->
+        <div id="loginAdmin">
+          <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md mx-auto mt-10">
+            <h2 class="text-2xl font-bold mb-4 text-center">Login Admin</h2>
+            <input id="adminEmail" type="email" placeholder="Email Admin" class="w-full p-2 border rounded mb-2">
+            <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-2 border rounded mb-4">
+            <button onclick="loginAdmin()" class="w-full bg-lf-orange text-white p-2 rounded hover:bg-lf-orange-hover">Login Admin</button>
+          </div>
+        </div>
+
+        <!-- HALAMAN DASHBOARD ADMIN -->
+        <div id="formDaftar" style="display:none;">
+          <p class="mb-6 text-sm text-gray-600">Login sebagai: <span id="adminYgLogin" class="font-semibold text-lf-orange"></span></p>
+
+          <!-- CARD STATISTIK -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow">
+              <p class="text-sm text-gray-500">Total User Terdaftar</p>
+              <p id="totalUser" class="text-3xl font-bold text-lf-dark">0</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow">
+              <p class="text-sm text-gray-500">Total Omset Semua Toko</p>
+              <p id="totalOmset" class="text-3xl font-bold text-lf-dark">Rp 0</p>
+            </div>
+            <div class="bg-white p-5 rounded-lg shadow">
+              <p class="text-sm text-gray-500">User Aktif</p>
+              <p id="totalAktif" class="text-3xl font-bold text-green-600">0</p>
+            </div>
+          </div>
+
+          <!-- CARD FORM TAMBAH USER -->
+          <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+            <h2 class="text-lg font-semibold mb-4">Tambah User/Toko Baru</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input id="namaToko" type="text" placeholder="Nama Toko" class="w-full p-2 border rounded">
+              <input id="emailUser" type="email" placeholder="Email User Baru" class="w-full p-2 border rounded">
+              <input id="passUser" type="password" placeholder="Password User Baru" class="w-full p-2 border rounded">
+            </div>
+            <button onclick="daftarkanUser()" class="mt-4 bg-lf-orange text-white px-6 py-2 rounded hover:bg-lf-orange-hover">+ Daftarkan User</button>
+          </div>
+
+          <!-- CARD TABEL USER -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">List User Terdaftar</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600">
+                  <tr>
+                    <th class="p-3">No</th>
+                    <th class="p-3">Nama Toko</th>
+                    <th class="p-3">Email</th>
+                    <th class="p-3">Omset</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelUser">
+                  <tr><td colspan="6" class="text-center p-4 text-gray-500">Loading data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // 1. CONFIG FIREBASE LU - GANTI KALO BEDA
+    // 1. CONFIG FIREBASE LU
     const APP_CONFIG = {
       firebaseConfig: {
         apiKey: "AIzaSyA8ilmyaTqUyGqwtvqJml5PuNAwBcl8784",
@@ -52,41 +143,48 @@
       }
     };
 
-    // 2. EMAIL ADMIN YG BOLEH AKSES HALAMAN INI
-    const EMAIL_ADMIN = 'unrageunrage@gmail.com'; // UDAH GUE ISI
+    const EMAIL_ADMIN = 'unrageunrage@gmail.com';
 
-    // 3. INISIALISASI
+    // 2. INISIALISASI
     const app = initializeApp(APP_CONFIG.firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
     
-    // 4. INI YG BIKIN ERROR TADI - UDAH GUE BENERIN
     const loginAdminDiv = document.getElementById('loginAdmin');
     const formDaftarDiv = document.getElementById('formDaftar');
-    const adminEmail = document.getElementById('adminEmail');
-    const adminPass = document.getElementById('adminPass');
     const adminYgLogin = document.getElementById('adminYgLogin');
+    const tabelUser = document.getElementById('tabelUser');
 
-    // 5. FUNGSI LOGIN ADMIN
+    // 3. FUNGSI JAM REAL-TIME
+    function updateJam() {
+      const now = new Date();
+      const jam = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' });
+      document.getElementById('jam').innerText = jam + ' WIB';
+    }
+    setInterval(updateJam, 1000);
+    updateJam();
+
+    // 4. SIDEBAR HP
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+    });
+
+    // 5. FUNGSI LOGIN/LOGOUT ADMIN - GA DIUBAH
     window.loginAdmin = () => {
-      signInWithEmailAndPassword(auth, adminEmail.value, adminPass.value)
-        .catch(e => alert("Gagal Login: " + e.message));
+      const email = document.getElementById('adminEmail').value;
+      const pass = document.getElementById('adminPass').value;
+      signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Gagal Login: " + e.message));
     }
-    
-    // 6. FUNGSI LOGOUT ADMIN
-    window.logoutAdmin = () => {
-      signOut(auth);
-    }
+    window.logoutAdmin = () => signOut(auth);
 
-    // 7. CEK STATUS LOGIN ADMIN
+    // 6. CEK STATUS LOGIN ADMIN
     onAuthStateChanged(auth, user => {
       if (user && user.email === EMAIL_ADMIN) {
-        // Kalo yg login bener admin
         loginAdminDiv.style.display = 'none'; 
         formDaftarDiv.style.display = 'block';
         adminYgLogin.innerText = user.email;
+        ambilDataUser(); // Panggil fungsi ambil data kalo udah login
       } else {
-        // Kalo belum login / bukan admin
         loginAdminDiv.style.display = 'block'; 
         formDaftarDiv.style.display = 'none';
         if(user) {
@@ -96,20 +194,15 @@
       }
     });
 
-    // 8. FUNGSI DAFTARIN USER BARU PAKE SECONDARY APP BIAR GA KE-LOGOUT
+    // 7. FUNGSI DAFTARIN USER - CUMA NAMBAH FIELD OMSET & STATUS
     window.daftarkanUser = async () => {
       const namaToko = document.getElementById('namaToko').value;
       const emailUser = document.getElementById('emailUser').value;
       const passUser = document.getElementById('passUser').value;
 
-      if (!namaToko || !emailUser || !passUser) {
-        return alert("Isi semua field woy!");
-      }
-      if (passUser.length < 6) {
-        return alert("Password user baru minimal 6 karakter!");
-      }
+      if (!namaToko || !emailUser || !passUser) return alert("Isi semua field woy!");
+      if (passUser.length < 6) return alert("Password user baru minimal 6 karakter!");
 
-      // Bikin app kedua khusus buat daftar, biar admin ga ke-logout
       const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, "Secondary");
       const secondaryAuth = getAuth(secondaryApp);
 
@@ -117,20 +210,79 @@
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, emailUser, passUser);
         const user = userCredential.user;
         
-        // Simpen data toko ke Firestore
+        // TAMBAH FIELD OMSET & STATUS DISINI
         await setDoc(doc(db, "toko", user.uid), {
           namaToko: namaToko,
           email: user.email,
+          omset: 0, // Default 0
+          status: 'aktif', // Default aktif
           dibuatPada: new Date()
         });
         
-        alert(`Sukses! User ${emailUser} dengan toko "${namaToko}" berhasil didaftarkan.`);
+        alert(`Sukses! User ${emailUser} berhasil didaftarkan.`);
         document.getElementById('namaToko').value = '';
         document.getElementById('emailUser').value = '';
         document.getElementById('passUser').value = '';
-
+        ambilDataUser(); // Refresh tabel
       } catch (error) {
         alert("Gagal daftar user: " + error.message);
+      }
+    }
+
+    // 8. FUNGSI AMBIL DATA USER + HITUNG STATISTIK - FUNGSI BARU
+    async function ambilDataUser() {
+      const q = query(collection(db, "toko"), orderBy("dibuatPada", "desc"));
+      const querySnapshot = await getDocs(q);
+      
+      let totalUser = 0;
+      let totalOmset = 0;
+      let totalAktif = 0;
+      let htmlTabel = '';
+      let no = 1;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const uid = doc.id;
+        totalUser++;
+        totalOmset += data.omset || 0;
+        if (data.status === 'aktif') totalAktif++;
+
+        const statusBadge = data.status === 'aktif' 
+          ? `<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Aktif</span>`
+          : `<span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Diblokir</span>`;
+        
+        const tombolAksi = data.status === 'aktif'
+          ? `<button onclick="blokirUser('${uid}', 'blokir')" class="text-red-600 hover:underline">Blokir</button>`
+          : `<button onclick="blokirUser('${uid}', 'aktif')" class="text-green-600 hover:underline">Buka Blokir</button>`;
+
+        htmlTabel += `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3">${no++}</td>
+            <td class="p-3 font-medium">${data.namaToko}</td>
+            <td class="p-3">${data.email}</td>
+            <td class="p-3">Rp ${(data.omset || 0).toLocaleString('id-ID')}</td>
+            <td class="p-3">${statusBadge}</td>
+            <td class="p-3">${tombolAksi}</td>
+          </tr>
+        `;
+      });
+
+      // Update Statistik
+      document.getElementById('totalUser').innerText = totalUser;
+      document.getElementById('totalOmset').innerText = 'Rp ' + totalOmset.toLocaleString('id-ID');
+      document.getElementById('totalAktif').innerText = totalAktif;
+      tabelUser.innerHTML = htmlTabel || `<tr><td colspan="6" class="text-center p-4 text-gray-500">Belum ada user terdaftar</td></tr>`;
+    }
+
+    // 9. FUNGSI BLOKIR/BUKA BLOKIR - FUNGSI BARU
+    window.blokirUser = async (uid, statusBaru) => {
+      if (!confirm(`Yakin mau ${statusBaru === 'blokir' ? 'memblokir' : 'membuka blokir'} user ini?`)) return;
+      try {
+        await updateDoc(doc(db, "toko", uid), { status: statusBaru });
+        alert('Status user berhasil diupdate!');
+        ambilDataUser(); // Refresh tabel
+      } catch (error) {
+        alert('Gagal update status: ' + error.message);
       }
     }
   </script>
