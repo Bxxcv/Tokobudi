@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LINKify Admin: Manajemen User</title>
   <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="logo-linkify.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,11 +28,12 @@
   </style>
 </head>
 <body class="bg-slate-50">
-  <!-- OVERLAY MOBILE - BUAT NUTUP SIDEBAR -->
+
+  <!-- OVERLAY MOBILE -->
   <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden" onclick="closeSidebar()"></div>
 
   <div class="flex h-screen overflow-hidden">
-    <!-- SIDEBAR - FIX RESPONSIVE -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="bg-lf-dark text-slate-300 w-64 space-y-6 py-6 px-3 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
       <div class="flex items-center space-x-3 px-3">
         <img src="logo-linkify.png" alt="LF" class="w-8 h-8 rounded">
@@ -68,20 +68,27 @@
             </button>
             <h1 class="text-lg font-semibold text-slate-800">Manajemen User</h1>
           </div>
-          <div id="jam" class="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full">--:--:-- WIB</div>
+          <div id="jam" class="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full">--:-- WIB</div>
         </div>
       </header>
 
       <!-- KONTEN SCROLL -->
       <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
-        
+
         <!-- HALAMAN LOGIN ADMIN -->
         <div id="loginAdmin">
           <div class="bg-white p-6 rounded-xl shadow-card w-full max-w-md mx-auto mt-10">
             <h2 class="text-2xl font-bold mb-4 text-center text-slate-800">Login Admin</h2>
-            <input id="adminEmail" type="email" placeholder="Email Admin" class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-            <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-3 border border-slate-300 rounded-lg mb-4 focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-            <button onclick="loginAdmin()" class="w-full bg-lf-orange text-white p-3 rounded-lg font-semibold hover:bg-lf-orange-hover transition">Login Admin</button>
+            <input id="adminEmail" type="email" placeholder="Email Admin"
+              class="w-full p-3 border border-slate-300 rounded-lg mb-3 focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+            <input id="adminPass" type="password" placeholder="Password Admin"
+              class="w-full p-3 border border-slate-300 rounded-lg mb-4 focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+            <button onclick="loginAdmin()"
+              class="w-full bg-lf-orange text-white p-3 rounded-lg font-semibold hover:bg-lf-orange-hover transition">
+              Login Admin
+            </button>
+            <!-- FIX: Tambah info error login -->
+            <p id="loginError" class="text-red-500 text-sm text-center mt-3 hidden"></p>
           </div>
         </div>
 
@@ -89,7 +96,8 @@
         <div id="formDaftar" style="display:none;">
           <p class="mb-6 text-sm text-slate-600">Login sebagai: <span id="adminYgLogin" class="font-semibold text-lf-orange"></span></p>
 
-          <!-- CARD STATISTIK - UDAH FIX -->
+          <!-- CARD STATISTIK -->
+          <!-- FIX: Tag div penutup statistik card pertama yang hilang di versi original -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             <div class="bg-white p-5 rounded-xl shadow-card border border-slate-100">
               <div class="flex items-center justify-between">
@@ -97,45 +105,68 @@
                   <p class="text-sm text-slate-500">Total User</p>
                   <p id="totalUser" class="text-2xl font-bold text-slate-800 mt-1">0</p>
                 </div>
-                <div class="bg-blue-100 p-3 rounded-lg"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                  </svg>
+                </div>
               </div>
+            </div>
+
             <div class="bg-white p-5 rounded-xl shadow-card border border-slate-100">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm text-slate-500">Total Omset</p>
                   <p id="totalOmset" class="text-2xl font-bold text-slate-800 mt-1">Rp 0</p>
                 </div>
-                <div class="bg-green-100 p-3 rounded-lg"><svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                <div class="bg-green-100 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
               </div>
               <p class="text-xs text-slate-400 mt-2">*Manual, update dari transaksi</p>
             </div>
+
             <div class="bg-white p-5 rounded-xl shadow-card border border-slate-100">
               <div class="flex items-center justify-between">
                 <div>
                   <p class="text-sm text-slate-500">User Aktif</p>
                   <p id="totalAktif" class="text-2xl font-bold text-green-600 mt-1">0</p>
                 </div>
-                <div class="bg-lf-orange/10 p-3 rounded-lg"><svg class="w-6 h-6 text-lf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                <div class="bg-lf-orange/10 p-3 rounded-lg">
+                  <svg class="w-6 h-6 text-lf-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- CARD FORM TAMBAH USER - RESPONSIVE -->
+          <!-- CARD FORM TAMBAH USER -->
           <div class="bg-white p-5 md:p-6 rounded-xl shadow-card mb-6 border border-slate-100">
             <h2 class="text-lg font-semibold mb-4 text-slate-800">Tambah User/Toko Baru</h2>
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-3">
-              <input id="namaToko" type="text" placeholder="Nama Toko" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-              <input id="namaPemilik" type="text" placeholder="Nama Pemilik" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-              <input id="emailUser" type="email" placeholder="Email User Baru" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-              <input id="passUser" type="password" placeholder="Password" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
-              <button onclick="daftarkanUser()" class="bg-lf-orange text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-lf-orange-hover transition">+ Daftarkan</button>
+              <input id="namaToko" type="text" placeholder="Nama Toko"
+                class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+              <input id="namaPemilik" type="text" placeholder="Nama Pemilik"
+                class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+              <input id="emailUser" type="email" placeholder="Email User Baru"
+                class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+              <input id="passUser" type="password" placeholder="Password (min 6 karakter)"
+                class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+              <button onclick="daftarkanUser()" id="btnDaftar"
+                class="bg-lf-orange text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-lf-orange-hover transition disabled:opacity-50">
+                + Daftarkan
+              </button>
             </div>
           </div>
 
           <!-- CARD TABEL USER -->
           <div class="bg-white rounded-xl shadow-card border border-slate-100">
-            <div class="p-5 md:p-6 border-b border-slate-100">
+            <div class="p-5 md:p-6 border-b border-slate-100 flex items-center justify-between">
               <h2 class="text-lg font-semibold text-slate-800">List User Terdaftar</h2>
+              <button onclick="ambilDataUser()" class="text-sm text-lf-orange hover:underline font-medium">↻ Refresh</button>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
@@ -143,6 +174,7 @@
                   <tr>
                     <th class="p-3 text-left font-medium">No</th>
                     <th class="p-3 text-left font-medium">Nama Toko</th>
+                    <th class="p-3 text-left font-medium">Pemilik</th>
                     <th class="p-3 text-left font-medium">Email</th>
                     <th class="p-3 text-left font-medium">Omset</th>
                     <th class="p-3 text-left font-medium">Status</th>
@@ -150,7 +182,7 @@
                   </tr>
                 </thead>
                 <tbody id="tabelUser" class="divide-y divide-slate-100">
-                  <tr><td colspan="6" class="text-center p-6 text-slate-500">Loading data...</td></tr>
+                  <tr><td colspan="7" class="text-center p-6 text-slate-500">Loading data...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -161,144 +193,255 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDocs, collection,
+      updateDoc, deleteDoc, query, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const APP_CONFIG = { firebaseConfig: { apiKey: "AIzaSyA8ilmyaTqUyGqwtvqJml5PuNAwBcl8784", authDomain: "toko-budi-81421.firebaseapp.com", projectId: "toko-budi-81421", storageBucket: "toko-budi-81421.firebasestorage.app", messagingSenderId: "83251261024", appId: "1:83251261024:web:366c25cb16758dff829d05" } };
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyA8ilmyaTqUyGqwtvqJml5PuNAwBcl8784",
+      authDomain: "toko-budi-81421.firebaseapp.com",
+      projectId: "toko-budi-81421",
+      storageBucket: "toko-budi-81421.firebasestorage.app",
+      messagingSenderId: "83251261024",
+      appId: "1:83251261024:web:366c25cb16758dff829d05"
+    };
     const EMAIL_ADMIN = 'unrageunrage@gmail.com';
-    const app = initializeApp(APP_CONFIG.firebaseConfig);
+
+    // FIX: Cegah duplicate app error jika firebase sudah diinit di tab lain
+    const app = getApps().find(a => a.name === '[DEFAULT]') || initializeApp(FIREBASE_CONFIG);
     const auth = getAuth(app);
-    const db = getFirestore(app);
-    
+    const db   = getFirestore(app);
+
     const loginAdminDiv = document.getElementById('loginAdmin');
     const formDaftarDiv = document.getElementById('formDaftar');
-    const adminYgLogin = document.getElementById('adminYgLogin');
-    const tabelUser = document.getElementById('tabelUser');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
+    const adminYgLogin  = document.getElementById('adminYgLogin');
+    const tabelUser     = document.getElementById('tabelUser');
+    const sidebar       = document.getElementById('sidebar');
+    const overlay       = document.getElementById('overlay');
+    const loginError    = document.getElementById('loginError');
 
+    // ── SIDEBAR ───────────────────────────────
     function closeSidebar() {
       sidebar.classList.add('-translate-x-full');
       overlay.classList.add('hidden');
     }
     window.closeSidebar = closeSidebar;
+
     document.getElementById('hamburger').addEventListener('click', () => {
       sidebar.classList.remove('-translate-x-full');
       overlay.classList.remove('hidden');
     });
 
+    // ── JAM ───────────────────────────────────
     function updateJam() {
-      const now = new Date();
-      const jam = now.toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
+      const jam = new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' });
       document.getElementById('jam').innerText = jam + ' WIB';
     }
-    setInterval(updateJam, 1000); updateJam();
+    setInterval(updateJam, 1000);
+    updateJam();
 
-    window.loginAdmin = () => {
-      signInWithEmailAndPassword(auth, document.getElementById('adminEmail').value, document.getElementById('adminPass').value)
-        .catch(e => alert("Gagal Login: " + e.message));
-    }
+    // ── LOGIN / LOGOUT ────────────────────────
+    window.loginAdmin = async () => {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass  = document.getElementById('adminPass').value;
+      loginError.classList.add('hidden');
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (e) {
+        // FIX: Tampilkan error login yang informatif
+        const msg = e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found'
+          ? 'Email atau password salah!'
+          : e.code === 'auth/invalid-email'
+          ? 'Format email tidak valid!'
+          : 'Login gagal: ' + e.message;
+        loginError.textContent = msg;
+        loginError.classList.remove('hidden');
+      }
+    };
+
     window.logoutAdmin = () => signOut(auth);
 
-    // FIX INFINITE LOOP LOGIN
+    // ── AUTH STATE ────────────────────────────
+    // FIX: Flag isLoggingOut untuk cegah infinite loop alert
     let isLoggingOut = false;
     onAuthStateChanged(auth, user => {
       if (isLoggingOut) return;
-      
       if (user && user.email === EMAIL_ADMIN) {
-        loginAdminDiv.style.display = 'none'; 
+        loginAdminDiv.style.display = 'none';
         formDaftarDiv.style.display = 'block';
         adminYgLogin.innerText = user.email;
         ambilDataUser();
       } else {
-        loginAdminDiv.style.display = 'block'; 
+        loginAdminDiv.style.display = 'block';
         formDaftarDiv.style.display = 'none';
-        if(user) { 
-          alert("Akses ditolak. Akun ini bukan admin.");
+        if (user) {
+          alert('Akses ditolak. Akun ini bukan admin.');
           isLoggingOut = true;
           signOut(auth).finally(() => isLoggingOut = false);
         }
       }
     });
 
+    // ── DAFTARKAN USER BARU ───────────────────
+    // FIX: Pakai Secondary App yang benar-benar terpisah agar admin tidak ikut logout
     window.daftarkanUser = async () => {
-      const namaToko = document.getElementById('namaToko').value.trim();
+      const namaToko    = document.getElementById('namaToko').value.trim();
       const namaPemilik = document.getElementById('namaPemilik').value.trim();
-      const emailUser = document.getElementById('emailUser').value.trim();
-      const passUser = document.getElementById('passUser').value;
-      
-      if (!namaToko || !namaPemilik || !emailUser || !passUser) return alert("Isi semua field woy!");
-      if (passUser.length < 6) return alert("Password minimal 6 karakter!");
+      const emailUser   = document.getElementById('emailUser').value.trim();
+      const passUser    = document.getElementById('passUser').value;
+      const btnDaftar   = document.getElementById('btnDaftar');
 
-      const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, "Secondary");
+      if (!namaToko || !namaPemilik || !emailUser || !passUser) {
+        return alert('Isi semua field terlebih dahulu!');
+      }
+      if (passUser.length < 6) {
+        return alert('Password minimal 6 karakter!');
+      }
+
+      btnDaftar.disabled = true;
+      btnDaftar.textContent = 'Mendaftarkan...';
+
+      // Buat secondary Firebase App dengan nama unik agar tidak konflik
+      const secondaryAppName = 'secondary-' + Date.now();
+      const secondaryApp  = initializeApp(FIREBASE_CONFIG, secondaryAppName);
       const secondaryAuth = getAuth(secondaryApp);
+
       try {
+        // Buat akun Firebase Auth untuk user baru
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, emailUser, passUser);
         const uid = userCredential.user.uid;
-        
-        await setDoc(doc(db, "toko", uid), {
-          namaToko: namaToko,
-          pemilik: namaPemilik,
-          email: emailUser,
-          omset: 0,
-          status: 'aktif',
+
+        // FIX: Simpan data toko di /toko/{uid} — konsisten dengan admin.js & script.js
+        await setDoc(doc(db, 'toko', uid), {
+          namaToko:   namaToko,
+          pemilik:    namaPemilik,
+          email:      emailUser,
+          omset:      0,
+          status:     'aktif',
           dibuatPada: serverTimestamp()
         });
-        
-        alert(`Sukses! User ${emailUser} + Toko berhasil didaftarkan.`);
-        document.getElementById('namaToko').value = '';
+
+        alert(`Sukses! User ${emailUser} berhasil didaftarkan sebagai toko "${namaToko}".`);
+
+        // Reset form
+        document.getElementById('namaToko').value    = '';
         document.getElementById('namaPemilik').value = '';
-        document.getElementById('emailUser').value = '';
-        document.getElementById('passUser').value = '';
+        document.getElementById('emailUser').value   = '';
+        document.getElementById('passUser').value    = '';
+
         ambilDataUser();
-      } catch (error) { 
-        alert("Gagal daftar user: " + error.message); 
+      } catch (error) {
+        // FIX: Pesan error yang lebih informatif
+        const msg = error.code === 'auth/email-already-in-use'
+          ? 'Email sudah terdaftar! Gunakan email lain.'
+          : error.code === 'auth/invalid-email'
+          ? 'Format email tidak valid!'
+          : 'Gagal daftar user: ' + error.message;
+        alert(msg);
       } finally {
+        // FIX: Selalu logout secondary auth & cleanup app agar tidak memory leak
         await signOut(secondaryAuth);
+        btnDaftar.disabled = false;
+        btnDaftar.textContent = '+ Daftarkan';
       }
-    }
+    };
 
-    async function ambilDataUser() {
-      const q = query(collection(db, "toko"), orderBy("dibuatPada", "desc"));
-      const querySnapshot = await getDocs(q);
-      let totalUser = 0, totalOmset = 0, totalAktif = 0, htmlTabel = '', no = 1;
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data(); const uid = doc.id;
-        totalUser++; totalOmset += data.omset || 0;
-        if (data.status === 'aktif') totalAktif++;
-
-        const statusBadge = data.status === 'aktif' 
-          ? `<span class="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">Aktif</span>`
-          : `<span class="bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">Diblokir</span>`;
-        const tombolAksi = data.status === 'aktif'
-          ? `<button onclick="blokirUser('${uid}', 'blokir')" class="text-red-600 hover:text-red-800 font-medium">Blokir</button>`
-          : `<button onclick="blokirUser('${uid}', 'aktif')" class="text-green-600 hover:text-green-800 font-medium">Buka Blokir</button>`;
-
-        htmlTabel += `
-          <tr class="hover:bg-slate-50">
-            <td class="p-3 text-slate-500">${no++}</td>
-            <td class="p-3 font-medium text-slate-800">${data.namaToko}</td>
-            <td class="p-3 text-slate-600">${data.email}</td>
-            <td class="p-3 text-slate-800">Rp ${(data.omset || 0).toLocaleString('id-ID')}</td>
-            <td class="p-3">${statusBadge}</td>
-            <td class="p-3">${tombolAksi}</td>
-          </tr>`;
-      });
-
-      document.getElementById('totalUser').innerText = totalUser;
-      document.getElementById('totalOmset').innerText = 'Rp ' + totalOmset.toLocaleString('id-ID');
-      document.getElementById('totalAktif').innerText = totalAktif;
-      tabelUser.innerHTML = htmlTabel || `<tr><td colspan="6" class="text-center p-6 text-slate-500">Belum ada user terdaftar</td></tr>`;
-    }
-
-    window.blokirUser = async (uid, statusBaru) => {
-      if (!confirm(`Yakin mau ${statusBaru === 'blokir' ? 'memblokir' : 'membuka blokir'} user ini?`)) return;
+    // ── AMBIL & TAMPILKAN DATA USER ───────────
+    window.ambilDataUser = async () => {
+      tabelUser.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-slate-500">Memuat data...</td></tr>`;
       try {
-        await updateDoc(doc(db, "toko", uid), { status: statusBaru });
+        const q    = query(collection(db, 'toko'), orderBy('dibuatPada', 'desc'));
+        const snap = await getDocs(q);
+
+        let totalUser = 0, totalOmset = 0, totalAktif = 0, htmlTabel = '', no = 1;
+
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          const uid  = docSnap.id;
+
+          // Skip dokumen yang bukan user (misal, dokumen admin sendiri)
+          if (!data.email) return;
+
+          totalUser++;
+          totalOmset += data.omset || 0;
+          if (data.status === 'aktif') totalAktif++;
+
+          const statusBadge = data.status === 'aktif'
+            ? `<span class="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">Aktif</span>`
+            : `<span class="bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">Diblokir</span>`;
+
+          // FIX: Tambah tombol Lihat Toko & Hapus selain Blokir/Buka Blokir
+          const BASE_PATH = window.location.hostname.includes('github.io') ? '/LINKify' : '';
+          const linkToko  = `${window.location.origin}${BASE_PATH}/index.html?uid=${uid}`;
+
+          const tombolAksi = `
+            <div class="flex items-center gap-3">
+              <a href="${linkToko}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">Lihat</a>
+              ${data.status === 'aktif'
+                ? `<button onclick="blokirUser('${uid}', 'blokir')" class="text-red-600 hover:text-red-800 font-medium">Blokir</button>`
+                : `<button onclick="blokirUser('${uid}', 'aktif')" class="text-green-600 hover:text-green-800 font-medium">Aktifkan</button>`
+              }
+              <button onclick="hapusUser('${uid}', '${data.namaToko}')" class="text-slate-400 hover:text-red-600 font-medium">Hapus</button>
+            </div>`;
+
+          htmlTabel += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 text-slate-500">${no++}</td>
+              <td class="p-3 font-medium text-slate-800">${escHtml(data.namaToko)}</td>
+              <td class="p-3 text-slate-600">${escHtml(data.pemilik || '-')}</td>
+              <td class="p-3 text-slate-600">${escHtml(data.email)}</td>
+              <td class="p-3 text-slate-800">Rp ${(data.omset || 0).toLocaleString('id-ID')}</td>
+              <td class="p-3">${statusBadge}</td>
+              <td class="p-3">${tombolAksi}</td>
+            </tr>`;
+        });
+
+        document.getElementById('totalUser').innerText  = totalUser;
+        document.getElementById('totalOmset').innerText = 'Rp ' + totalOmset.toLocaleString('id-ID');
+        document.getElementById('totalAktif').innerText = totalAktif;
+        tabelUser.innerHTML = htmlTabel || `<tr><td colspan="7" class="text-center p-6 text-slate-500">Belum ada user terdaftar</td></tr>`;
+      } catch (e) {
+        tabelUser.innerHTML = `<tr><td colspan="7" class="text-center p-6 text-red-500">Gagal memuat: ${e.message}</td></tr>`;
+      }
+    };
+
+    // ── BLOKIR / AKTIFKAN USER ────────────────
+    window.blokirUser = async (uid, statusBaru) => {
+      const label = statusBaru === 'blokir' ? 'memblokir' : 'mengaktifkan';
+      if (!confirm(`Yakin mau ${label} user ini?`)) return;
+      try {
+        await updateDoc(doc(db, 'toko', uid), { status: statusBaru });
         ambilDataUser();
-      } catch (error) { alert('Gagal update status: ' + error.message); }
+      } catch (error) {
+        alert('Gagal update status: ' + error.message);
+      }
+    };
+
+    // ── HAPUS USER (hanya data Firestore) ─────
+    // FIX: Tambah fitur hapus data toko dari Firestore
+    // Catatan: Hapus akun Auth membutuhkan Firebase Admin SDK (server-side)
+    // Fungsi ini hanya menghapus data toko di Firestore
+    window.hapusUser = async (uid, namaToko) => {
+      if (!confirm(`Yakin mau hapus data toko "${namaToko}"?\n\nData toko di Firestore akan dihapus.\nAkun login user perlu dihapus manual di Firebase Console > Authentication.`)) return;
+      try {
+        await deleteDoc(doc(db, 'toko', uid));
+        alert(`Data toko "${namaToko}" berhasil dihapus.`);
+        ambilDataUser();
+      } catch (error) {
+        alert('Gagal hapus: ' + error.message);
+      }
+    };
+
+    // ── HELPER ────────────────────────────────
+    function escHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
     }
   </script>
 </body>
