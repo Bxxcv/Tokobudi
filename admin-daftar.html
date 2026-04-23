@@ -12,7 +12,7 @@
       theme: {
         extend: {
           colors: {
-            'lf-dark': '#1A1D21', // Lebih gelap biar pro
+            'lf-dark': '#1A1D21',
             'lf-orange': '#EE4D2D',
             'lf-orange-hover': '#D74121',
           },
@@ -89,7 +89,7 @@
         <div id="formDaftar" style="display:none;">
           <p class="mb-6 text-sm text-slate-600">Login sebagai: <span id="adminYgLogin" class="font-semibold text-lf-orange"></span></p>
 
-          <!-- CARD STATISTIK - LEBIH PRO -->
+          <!-- CARD STATISTIK -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             <div class="bg-white p-5 rounded-xl shadow-card border border-slate-100">
               <div class="flex items-center justify-between">
@@ -99,7 +99,6 @@
                 </div>
                 <div class="bg-blue-100 p-3 rounded-lg"><svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
               </div>
-            </div>
             <div class="bg-white p-5 rounded-xl shadow-card border border-slate-100">
               <div class="flex items-center justify-between">
                 <div>
@@ -124,15 +123,16 @@
           <!-- CARD FORM TAMBAH USER -->
           <div class="bg-white p-5 md:p-6 rounded-xl shadow-card mb-6 border border-slate-100">
             <h2 class="text-lg font-semibold mb-4 text-slate-800">Tambah User/Toko Baru</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
               <input id="namaToko" type="text" placeholder="Nama Toko" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
+              <input id="namaPemilik" type="text" placeholder="Nama Pemilik" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
               <input id="emailUser" type="email" placeholder="Email User Baru" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
               <input id="passUser" type="password" placeholder="Password" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-lf-orange focus:border-lf-orange">
               <button onclick="daftarkanUser()" class="bg-lf-orange text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-lf-orange-hover transition">+ Daftarkan</button>
             </div>
           </div>
 
-          <!-- CARD TABEL USER - RESPONSIVE -->
+          <!-- CARD TABEL USER -->
           <div class="bg-white rounded-xl shadow-card border border-slate-100">
             <div class="p-5 md:p-6 border-b border-slate-100">
               <h2 class="text-lg font-semibold text-slate-800">List User Terdaftar</h2>
@@ -163,7 +163,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const APP_CONFIG = { firebaseConfig: { apiKey: "AIzaSyA8ilmyaTqUyGqwtvqJml5PuNAwBcl8784", authDomain: "toko-budi-81421.firebaseapp.com", projectId: "toko-budi-81421", storageBucket: "toko-budi-81421.firebasestorage.app", messagingSenderId: "83251261024", appId: "1:83251261024:web:366c25cb16758dff829d05" } };
     const EMAIL_ADMIN = 'unrageunrage@gmail.com';
@@ -178,7 +178,6 @@
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
 
-    // FIX SIDEBAR MOBILE
     function closeSidebar() {
       sidebar.classList.add('-translate-x-full');
       overlay.classList.add('hidden');
@@ -216,25 +215,40 @@
     });
 
     window.daftarkanUser = async () => {
-      const namaToko = document.getElementById('namaToko').value;
-      const emailUser = document.getElementById('emailUser').value;
+      const namaToko = document.getElementById('namaToko').value.trim();
+      const namaPemilik = document.getElementById('namaPemilik').value.trim();
+      const emailUser = document.getElementById('emailUser').value.trim();
       const passUser = document.getElementById('passUser').value;
-      if (!namaToko || !emailUser || !passUser) return alert("Isi semua field woy!");
+      
+      if (!namaToko || !namaPemilik || !emailUser || !passUser) return alert("Isi semua field woy!");
       if (passUser.length < 6) return alert("Password minimal 6 karakter!");
 
       const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, "Secondary");
       const secondaryAuth = getAuth(secondaryApp);
       try {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, emailUser, passUser);
-        await setDoc(doc(db, "toko", userCredential.user.uid), {
-          namaToko: namaToko, email: emailUser, omset: 0, status: 'aktif', dibuatPada: new Date()
+        const uid = userCredential.user.uid;
+        
+        await setDoc(doc(db, "toko", uid), {
+          namaToko: namaToko,
+          pemilik: namaPemilik,
+          email: emailUser,
+          omset: 0,
+          status: 'aktif',
+          dibuatPada: serverTimestamp()
         });
-        alert(`Sukses! User ${emailUser} berhasil didaftarkan.`);
+        
+        alert(`Sukses! User ${emailUser} + Toko berhasil didaftarkan.`);
         document.getElementById('namaToko').value = '';
+        document.getElementById('namaPemilik').value = '';
         document.getElementById('emailUser').value = '';
         document.getElementById('passUser').value = '';
         ambilDataUser();
-      } catch (error) { alert("Gagal daftar user: " + error.message); }
+      } catch (error) { 
+        alert("Gagal daftar user: " + error.message); 
+      } finally {
+        await signOut(secondaryAuth);
+      }
     }
 
     async function ambilDataUser() {
