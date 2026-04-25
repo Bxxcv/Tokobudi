@@ -62,6 +62,9 @@ async function loadSettings() {
     const s = snap.data();
 
     document.getElementById('username').innerText = s.namaToko || 'My Store';
+    // Update footer nama toko
+    const footerStore = document.getElementById('footer-store');
+    if (footerStore) footerStore.textContent = '© 2025 ' + (s.namaToko || 'My Store');
     document.getElementById('bio').innerText = s.bio || '';
     if (s.logo) document.getElementById('profileImg').src = s.logo;
 
