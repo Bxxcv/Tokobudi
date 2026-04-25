@@ -18,63 +18,85 @@
 
   <style>
     /* ── TEMA VARIABLES ── */
-    :root {
-      --idx-bg1: #0f0f0f;
-      --idx-bg2: #1a1a2e;
-      --idx-bg3: #16213e;
-      --idx-card: rgba(255,255,255,0.05);
-      --idx-border: rgba(255,255,255,0.1);
-      --idx-text: #ffffff;
-      --idx-text-muted: rgba(255,255,255,0.6);
-      --idx-footer: rgba(255,255,255,0.3);
-      --idx-section-line: rgba(255,255,255,0.05);
-    }
-    [data-theme="light"] {
-      --idx-bg1: #f0f4ff;
-      --idx-bg2: #e8eef8;
-      --idx-bg3: #dce6f5;
-      --idx-card: rgba(255,255,255,0.8);
-      --idx-border: rgba(0,0,0,0.1);
-      --idx-text: #111111;
-      --idx-text-muted: rgba(0,0,0,0.55);
-      --idx-footer: rgba(0,0,0,0.35);
-      --idx-section-line: rgba(0,0,0,0.07);
-    }
-    [data-theme="green"] {
-      --idx-bg1: #0a1a0f;
-      --idx-bg2: #0d2318;
-      --idx-bg3: #102b1f;
-      --idx-card: rgba(255,255,255,0.05);
-      --idx-border: rgba(255,255,255,0.1);
-      --idx-text: #ffffff;
-      --idx-text-muted: rgba(255,255,255,0.6);
-      --idx-footer: rgba(255,255,255,0.3);
-      --idx-section-line: rgba(255,255,255,0.05);
-    }
-    [data-theme="purple"] {
-      --idx-bg1: #0d0a1e;
-      --idx-bg2: #150d2e;
-      --idx-bg3: #1a1038;
-      --idx-card: rgba(255,255,255,0.05);
-      --idx-border: rgba(255,255,255,0.1);
-      --idx-text: #ffffff;
-      --idx-text-muted: rgba(255,255,255,0.6);
-      --idx-footer: rgba(255,255,255,0.3);
-      --idx-section-line: rgba(255,255,255,0.05);
-    }
+    html, body { min-height: 100%; }
 
+    /* ── TEMA MIDNIGHT (default) ── */
     body.index-page {
-      background: linear-gradient(135deg, var(--idx-bg1) 0%, var(--idx-bg2) 50%, var(--idx-bg3) 100%);
+      --idx-bg1: #0d0d1a;
+      --idx-bg2: #131325;
+      --idx-bg3: #0a0a18;
+      --idx-card: rgba(255,255,255,0.05);
+      --idx-border: rgba(255,255,255,0.1);
+      --idx-text: #ffffff;
+      --idx-text-muted: rgba(255,255,255,0.55);
+      --idx-footer: rgba(255,255,255,0.3);
+      --idx-section-line: rgba(255,255,255,0.06);
+      /* Background: gradient gelap + noise texture via SVG data URI */
+      background-color: #0d0d1a;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255,107,53,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(100,80,200,0.1) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(30,30,80,0.5) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-attachment: fixed;
       min-height: 100vh;
       font-family: 'Poppins', sans-serif;
       color: var(--idx-text);
       overflow-x: hidden;
-      transition: background 0.4s ease;
+      transition: background-color 0.5s ease, color 0.3s ease;
     }
+
+    /* ── TEMA WHITE (putih tidak polos) ── */
+    body.index-page[data-theme="white"] {
+      --idx-bg1: #f8f9ff;
+      --idx-bg2: #eef0fa;
+      --idx-bg3: #f0f2ff;
+      --idx-card: rgba(255,255,255,0.75);
+      --idx-border: rgba(0,0,0,0.08);
+      --idx-text: #111827;
+      --idx-text-muted: rgba(17,24,39,0.55);
+      --idx-footer: rgba(17,24,39,0.4);
+      --idx-section-line: rgba(0,0,0,0.07);
+      background-color: #f0f2ff;
+      background-image:
+        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(255,107,53,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 45% at 85% 85%, rgba(120,100,255,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(200,210,255,0.4) 0%, transparent 65%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      background-attachment: fixed;
+    }
+    /* Text override untuk white theme */
+    body.index-page[data-theme="white"] .store-name,
+    body.index-page[data-theme="white"] .product-name { color: #111827; }
+    body.index-page[data-theme="white"] .section-title { color: rgba(17,24,39,0.5); }
+    body.index-page[data-theme="white"] .theme-switcher {
+      background: rgba(0,0,0,0.07);
+      border-color: rgba(0,0,0,0.1);
+    }
+    body.index-page[data-theme="white"] .theme-pill { color: rgba(0,0,0,0.5); }
+    body.index-page[data-theme="white"] .theme-pill:hover { color: rgba(0,0,0,0.8); }
+    body.index-page[data-theme="white"] .theme-pill.active {
+      background: rgba(0,0,0,0.1);
+      color: #111827;
+    }
+    body.index-page[data-theme="white"] .share-btn {
+      background: rgba(0,0,0,0.07);
+      border-color: rgba(0,0,0,0.1);
+      color: #111827;
+    }
+    body.index-page[data-theme="white"] .product-card {
+      background: rgba(255,255,255,0.8);
+      border-color: rgba(0,0,0,0.08);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    body.index-page[data-theme="white"] .footer { color: rgba(17,24,39,0.4); border-color: rgba(0,0,0,0.07); }
+    body.index-page[data-theme="white"] .footer-brand { color: rgba(17,24,39,0.5); }
+
     .index-page .container {
       max-width: 480px;
       margin: 0 auto;
-      padding: 24px 16px 120px; /* FIX: padding bawah lebih besar biar tidak kepotong */
+      /* FIX: padding bawah 140px biar footer tidak kepotong floating WA */
+      padding: 24px 16px 140px;
     }
 
     /* TOP BAR */
@@ -97,30 +119,38 @@
     }
     .index-page .share-btn:active { transform: scale(0.9); }
 
-    /* THEME SWITCHER */
+    /* THEME SWITCHER - pill style */
     .theme-switcher {
       display: flex;
-      gap: 6px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid var(--idx-border);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 6px;
+      gap: 4px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 50px;
+      padding: 4px;
     }
-    .theme-dot {
-      width: 22px; height: 22px;
-      border-radius: 50%;
+    .theme-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px;
+      border-radius: 50px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px; font-weight: 600;
       cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-      position: relative;
+      transition: all 0.25s ease;
+      white-space: nowrap;
     }
-    .theme-dot:hover { transform: scale(1.2); }
-    .theme-dot.active { border-color: white; box-shadow: 0 0 0 2px rgba(255,255,255,0.3); }
-    .theme-dot[data-t="dark"]   { background: linear-gradient(135deg, #0f0f0f, #1a1a2e); }
-    .theme-dot[data-t="light"]  { background: linear-gradient(135deg, #e8eef8, #dce6f5); border-color: #ccc; }
-    .theme-dot[data-t="green"]  { background: linear-gradient(135deg, #0a1a0f, #0d2318); }
-    .theme-dot[data-t="purple"] { background: linear-gradient(135deg, #0d0a1e, #1a1038); }
+    .theme-pill:hover { color: rgba(255,255,255,0.85); }
+    .theme-pill.active {
+      background: rgba(255,255,255,0.18);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .theme-pill-icon { font-size: 13px; line-height: 1; }
+    .theme-pill-label { letter-spacing: 0.2px; }
 
     /* HERO */
     .index-page .hero { text-align: center; margin-bottom: 32px; }
@@ -296,12 +326,16 @@
 
     <!-- TOP BAR -->
     <div class="top-bar">
-      <!-- THEME SWITCHER -->
-      <div class="theme-switcher">
-        <div class="theme-dot active" data-t="dark"   title="Dark"   onclick="setTheme('dark')"></div>
-        <div class="theme-dot"        data-t="light"  title="Light"  onclick="setTheme('light')"></div>
-        <div class="theme-dot"        data-t="green"  title="Hijau"  onclick="setTheme('green')"></div>
-        <div class="theme-dot"        data-t="purple" title="Ungu"   onclick="setTheme('purple')"></div>
+      <!-- THEME SWITCHER: 2 tema -->
+      <div class="theme-switcher" id="themeSwitcher">
+        <button class="theme-pill active" data-t="dark" onclick="setTheme('dark')" title="Midnight">
+          <span class="theme-pill-icon">🌙</span>
+          <span class="theme-pill-label">Midnight</span>
+        </button>
+        <button class="theme-pill" data-t="white" onclick="setTheme('white')" title="White">
+          <span class="theme-pill-icon">☀️</span>
+          <span class="theme-pill-label">White</span>
+        </button>
       </div>
       <button onclick="shareLink()" class="share-btn">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -404,17 +438,18 @@
   <script>
     // ── THEME SWITCHER ───────────────────────────────────────
     function setTheme(t) {
+      // FIX: set data-theme langsung di body.index-page
+      // selector CSS pakai body.index-page[data-theme=...] 
       document.body.setAttribute('data-theme', t);
       localStorage.setItem('lf-theme', t);
-      document.querySelectorAll('.theme-dot').forEach(d => {
+      document.querySelectorAll('.theme-pill').forEach(d => {
         d.classList.toggle('active', d.dataset.t === t);
       });
-      // Sync border logo dgn tema
-      const img = document.querySelector('.logo-img');
-      if (img) img.style.borderColor = 'var(--idx-bg2)';
     }
-    // Restore tema tersimpan
-    const savedTheme = localStorage.getItem('lf-theme') || 'dark';
+    // Restore tema tersimpan, default midnight
+    const validThemes = ['dark', 'white'];
+    const savedTheme = validThemes.includes(localStorage.getItem('lf-theme'))
+      ? localStorage.getItem('lf-theme') : 'dark';
     setTheme(savedTheme);
 
     // ── SHARE ────────────────────────────────────────────────
