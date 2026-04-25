@@ -264,3 +264,4 @@ body.index-page { background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #
 .index-page .floating-wa:active { transform: scale(0.9); }
 @keyframes rotateBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+
