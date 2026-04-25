@@ -1,14 +1,15 @@
 {
-  "name": "@tokobudi",
-  "short_name": "tokobudi",
-  "start_url": "/Tokobudi/",
-  "scope": "/Tokobudi/",
+  "name": "LINKify",
+  "short_name": "LINKify",
+  "description": "Link Bio Toko Online",
+  "start_url": "/LINKify/",
+  "scope": "/LINKify/",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
+  "background_color": "#1a1a2e",
+  "theme_color": "#FF6B35",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "logo-linkify.png",
       "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any maskable"
