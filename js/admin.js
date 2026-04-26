@@ -5,19 +5,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
-  serverTimestamp, getDoc, query, orderBy, setDoc
+  serverTimestamp, getDoc, query, orderBy, setDoc, where, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { escHtml, checkPremium, hexToRgb, ACCENT_COLORS, DAY_NAMES, formatDate } from './utils.js';
 
 const CLOUD_NAME = CONFIG.cloudinary.cloudName;
 const CLOUD_PRESET = CONFIG.cloudinary.uploadPreset;
 
-const BASE_PATH = window.location.hostname.includes('github.io')
-  ? '/LINKify'
-  : '';
-
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── DOM REFS ──────────────────────────────
   const sidebar      = document.getElementById('sidebar');
   const overlay      = document.getElementById('overlay');
   const btnHamburger = document.getElementById('btn-hamburger');
@@ -53,17 +49,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const inpOldPass   = document.getElementById('inp-old-pass');
   const btnSaveAcc   = document.getElementById('btn-save-account');
 
-  // ── HELPER: path subcollection produk ─────
-  // FIX: semua produk disimpan di /toko/{uid}/produk/{id}
-  // sesuai dengan Firebase Rules yang sudah dikonfigurasi
-  function produkCol(uid) {
-    return collection(db, 'toko', uid, 'produk');
-  }
-  function produkDoc(uid, id) {
-    return doc(db, 'toko', uid, 'produk', id);
-  }
+  // Premium elements
+  const premiumBadge    = document.getElementById('premium-badge');
+  const premiumCta      = document.getElementById('premium-cta');
+  const premiumContent  = document.getElementById('premium-content');
+  const colorPickerWrap = document.getElementById('color-picker-wrap');
+  const qrImg           = document.getElementById('qr-img');
+  const btnDownloadQR   = document.getElementById('btn-download-qr');
 
-  // ── TOAST ─────────────────────────────────
+  function produkCol(uid) { return collection(db, 'toko', uid, 'produk'); }
+  function produkDoc(uid, id) { return doc(db, 'toko', uid, 'produk', id); }
+
+  let prodBlobUrl = null;
+  let logoBlobUrl = null;
+  let currentTokoData = null;
+  let currentAccent = '#FF6B35';
+
+  // ── TOAST ──
   let toastTimer;
   function toast(msg, type = 'ok') {
     const el = document.getElementById('toast');
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.showToast = toast;
 
-  // ── CLOCK ─────────────────────────────────
+  // ── CLOCK ──
   const clockEl = document.getElementById('clock-time');
   const dateEl  = document.getElementById('clock-date');
   function tickClock() {
@@ -86,13 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
   tickClock();
   setInterval(tickClock, 1000);
 
-  // ── SIDEBAR MOBILE ────────────────────────
+  // ── SIDEBAR ──
   function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('show');    document.body.style.overflow = 'hidden'; }
   function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; }
   btnHamburger.addEventListener('click', openSidebar);
   overlay.addEventListener('click', closeSidebar);
 
-  // ── TABS ──────────────────────────────────
+  // ── TABS ──
   document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
@@ -103,16 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── AUTH ──────────────────────────────────
+  // ── AUTH ──
   onAuthStateChanged(auth, async user => {
     if (user) {
       const tokoSnap = await getDoc(doc(db, 'toko', user.uid));
       if (tokoSnap.exists()) {
+        currentTokoData = tokoSnap.data();
         adminEmail.textContent = user.email;
         inpNewEmail.value = user.email;
         loadProducts(user.uid);
         loadSettings(user.uid);
         loadStats(user.uid);
+        loadDashboardStats(user.uid);
       } else {
         toast('Akun ini belum terdaftar sebagai toko! Hubungi admin.', 'err');
         setTimeout(() => signOut(auth), 2000);
@@ -122,12 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ── COPY LINK TOKO ────────────────────────
+  // ── COPY LINK ──
   if (btnCopyLink) {
     btnCopyLink.addEventListener('click', () => {
       const uid = auth.currentUser?.uid;
       if (!uid) return toast('Login dulu!', 'err');
-      const link = `${window.location.origin}${BASE_PATH}/index.html?uid=${uid}`;
+      const link = `${window.location.origin}/?uid=${uid}`;
       navigator.clipboard.writeText(link)
         .then(() => toast('Link toko berhasil dicopy!'))
         .catch(() => toast('Gagal copy link', 'err'));
@@ -138,29 +142,166 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirm('Yakin mau keluar?')) signOut(auth);
   });
 
-  // ── STATISTIK ─────────────────────────────
-  // FIX: baca dari /toko/{uid}/produk (subcollection)
-  async function loadStats(uid) {
+  // ── PREMIUM UI UPDATE ──
+  function updatePremiumUI() {
+    const isPrem = checkPremium(currentTokoData);
+    premiumBadge.classList.toggle('hidden', !isPrem);
+    premiumCta.classList.toggle('hidden', isPrem);
+    premiumContent.classList.toggle('hidden', !isPrem);
+    if (isPrem) {
+      currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
+      renderColorPicker();
+      renderQR();
+    }
+  }
+
+  // ── DASHBOARD STATS (total produk & stok habis) ──
+  async function loadDashboardStats(uid) {
     try {
       const snap = await getDocs(produkCol(uid));
       let total = 0, empty = 0;
-      snap.forEach(d => { total++; if (d.data().stok == 0) empty++; });
+      snap.forEach(d => { total++; if (d.data().stok === 0) empty++; });
       document.getElementById('stat-total').textContent = total;
       document.getElementById('stat-empty').textContent = empty;
+    } catch (e) { console.error('loadDashboardStats:', e); }
+  }
+
+  // ── PREMIUM: STATISTIK 7 HARI ──
+  async function loadStats(uid) {
+    updatePremiumUI();
+    const isPrem = checkPremium(currentTokoData);
+    if (!isPrem) return;
+
+    try {
+      const today = new Date();
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().split('T')[0]);
+      }
+
+      const q = query(
+        collection(db, 'toko', uid, 'stats'),
+        where('__name__', '>=', days[0]),
+        where('__name__', '<=', days[6]),
+        orderBy('__name__')
+      );
+      const snap = await getDocs(q);
+
+      const data = {};
+      snap.forEach(d => { data[d.id] = d.data(); });
+
+      let totalVisits = 0, totalWa = 0, totalShopee = 0;
+      const chartData = [];
+
+      days.forEach(day => {
+        const d = data[day] || {};
+        const v = d.visits || 0;
+        const w = d.waClicks || 0;
+        const s = d.shopeeClicks || 0;
+        totalVisits += v;
+        totalWa += w;
+        totalShopee += s;
+        chartData.push({ day, label: formatDate(day), visits: v, wa: w, shopee: s });
+      });
+
+      const maxVisits = Math.max(...chartData.map(d => d.visits), 1);
+
+      document.getElementById('stat-visits').textContent = totalVisits;
+      document.getElementById('stat-wa').textContent = totalWa;
+      document.getElementById('stat-shopee').textContent = totalShopee;
+
+      const chartEl = document.getElementById('stats-chart');
+      if (!chartEl) return;
+      chartEl.innerHTML = chartData.map(d => {
+        const h = Math.max((d.visits / maxVisits) * 100, 4);
+        return `
+          <div class="chart-col">
+            <div class="chart-bar" style="height:${h}%"></div>
+            <span class="chart-label">${d.label}</span>
+            <span class="chart-val">${d.visits}</span>
+          </div>`;
+      }).join('');
+
+      // Premium expiry info
+      const endDate = currentTokoData.premium?.endDate;
+      if (endDate) {
+        const end = endDate?.toDate ? endDate.toDate() : new Date(endDate);
+        document.getElementById('premium-expiry').textContent =
+          'Berlaku sampai ' + end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
     } catch (e) {
       console.error('loadStats:', e);
     }
   }
 
-  // ── PRODUK: LOAD ──────────────────────────
-  // FIX: baca dari /toko/{uid}/produk (subcollection)
+  // ── PREMIUM: COLOR PICKER ──
+  function renderColorPicker() {
+    const wrap = document.getElementById('color-options');
+    if (!wrap) return;
+    wrap.innerHTML = ACCENT_COLORS.map(c => `
+      <button type="button" class="color-circle${c.hex === currentAccent ? ' active' : ''}"
+              data-color="${c.hex}" style="background:${c.hex}" title="${c.label}"
+              aria-label="Warna ${c.label}"></button>
+    `).join('');
+
+    wrap.querySelectorAll('.color-circle').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const color = btn.dataset.color;
+        wrap.querySelectorAll('.color-circle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentAccent = color;
+        const uid = auth.currentUser?.uid;
+        if (!uid) return;
+        try {
+          await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
+          toast('Warna aksen diperbarui!');
+        } catch (e) {
+          toast('Gagal simpan warna', 'err');
+        }
+      });
+    });
+  }
+
+  // ── PREMIUM: QR CODE ──
+  function renderQR() {
+    const uid = auth.currentUser?.uid;
+    if (!uid || !qrImg) return;
+    const storeUrl = `${window.location.origin}/?uid=${uid}`;
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(storeUrl)}&color=${encodeURIComponent(currentAccent.replace('#', ''))}`;
+    qrImg.dataset.url = `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(storeUrl)}&color=${encodeURIComponent(currentAccent.replace('#', ''))}&format=png`;
+  }
+
+  if (btnDownloadQR) {
+    btnDownloadQR.addEventListener('click', async () => {
+      const url = qrImg?.dataset.url;
+      if (!url) return;
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qr-${currentTokoData?.namaToko || 'toko'}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        toast('QR Code berhasil didownload!');
+      } catch (e) {
+        window.open(url, '_blank');
+      }
+    });
+  }
+
+  // ── PRODUK: LOAD ──
   async function loadProducts(uid) {
     productsList.innerHTML = `
       <div class="skel-card"><div class="skel" style="height:130px;border-radius:14px 14px 0 0"></div><div style="padding:10px 12px"><div class="skel" style="height:12px;width:70%;margin-bottom:7px"></div><div class="skel" style="height:13px;width:45%"></div></div></div>
       <div class="skel-card"><div class="skel" style="height:130px;border-radius:14px 14px 0 0"></div><div style="padding:10px 12px"><div class="skel" style="height:12px;width:55%;margin-bottom:7px"></div><div class="skel" style="height:13px;width:40%"></div></div></div>
       <div class="skel-card"><div class="skel" style="height:130px;border-radius:14px 14px 0 0"></div><div style="padding:10px 12px"><div class="skel" style="height:12px;width:80%;margin-bottom:7px"></div><div class="skel" style="height:13px;width:50%"></div></div></div>`;
     try {
-      const q    = query(produkCol(uid), orderBy('createdAt', 'desc'));
+      const q = query(produkCol(uid), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
 
       if (snap.empty) {
@@ -175,31 +316,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      productsList.innerHTML = '';
+      let html = '';
       snap.forEach(ds => {
         const p = ds.data(), id = ds.id;
-        const card = document.createElement('div');
-        card.className = 'p-card';
-        card.innerHTML = `
-          <img class="p-img" src="${esc(p.img)}" alt="${esc(p.nama)}"
-               onerror="this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Error'">
-          <div class="p-body">
-            <div class="p-name">${esc(p.nama)}</div>
-            <div class="p-price">Rp${Number(p.harga).toLocaleString('id-ID')}</div>
-            <div class="p-stock">Stok: ${p.stok}${p.stok == 0 ? ' · <span style="color:var(--danger)">Habis</span>' : ''}</div>
-            <div class="p-acts">
-              <button class="btn-ed"  data-id="${id}">Edit</button>
-              <button class="btn-del" data-id="${id}">Hapus</button>
+        const stokNol = Number(p.stok) === 0;
+        html += `
+          <div class="p-card">
+            <img class="p-img" src="${escHtml(p.img)}" alt="${escHtml(p.nama)}"
+                 onerror="this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Error'">
+            <div class="p-body">
+              <div class="p-name">${escHtml(p.nama)}</div>
+              <div class="p-price">Rp${Number(p.harga).toLocaleString('id-ID')}</div>
+              <div class="p-stock">Stok: ${p.stok}${stokNol ? ' · <span style="color:var(--danger)">Habis</span>' : ''}</div>
+              <div class="p-acts">
+                <button type="button" class="btn-ed" data-id="${id}">Edit</button>
+                <button type="button" class="btn-del" data-id="${id}">Hapus</button>
+              </div>
             </div>
           </div>`;
-        productsList.appendChild(card);
       });
+      productsList.innerHTML = html;
     } catch (e) {
       productsList.innerHTML = `<div class="empty"><p class="empty-h">Gagal memuat produk</p><p class="empty-p">${e.message}</p></div>`;
     }
   }
 
-  // ── PRODUK: MODAL OPEN/CLOSE ──────────────
+  // ── MODAL ──
   function openModal()  { productModal.classList.add('open');    document.body.style.overflow = 'hidden'; }
   function closeModal() { productModal.classList.remove('open'); document.body.style.overflow = ''; }
 
@@ -208,6 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inp-prod-id').value  = '';
     document.getElementById('inp-prod-img').value = '';
     inpProdFile.value = '';
+    if (prodBlobUrl) { URL.revokeObjectURL(prodBlobUrl); prodBlobUrl = null; }
     imgPrevWrap.style.display = 'none';
     imgPreview.src = '';
     modalTitle.textContent = 'Tambah Produk Baru';
@@ -217,23 +360,24 @@ document.addEventListener('DOMContentLoaded', () => {
   modalPull.addEventListener('click', closeModal);
   productModal.addEventListener('click', e => { if (e.target === productModal) closeModal(); });
 
-  // ── PRODUK: UPLOAD FOTO ───────────────────
   uploadZone.addEventListener('click', () => inpProdFile.click());
   inpProdFile.addEventListener('change', () => {
     const file = inpProdFile.files[0];
     if (!file) return;
-    imgPreview.src = URL.createObjectURL(file);
+    if (prodBlobUrl) URL.revokeObjectURL(prodBlobUrl);
+    prodBlobUrl = URL.createObjectURL(file);
+    imgPreview.src = prodBlobUrl;
     imgPrevWrap.style.display = 'block';
   });
 
-  // ── PRODUK: EDIT & HAPUS ──────────────────
-  // FIX: baca & hapus dari /toko/{uid}/produk/{id}
   productsList.addEventListener('click', async e => {
-    const id  = e.target.dataset.id;
+    const btn = e.target.closest('[data-id]');
+    if (!btn) return;
+    const id  = btn.dataset.id;
     const uid = auth.currentUser?.uid;
     if (!id || !uid) return;
 
-    if (e.target.classList.contains('btn-ed')) {
+    if (btn.classList.contains('btn-ed')) {
       try {
         const snap = await getDoc(produkDoc(uid, id));
         if (!snap.exists()) { toast('Produk tidak ditemukan', 'err'); return; }
@@ -247,30 +391,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inp-prod-wa').value    = p.wa        || '';
         document.getElementById('inp-prod-img').value   = p.img       || '';
         inpProdFile.value = '';
-        if (p.img) { imgPreview.src = p.img; imgPrevWrap.style.display = 'block'; }
-        else { imgPrevWrap.style.display = 'none'; }
+        if (p.img) {
+          if (prodBlobUrl) URL.revokeObjectURL(prodBlobUrl);
+          prodBlobUrl = null;
+          imgPreview.src = p.img;
+          imgPrevWrap.style.display = 'block';
+        } else {
+          imgPrevWrap.style.display = 'none';
+        }
         modalTitle.textContent = 'Edit Produk';
         openModal();
-      } catch (err) {
-        toast('Gagal load data: ' + err.message, 'err');
-      }
+      } catch (err) { toast('Gagal load data: ' + err.message, 'err'); }
     }
 
-    if (e.target.classList.contains('btn-del')) {
-      if (!confirm('Yakin hapus produk ini? Tidak bisa dibatalkan.')) return;
+    if (btn.classList.contains('btn-del')) {
+      if (!confirm('Yakin hapus produk ini?')) return;
       try {
         await deleteDoc(produkDoc(uid, id));
         toast('Produk dihapus.');
         loadProducts(uid);
-        loadStats(uid);
-      } catch (err) {
-        toast('Gagal hapus: ' + err.message, 'err');
-      }
+        loadDashboardStats(uid);
+      } catch (err) { toast('Gagal hapus: ' + err.message, 'err'); }
     }
   });
 
-  // ── PRODUK: SIMPAN ────────────────────────
-  // FIX: simpan ke /toko/{uid}/produk/{id}
   productForm.addEventListener('submit', async e => {
     e.preventDefault();
     const uid  = auth.currentUser?.uid;
@@ -278,14 +422,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const file = inpProdFile.files[0];
     let imgUrl = document.getElementById('inp-prod-img').value;
 
-    if (!file && !imgUrl) { toast('Pilih foto produk terlebih dahulu!', 'warn'); return; }
+    if (!file && !imgUrl) { toast('Pilih foto produk!', 'warn'); return; }
 
     btnSaveProd.disabled = true;
     try {
       if (file) {
         btnSaveProd.textContent = 'Upload foto...';
         imgUrl = await uploadCloudinary(file);
-        if (!imgUrl) throw new Error('Upload foto gagal. Cek Cloudinary preset.');
+        if (!imgUrl) throw new Error('Upload foto gagal.');
       }
 
       btnSaveProd.textContent = 'Menyimpan...';
@@ -302,49 +446,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (id) {
         await updateDoc(produkDoc(uid, id), data);
-        toast('Produk berhasil diperbarui!');
+        toast('Produk diperbarui!');
       } else {
         data.createdAt = serverTimestamp();
         await addDoc(produkCol(uid), data);
-        toast('Produk berhasil ditambahkan!');
+        toast('Produk ditambahkan!');
       }
       closeModal();
       loadProducts(uid);
-      loadStats(uid);
-    } catch (err) {
-      toast('Error: ' + err.message, 'err');
-    } finally {
+      loadDashboardStats(uid);
+    } catch (err) { toast('Error: ' + err.message, 'err'); }
+    finally {
       btnSaveProd.disabled = false;
       btnSaveProd.textContent = 'Simpan Produk';
     }
   });
 
-  // ── SETTINGS: LOAD ────────────────────────
+  // ── SETTINGS: LOAD ──
   async function loadSettings(uid) {
     try {
       const snap = await getDoc(doc(db, 'toko', uid));
       if (snap.exists()) {
-        const s = snap.data();
+        currentTokoData = snap.data();
+        const s = currentTokoData;
         inpUsername.value = s.namaToko || '';
         inpBio.value      = s.bio      || '';
         inpWa.value       = s.wa       || '';
         inpShopee.value   = s.shopee   || '';
         inpLogoUrl.value  = s.logo     || '';
         if (s.logo) logoPreview.src = s.logo;
+        updatePremiumUI();
       }
-    } catch (e) {
-      console.error('loadSettings:', e);
-    }
+    } catch (e) { console.error('loadSettings:', e); }
   }
 
-  // Logo file picker
   btnLogoPick.addEventListener('click', () => inpLogoFile.click());
   inpLogoFile.addEventListener('change', () => {
     const file = inpLogoFile.files[0];
-    if (file) logoPreview.src = URL.createObjectURL(file);
+    if (!file) return;
+    if (logoBlobUrl) URL.revokeObjectURL(logoBlobUrl);
+    logoBlobUrl = URL.createObjectURL(file);
+    logoPreview.src = logoBlobUrl;
   });
 
-  // ── SETTINGS: SIMPAN ──────────────────────
   btnSaveSett.addEventListener('click', async () => {
     const uid = auth.currentUser?.uid;
     btnSaveSett.disabled = true;
@@ -364,16 +508,15 @@ document.addEventListener('DOMContentLoaded', () => {
         shopee:   inpShopee.value.trim(),
         logo:     logoUrl
       }, { merge: true });
-      toast('Pengaturan berhasil disimpan!');
-    } catch (err) {
-      toast('Gagal simpan: ' + err.message, 'err');
-    } finally {
+      toast('Pengaturan disimpan!');
+    } catch (err) { toast('Gagal simpan: ' + err.message, 'err'); }
+    finally {
       btnSaveSett.disabled = false;
       btnSaveSett.textContent = 'Simpan Pengaturan';
     }
   });
 
-  // ── AKUN: UPDATE ──────────────────────────
+  // ── AKUN: UPDATE ──
   btnSaveAcc.addEventListener('click', async () => {
     const newEmail = inpNewEmail.value.trim();
     const newPass  = inpNewPass.value;
@@ -406,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ── CLOUDINARY UPLOAD ─────────────────────
+  // ── CLOUDINARY ──
   async function uploadCloudinary(file) {
     const fd = new FormData();
     fd.append('file', file);
@@ -420,12 +563,6 @@ document.addEventListener('DOMContentLoaded', () => {
       toast('Upload gagal: ' + err.message, 'err');
       return null;
     }
-  }
-
-  // ── HELPER ────────────────────────────────
-  function esc(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
   }
 
 });

@@ -6,4 +6,4 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 export const app = initializeApp(APP_CONFIG.firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
-export const CONFIG = APP_CONFIG; // Export config supaya bisa dipakai file lain
+export const CONFIG = APP_CONFIG;

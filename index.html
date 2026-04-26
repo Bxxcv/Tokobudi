@@ -4,425 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LINKify - Link Bio</title>
-
-  <!-- Preconnect for fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Font: only Poppins needed on index, swap for zero FOIT -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Tailwind: load async so it doesn't block first paint -->
-  <script src="https://cdn.tailwindcss.com" defer></script>
-
-  <!-- Inline critical styles only — no admin/modal bloat -->
-  <style>
-    /* ── RESET ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* ── ROOT: make page fill viewport and push footer down naturally ── */
-    html {
-      min-height: 100%;
-    }
-    body {
-      min-height: 100vh;
-      min-height: 100dvh; /* mobile browser chrome aware */
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── SKELETON (needed before CSS loads) ── */
-    .skeleton {
-      background: linear-gradient(90deg,
-        rgba(255,255,255,0.06) 25%,
-        rgba(255,255,255,0.12) 50%,
-        rgba(255,255,255,0.06) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 8px;
-    }
-    @keyframes shimmer {
-      0%   { background-position: -200% 0; }
-      100% { background-position:  200% 0; }
-    }
-
-    /* ── INDEX PAGE THEME VARIABLES ── */
-    body.index-page {
-      --idx-bg1:          #0d0d1a;
-      --idx-bg2:          #131325;
-      --idx-bg3:          #0a0a18;
-      --idx-card:         rgba(255,255,255,0.05);
-      --idx-border:       rgba(255,255,255,0.10);
-      --idx-text:         #ffffff;
-      --idx-text-muted:   rgba(255,255,255,0.55);
-      --idx-footer:       rgba(255,255,255,0.30);
-      --idx-section-line: rgba(255,255,255,0.06);
-
-      background-color: #0d0d1a;
-      /* Simplified gradients — removed expensive SVG noise filter */
-      background-image:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255,107,53,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(100,80,200,0.10) 0%, transparent 55%);
-      /* No background-attachment:fixed — causes repaint on scroll on mobile */
-      font-family: 'Poppins', sans-serif;
-      color: var(--idx-text);
-      overflow-x: hidden;
-    }
-
-    /* ── WHITE THEME ── */
-    body.index-page[data-theme="white"] {
-      --idx-bg1:          #f8f9ff;
-      --idx-bg2:          #eef0fa;
-      --idx-bg3:          #f0f2ff;
-      --idx-card:         rgba(255,255,255,0.75);
-      --idx-border:       rgba(0,0,0,0.08);
-      --idx-text:         #111827;
-      --idx-text-muted:   rgba(17,24,39,0.55);
-      --idx-footer:       rgba(17,24,39,0.40);
-      --idx-section-line: rgba(0,0,0,0.07);
-      background-color:   #f0f2ff;
-      background-image:
-        radial-gradient(ellipse 70% 50% at 15% 10%, rgba(255,107,53,0.08) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 45% at 85% 85%, rgba(120,100,255,0.07) 0%, transparent 55%);
-    }
-
-    /* White theme text overrides */
-    body.index-page[data-theme="white"] .store-name,
-    body.index-page[data-theme="white"] .product-name  { color: #111827; }
-    body.index-page[data-theme="white"] .section-title { color: rgba(17,24,39,0.5); }
-    body.index-page[data-theme="white"] .theme-switcher {
-      background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.10);
-    }
-    body.index-page[data-theme="white"] .theme-pill       { color: rgba(0,0,0,0.5); }
-    body.index-page[data-theme="white"] .theme-pill:hover { color: rgba(0,0,0,0.8); }
-    body.index-page[data-theme="white"] .theme-pill.active {
-      background: rgba(0,0,0,0.10); color: #111827;
-    }
-    body.index-page[data-theme="white"] .share-btn {
-      background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.10); color: #111827;
-    }
-    body.index-page[data-theme="white"] .product-card {
-      background: rgba(255,255,255,0.8);
-      border-color: rgba(0,0,0,0.08);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    }
-    body.index-page[data-theme="white"] .footer,
-    body.index-page[data-theme="white"] .footer-brand { color: rgba(17,24,39,0.4); }
-    body.index-page[data-theme="white"] .footer { border-color: rgba(0,0,0,0.07); }
-
-    /* ── MAIN WRAPPER: pushes footer to bottom ── */
-    .page-wrap {
-      flex: 1; /* fill remaining height so footer stays at bottom */
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── CONTAINER ── */
-    .index-page .container {
-      max-width: 480px;
-      margin: 0 auto;
-      /* Extra bottom padding for floating WA button clearance */
-      padding: 24px 16px 100px;
-      flex: 1;
-      width: 100%;
-    }
-
-    /* ── TOP BAR ── */
-    .index-page .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-    .index-page .share-btn {
-      width: 44px; height: 44px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid var(--idx-border);
-      border-radius: 14px;
-      color: var(--idx-text);
-      cursor: pointer;
-      /* Simplified: removed backdrop-filter (expensive repaint) */
-    }
-    .index-page .share-btn:active { transform: scale(0.9); }
-
-    /* ── THEME SWITCHER ── */
-    .theme-switcher {
-      display: flex; gap: 4px;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 50px;
-      padding: 4px;
-    }
-    .theme-pill {
-      display: flex; align-items: center; gap: 5px;
-      padding: 5px 11px;
-      border-radius: 50px; border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.55);
-      font-family: 'Poppins', sans-serif;
-      font-size: 11px; font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      white-space: nowrap;
-    }
-    .theme-pill:hover { color: rgba(255,255,255,0.85); }
-    .theme-pill.active {
-      background: rgba(255,255,255,0.18); color: #ffffff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .theme-pill-icon  { font-size: 13px; line-height: 1; }
-    .theme-pill-label { letter-spacing: 0.2px; }
-
-    /* ── HERO ── */
-    .index-page .hero { text-align: center; margin-bottom: 32px; }
-    .index-page .logo-wrapper {
-      width: 130px; height: 130px;
-      border-radius: 50%; padding: 4px;
-      background: linear-gradient(270deg, #FF6B35, #FFD700, #FF6B35);
-      background-size: 400% 400%;
-      animation: rotateBorder 3s ease infinite;
-      margin: 0 auto 20px;
-      /* will-change: hint GPU layer */
-      will-change: background-position;
-    }
-    .index-page .logo-img {
-      width: 100%; height: 100%;
-      border-radius: 50%; object-fit: cover;
-      border: 4px solid var(--idx-bg2);
-      animation: float 3s ease-in-out infinite;
-      background-color: var(--idx-bg3);
-      will-change: transform;
-    }
-    .index-page .store-name {
-      font-size: 26px; font-weight: 700;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-      text-transform: lowercase;
-      color: var(--idx-text);
-    }
-    .index-page .store-desc {
-      color: var(--idx-text-muted);
-      font-size: 14px; line-height: 1.5;
-      max-width: 320px; margin: 0 auto;
-    }
-
-    /* ── SECTION ── */
-    .index-page .section-header   { margin-bottom: 16px; }
-    .index-page .section-title {
-      font-size: 12px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 1.5px;
-      color: var(--idx-text-muted); display: block;
-    }
-    .index-page .section-title::after {
-      content: ''; display: block;
-      width: 40px; height: 3px;
-      background: linear-gradient(90deg, #FF6B35, #FFD700);
-      border-radius: 2px; margin-top: 8px;
-    }
-    .index-page .platform-section { margin-bottom: 28px; }
-    .index-page .catalog-section  { margin-bottom: 28px; }
-
-    /* ── PLATFORM BUTTONS ── */
-    .index-page .platform-btn {
-      display: flex; align-items: center; gap: 14px;
-      width: 100%; padding: 16px 20px;
-      border-radius: 16px; border: none;
-      color: white;
-      font-family: 'Poppins', sans-serif;
-      font-size: 15px; font-weight: 600;
-      cursor: pointer; text-decoration: none;
-      margin-bottom: 12px;
-      /* Only transform + box-shadow on hover — no layout repaint */
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      position: relative; overflow: hidden;
-    }
-    .index-page .platform-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-    .index-page .platform-btn:active { transform: translateY(0); }
-    /* Shimmer effect: use transform instead of left for GPU-accelerated paint */
-    .index-page .platform-btn::after {
-      content: ''; position: absolute;
-      top: 0; left: 0; width: 60%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
-      transform: translateX(-160%);
-      transition: transform 0.5s ease;
-    }
-    .index-page .platform-btn:hover::after { transform: translateX(300%); }
-    .index-page .wa-btn     { background: linear-gradient(135deg, #25D366, #128C7E); }
-    .index-page .shopee-btn { background: linear-gradient(135deg, #EE4D2D, #FF6633); }
-    .index-page .tokped-btn { background: linear-gradient(135deg, #03AC0E, #028a0b); }
-    .index-page .icon-box {
-      width: 40px; height: 40px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    /* ── PRODUCT GRID ── */
-    .index-page .product-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    .index-page .product-card {
-      background: var(--idx-card);
-      /* Removed backdrop-filter from cards — major paint cost */
-      border: 1px solid var(--idx-border);
-      border-radius: 16px; overflow: hidden;
-      /* Only transform — no box-shadow change to avoid repaint cascade */
-      transition: transform 0.2s ease;
-      text-decoration: none; color: var(--idx-text);
-      /* GPU layer hint for smooth card transitions */
-      will-change: transform;
-    }
-    .index-page .product-card:hover { transform: scale(1.02); }
-    .index-page .product-img {
-      width: 100%; height: 160px;
-      object-fit: cover;
-      background-color: var(--idx-bg2);
-      display: block;
-    }
-    .index-page .product-info { padding: 12px; }
-    .index-page .product-name {
-      font-size: 13px; font-weight: 500; margin-bottom: 6px;
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
-      color: var(--idx-text);
-    }
-    .index-page .product-price {
-      font-size: 15px; font-weight: 700; color: #FF6B35;
-      background: rgba(255,107,53,0.1);
-      display: inline-block; padding: 2px 8px; border-radius: 6px;
-    }
-    .index-page .skeleton-box {
-      background: var(--idx-card);
-      border: 1px solid var(--idx-border);
-      border-radius: 16px; overflow: hidden;
-    }
-    .index-page .out-of-stock {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 600; letter-spacing: 2px;
-      color: #fff;
-    }
-
-    /* ── PRODUCT BUTTONS ── */
-    .prod-btn {
-      flex: 1; padding: 9px 4px;
-      border-radius: 12px;
-      font-size: 12px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      text-decoration: none;
-      transition: filter 0.15s ease;
-    }
-    .prod-btn:active { filter: brightness(0.88); }
-    .prod-btn-wa {
-      background: #25D366; color: #fff;
-    }
-    .prod-btn-shopee {
-      background: #f5f5f5; color: #555;
-    }
-
-    /* ── FOOTER: always at bottom ── */
-    .index-page .footer {
-      text-align: center;
-      padding: 24px 16px 20px;
-      margin-top: auto;   /* push to bottom when content is short */
-      border-top: 1px solid var(--idx-section-line);
-      font-size: 12px;
-      color: var(--idx-footer);
-    }
-    .index-page .footer-brand {
-      display: inline-flex; align-items: center; gap: 6px;
-      margin-top: 8px;
-      font-size: 11px; letter-spacing: 1px;
-      text-transform: uppercase;
-      opacity: 0.6;
-      color: var(--idx-footer);
-    }
-    .index-page .footer-brand img {
-      width: 16px; height: 16px;
-      border-radius: 4px; opacity: 0.7;
-    }
-    .index-page .footer-copy { font-size: 11px; opacity: 0.5; margin-top: 4px; }
-
-    /* ── FLOATING WA ── */
-    .index-page .floating-wa {
-      position: fixed; bottom: 24px; right: 24px;
-      width: 56px; height: 56px;
-      background: linear-gradient(135deg, #25D366, #128C7E);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 20px rgba(37,211,102,0.35);
-      z-index: 99;
-    }
-    .index-page .floating-wa:active { transform: scale(0.9); }
-
-    /* ── ANIMATIONS ── */
-    @keyframes rotateBorder {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50%       { transform: translateY(-7px); }
-    }
-
-    /* Fade-up: single transition definition, no duplicate */
-    .fade-up {
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1),
-                  transform 0.5s cubic-bezier(0.22,1,0.36,1);
-    }
-    .fade-up.show { opacity: 1; transform: translateY(0); }
-
-    /* Jelly click */
-    .jelly-click { transition: transform 0.12s cubic-bezier(0.4,0,0.2,1); }
-    .jelly-click:active { transform: scale(0.88); }
-    .jelly-click.bounce-back {
-      transform: scale(1.07);
-      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
-    .hidden { display: none !important; }
-
-    /* ── MOBILE TWEAKS ── */
-    @media (max-width: 400px) {
-      .index-page .store-name { font-size: 22px; }
-      .index-page .platform-btn { font-size: 14px; padding: 14px 16px; }
-      .index-page .product-img  { height: 130px; }
-    }
-  </style>
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <link rel="apple-touch-icon" href="logo-linkify.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF6B35">
 </head>
-
-<!-- page-wrap makes body a column flex so footer stays at natural bottom -->
 <body class="index-page">
 <div class="page-wrap">
 
   <div class="container">
 
-    <!-- TOP BAR -->
     <div class="top-bar">
       <div class="theme-switcher" id="themeSwitcher">
-        <button class="theme-pill active" data-t="dark" onclick="setTheme('dark')" title="Midnight">
+        <button type="button" class="theme-pill active" data-t="dark" onclick="setTheme('dark')" title="Midnight">
           <span class="theme-pill-icon">🌙</span>
           <span class="theme-pill-label">Midnight</span>
         </button>
-        <button class="theme-pill" data-t="white" onclick="setTheme('white')" title="White">
+        <button type="button" class="theme-pill" data-t="white" onclick="setTheme('white')" title="White">
           <span class="theme-pill-icon">☀️</span>
           <span class="theme-pill-label">White</span>
         </button>
       </div>
-      <button onclick="shareLink()" class="share-btn" aria-label="Bagikan">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <button type="button" onclick="shareLink()" class="share-btn" aria-label="Bagikan">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
           <polyline points="16 6 12 2 8 6"/>
           <line x1="12" y1="2" x2="12" y2="15"/>
@@ -430,41 +38,30 @@
       </button>
     </div>
 
-    <!-- HERO -->
     <div class="hero fade-up">
       <div class="logo-wrapper">
-        <img id="profileImg"
-             src="https://placehold.co/200x200/1a1a2e/ffffff?text=Logo"
-             alt="Logo Toko"
-             class="logo-img"
-             loading="eager"
-             decoding="async">
+        <img id="profileImg" src="https://placehold.co/200x200/1a1a2e/ffffff?text=Logo" alt="Logo Toko" class="logo-img" loading="eager" decoding="async">
       </div>
       <h1 id="username" class="store-name">Loading...</h1>
       <p id="bio" class="store-desc"></p>
     </div>
 
-    <!-- PLATFORM -->
     <div class="platform-section fade-up">
       <div class="section-header">
         <span class="section-title">Pemesanan &amp; Platform</span>
       </div>
-
       <a id="link-wa-main" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn wa-btn">
         <div class="icon-box">
-          <!-- Shared SVG symbol used via <use> to avoid duplicate inline paths -->
           <svg viewBox="0 0 24 24" width="22" height="22" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
         </div>
         Pesan Lewat WhatsApp
       </a>
-
       <a id="link-shopee" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn shopee-btn hidden">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg>
         </div>
         Pesan Lewat Shopee
       </a>
-
       <a id="link-tokped" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn tokped-btn">
         <div class="icon-box">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="white" aria-hidden="true"><use href="#ico-tokped"/></svg>
@@ -473,13 +70,11 @@
       </a>
     </div>
 
-    <!-- KATALOG -->
     <div class="catalog-section">
       <div class="section-header">
         <span class="section-title">Katalog Produk</span>
       </div>
       <div id="productList" class="product-grid">
-        <!-- Skeleton placeholders -->
         <div class="skeleton-box">
           <div class="skeleton" style="height:160px;border-radius:16px 16px 0 0;"></div>
           <div style="padding:12px;">
@@ -497,9 +92,8 @@
       </div>
     </div>
 
-  </div><!-- /.container -->
+  </div>
 
-  <!-- FOOTER: outside container but inside page-wrap so it's always at natural bottom -->
   <footer class="footer">
     <p id="footer-store">© 2025 My Store</p>
     <div class="footer-brand">
@@ -509,17 +103,12 @@
     <p class="footer-copy">© 2025 LINKify. All rights reserved.</p>
   </footer>
 
-</div><!-- /.page-wrap -->
+</div>
 
-<!-- FLOATING WA (outside page-wrap, fixed position) -->
 <a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" data-wa="" class="floating-wa" aria-label="WhatsApp">
   <svg viewBox="0 0 24 24" width="28" height="28" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
 </a>
 
-<!-- ─────────────────────────────────────────
-     SVG SYMBOL DEFS — defined once, reused via <use>
-     Eliminates repeated inline SVG paths for WA/Shopee icons
-────────────────────────────────────────── -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
   <defs>
     <symbol id="ico-wa" viewBox="0 0 24 24">
@@ -535,9 +124,7 @@
   </defs>
 </svg>
 
-<!-- ── INLINE SCRIPTS (non-module, run immediately) ── -->
 <script>
-  // ── THEME SWITCHER ──────────────────────────────────────
   function setTheme(t) {
     document.body.setAttribute('data-theme', t);
     localStorage.setItem('lf-theme', t);
@@ -549,7 +136,6 @@
   const _saved = localStorage.getItem('lf-theme');
   setTheme(_validThemes.includes(_saved) ? _saved : 'dark');
 
-  // ── SHARE ───────────────────────────────────────────────
   window.shareLink = () => {
     const title = document.getElementById('username')?.innerText || 'Toko';
     if (navigator.share) {
@@ -562,7 +148,6 @@
   };
 </script>
 
-<!-- Firebase module script — deferred automatically as type=module -->
 <script type="module" src="js/script.js"></script>
 </body>
 </html>

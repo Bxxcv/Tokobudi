@@ -8,58 +8,54 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <!-- Favicon LINKify -->
-<link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
-<link rel="icon" type="image/png" sizes="16x16" href="logo-linkify.png">
-<link rel="apple-touch-icon" href="logo-linkify.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <link rel="apple-touch-icon" href="logo-linkify.png">
 </head>
 <body>
 
-  <!-- OVERLAY -->
   <div id="overlay" class="overlay"></div>
 
   <div class="wrapper">
 
-    <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
-      <div class="sidebar-logo">Dasboard Admin Toko<span>.</span></div>
+      <div class="sidebar-logo">Dashboard Admin Toko<span>.</span></div>
       <div class="sidebar-menu">
-        <button class="tab-btn active-tab" data-tab="dashboard">
+        <button type="button" class="tab-btn active-tab" data-tab="dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Dashboard
         </button>
-        <button class="tab-btn" data-tab="products">
+        <button type="button" class="tab-btn" data-tab="premium">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          ✨ Premium
+        </button>
+        <button type="button" class="tab-btn" data-tab="products">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
           Produk
         </button>
-        <button class="tab-btn" data-tab="settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 0 00-1.82-.33 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 0 004.6 9a1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 0 009 4.68a1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 0 001 1.51 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 0 00-1.51 1z"/></svg>
+        <button type="button" class="tab-btn" data-tab="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           Pengaturan Toko
         </button>
-        <button class="tab-btn" data-tab="account">
+        <button type="button" class="tab-btn" data-tab="account">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Akun Saya
         </button>
         <hr class="divider">
-        <!-- TOMBOL COPY LINK TOKO BARU -->
-        <button class="tab-btn" id="btn-copy-link">
+        <button type="button" class="tab-btn" id="btn-copy-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           Copy Link Toko
         </button>
-        <button class="tab-btn logout-btn" id="btn-logout">
+        <button type="button" class="tab-btn logout-btn" id="btn-logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Keluar
         </button>
       </div>
     </nav>
 
-    <!-- MAIN -->
     <div class="main">
-
-      <!-- MOBILE HEADER -->
       <div class="mob-header">
-        <div class="mob-title">Dasboard Admin<span style="color:var(--accent)">.</span></div>
-        <button class="hamburger" id="btn-hamburger">
+        <div class="mob-title">Dashboard Admin<span style="color:var(--accent)">.</span></div>
+        <button type="button" class="hamburger" id="btn-hamburger">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
@@ -90,11 +86,75 @@
           </div>
         </div>
 
+        <!-- PREMIUM -->
+        <div id="tab-premium" class="page">
+          <div id="premium-badge" class="hidden">⭐ Akun Premium Aktif</div>
+
+          <!-- CTA: buat user non-premium -->
+          <div id="premium-cta">
+            <div class="premium-cta-card">
+              <h2>Upgrade ke Premium</h2>
+              <p>Hapus branding LINKify, lihat statistik pengunjung, download QR Code, dan pilih warna aksen toko.</p>
+              <p>Hubungi admin untuk mengaktifkan.</p>
+              <div class="price">Rp 99rb<span style="font-size:14px;font-weight:400;color:var(--text-muted)">/bulan</span></div>
+              <div class="price-note">atau Rp 899rb/tahun (hemat 24%)</div>
+              <a href="https://wa.me/628?" target="_blank" rel="noopener" class="btn btn-dark" style="margin-top:20px;background:#25D366;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                Hubungi Admin
+              </a>
+            </div>
+          </div>
+
+          <!-- KONTEN PREMIUM -->
+          <div id="premium-content" class="hidden">
+            <h2 class="page-h">Statistik Pengunjung</h2>
+            <div class="premium-stats">
+              <div class="premium-stat-card">
+                <div class="premium-stat-icon">👁</div>
+                <div class="premium-stat-val" id="stat-visits">0</div>
+                <div class="premium-stat-lbl">Pengunjung 7 hari</div>
+              </div>
+              <div class="premium-stat-card">
+                <div class="premium-stat-icon">💬</div>
+                <div class="premium-stat-val" id="stat-wa">0</div>
+                <div class="premium-stat-lbl">Klik WhatsApp</div>
+              </div>
+              <div class="premium-stat-card">
+                <div class="premium-stat-icon">🛒</div>
+                <div class="premium-stat-val" id="stat-shopee">0</div>
+                <div class="premium-stat-lbl">Klik Shopee</div>
+              </div>
+            </div>
+            <div class="f-card" style="max-width:100%;margin-bottom:24px;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Pengunjung per hari (7 hari terakhir)</p>
+              <div class="stats-chart" id="stats-chart"></div>
+            </div>
+
+            <h2 class="page-h">Warna Aksen Toko</h2>
+            <div class="f-card" style="max-width:100%;margin-bottom:24px;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Pilih warna untuk harga, border gradient, dan tombol aksi di toko kamu.</p>
+              <div class="color-options" id="color-options"></div>
+            </div>
+
+            <h2 class="page-h">QR Code Toko</h2>
+            <div class="f-card qr-section" style="max-width:100%;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Cetak dan tempel di toko fisik kamu. Customer scan langsung buka toko.</p>
+              <img id="qr-img" class="qr-img" src="" alt="QR Code Toko">
+              <button type="button" id="btn-download-qr" class="btn btn-dark" style="margin-top:8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download QR Code
+              </button>
+            </div>
+
+            <p id="premium-expiry" class="premium-expiry"></p>
+          </div>
+        </div>
+
         <!-- PRODUK -->
         <div id="tab-products" class="page">
           <div class="prod-header">
             <h2 class="page-h" style="margin:0">Daftar Produk</h2>
-            <button class="btn btn-dark" id="btn-add-product">
+            <button type="button" class="btn btn-dark" id="btn-add-product">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Tambah Produk
             </button>
@@ -135,7 +195,7 @@
                 <input type="hidden" id="inp-logo-url">
               </div>
             </div>
-            <button class="btn btn-dark btn-w" id="btn-save-settings" style="margin-top:10px;">Simpan Pengaturan</button>
+            <button type="button" class="btn btn-dark btn-w" id="btn-save-settings" style="margin-top:10px;">Simpan Pengaturan</button>
           </div>
         </div>
 
@@ -155,7 +215,7 @@
               <label class="f-label red">Password Lama (wajib untuk verifikasi)</label>
               <input type="password" id="inp-old-pass" class="f-input" placeholder="Password lama kamu">
             </div>
-            <button class="btn btn-dark btn-w" id="btn-save-account" style="margin-top:10px;">Update Akun</button>
+            <button type="button" class="btn btn-dark btn-w" id="btn-save-account" style="margin-top:10px;">Update Akun</button>
           </div>
         </div>
 
@@ -163,7 +223,6 @@
     </div>
   </div>
 
-  <!-- MODAL PRODUK - UDAH DIBENERIN -->
   <div id="product-modal" class="modal-bg">
     <div class="modal-box">
       <div class="modal-pull" id="modal-pull"></div>
@@ -174,7 +233,6 @@
           <label class="f-label">Nama Produk *</label>
           <input type="text" id="inp-prod-name" class="f-input" required placeholder="Nama produk...">
         </div>
-        <!-- INI YG DIBENERIN: f-row ditutup bener -->
         <div class="f-row">
           <div class="f-group">
             <label class="f-label">Harga (Rp) *</label>
@@ -184,7 +242,7 @@
             <label class="f-label">Stok *</label>
             <input type="number" id="inp-prod-stock" class="f-input" required min="0" placeholder="0">
           </div>
-        </div> <!-- PENUTUP F-ROW -->
+        </div>
         <div class="f-group">
           <label class="f-label">Deskripsi</label>
           <textarea id="inp-prod-desc" class="f-area" rows="2" placeholder="Deskripsi singkat..."></textarea>
