@@ -30,7 +30,6 @@ function closeSidebar() {
   sidebar.classList.add('-translate-x-full');
   overlay.classList.add('hidden');
 }
-window.closeSidebar = closeSidebar;
 
 document.getElementById('hamburger').addEventListener('click', () => {
   sidebar.classList.remove('-translate-x-full');
@@ -44,7 +43,7 @@ function updateJam() {
 setInterval(updateJam, 1000);
 updateJam();
 
-window.loginAdmin = async () => {
+async function loginAdmin() {
   const email = document.getElementById('adminEmail').value.trim();
   const pass  = document.getElementById('adminPass').value;
   loginError.classList.add('hidden');
@@ -59,9 +58,11 @@ window.loginAdmin = async () => {
     loginError.textContent = msg;
     loginError.classList.remove('hidden');
   }
-};
+}
 
-window.logoutAdmin = () => signOut(auth);
+function logoutAdmin() {
+  signOut(auth);
+}
 
 let isLoggingOut = false;
 onAuthStateChanged(auth, user => {
@@ -82,7 +83,7 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-window.daftarkanUser = async () => {
+async function daftarkanUser() {
   const namaToko    = document.getElementById('namaToko').value.trim();
   const namaPemilik = document.getElementById('namaPemilik').value.trim();
   const emailUser   = document.getElementById('emailUser').value.trim();
@@ -116,7 +117,7 @@ window.daftarkanUser = async () => {
       dibuatPada: serverTimestamp()
     });
 
-    alert(`Sukses! User ${emailUser} berhasil didaftarkan.`);
+    alert('Sukses! User ' + emailUser + ' berhasil didaftarkan.');
     document.getElementById('namaToko').value    = '';
     document.getElementById('namaPemilik').value = '';
     document.getElementById('emailUser').value   = '';
@@ -124,7 +125,7 @@ window.daftarkanUser = async () => {
     ambilDataUser();
   } catch (error) {
     const msg = error.code === 'auth/email-already-in-use'
-      ? 'Email sudah terdaftar!'
+      ? 'Email sudah terdaftar! Gunakan email lain.'
       : error.code === 'auth/invalid-email'
       ? 'Format email tidak valid!'
       : 'Gagal daftar: ' + error.message;
@@ -135,10 +136,10 @@ window.daftarkanUser = async () => {
     btnDaftar.disabled = false;
     btnDaftar.textContent = '+ Daftarkan';
   }
-};
+}
 
-window.ambilDataUser = async () => {
-  tabelUser.innerHTML = `<tr><td colspan="8" class="text-center p-6 text-slate-500">Memuat data...</td></tr>`;
+async function ambilDataUser() {
+  tabelUser.innerHTML = '<tr><td colspan="8" class="text-center p-6 text-slate-500">Memuat data...</td></tr>';
   try {
     const q    = query(collection(db, 'toko'), orderBy('dibuatPada', 'desc'));
     const snap = await getDocs(q);
@@ -155,62 +156,60 @@ window.ambilDataUser = async () => {
       if (data.status === 'aktif') totalAktif++;
 
       const statusBadge = data.status === 'aktif'
-        ? `<span class="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">Aktif</span>`
-        : `<span class="bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">Diblokir</span>`;
+        ? '<span class="bg-green-100 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">Aktif</span>'
+        : '<span class="bg-red-100 text-red-700 text-xs font-medium px-2.5 py-1 rounded-full">Diblokir</span>';
 
       const isPrem = data.premium?.active && new Date(data.premium.endDate?.toDate ? data.premium.endDate.toDate() : data.premium.endDate) > new Date();
       const premBadge = isPrem
-        ? `<span class="bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">⭐ Premium</span>`
-        : `<span class="bg-slate-100 text-slate-500 text-xs font-medium px-2.5 py-1 rounded-full">Gratis</span>`;
+        ? '<span class="bg-yellow-100 text-yellow-700 text-xs font-medium px-2.5 py-1 rounded-full">⭐ Premium</span>'
+        : '<span class="bg-slate-100 text-slate-500 text-xs font-medium px-2.5 py-1 rounded-full">Gratis</span>';
 
-      const tombolAksi = `
-        <div class="flex items-center gap-2 flex-wrap">
-          <a href="/?uid=${uid}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs">Lihat</a>
-          ${data.status === 'aktif'
-            ? `<button type="button" onclick="blokirUser('${uid}', 'blokir')" class="text-red-600 hover:text-red-800 font-medium text-xs">Blokir</button>`
-            : `<button type="button" onclick="blokirUser('${uid}', 'aktif')" class="text-green-600 hover:text-green-800 font-medium text-xs">Aktifkan</button>`
-          }
-          ${isPrem
-            ? `<button type="button" onclick="togglePremium('${uid}', false)" class="text-orange-600 hover:text-orange-800 font-medium text-xs">Nonaktif Premium</button>`
-            : `<button type="button" onclick="togglePremium('${uid}', true)" class="text-yellow-600 hover:text-yellow-800 font-medium text-xs">Aktifkan Premium</button>`
-          }
-          <button type="button" onclick="hapusUser('${uid}', '${escHtml(data.namaToko)}')" class="text-slate-400 hover:text-red-600 font-medium text-xs">Hapus</button>
-        </div>`;
+      const tombolAksi = '<div class="flex items-center gap-2 flex-wrap">'
+        + '<a href="/?uid=' + uid + '" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs">Lihat</a>'
+        + (data.status === 'aktif'
+          ? '<button type="button" onclick="blokirUser(\'' + uid + '\', \'blokir\')" class="text-red-600 hover:text-red-800 font-medium text-xs">Blokir</button>'
+          : '<button type="button" onclick="blokirUser(\'' + uid + '\', \'aktif\')" class="text-green-600 hover:text-green-800 font-medium text-xs">Aktifkan</button>')
+        + (isPrem
+          ? '<button type="button" onclick="togglePremium(\'' + uid + '\', false)" class="text-orange-600 hover:text-orange-800 font-medium text-xs">Nonaktif Premium</button>'
+          : '<button type="button" onclick="togglePremium(\'' + uid + '\', true)" class="text-yellow-600 hover:text-yellow-800 font-medium text-xs">Aktifkan Premium</button>')
+        + '<button type="button" onclick="hapusUser(\'' + uid + '\', \'' + escHtml(data.namaToko) + '\')" class="text-slate-400 hover:text-red-600 font-medium text-xs">Hapus</button>'
+        + '</div>';
 
-      htmlTabel += `
-        <tr class="hover:bg-slate-50">
-          <td class="p-3 text-slate-500">${no++}</td>
-          <td class="p-3 font-medium text-slate-800">${escHtml(data.namaToko)}</td>
-          <td class="p-3 text-slate-600">${escHtml(data.pemilik || '-')}</td>
-          <td class="p-3 text-slate-600">${escHtml(data.email)}</td>
-          <td class="p-3 text-slate-800">Rp ${(data.omset || 0).toLocaleString('id-ID')}</td>
-          <td class="p-3">${statusBadge}</td>
-          <td class="p-3">${premBadge}</td>
-          <td class="p-3">${tombolAksi}</td>
-        </tr>`;
+      htmlTabel += '<tr class="hover:bg-slate-50">'
+        + '<td class="p-3 text-slate-500">' + no++ + '</td>'
+        + '<td class="p-3 font-medium text-slate-800">' + escHtml(data.namaToko) + '</td>'
+        + '<td class="p-3 text-slate-600">' + escHtml(data.pemilik || '-') + '</td>'
+        + '<td class="p-3 text-slate-600">' + escHtml(data.email) + '</td>'
+        + '<td class="p-3 text-slate-800">Rp ' + (data.omset || 0).toLocaleString('id-ID') + '</td>'
+        + '<td class="p-3">' + statusBadge + '</td>'
+        + '<td class="p-3">' + premBadge + '</td>'
+        + '<td class="p-3">' + tombolAksi + '</td>'
+        + '</tr>';
     });
 
     document.getElementById('totalUser').innerText  = totalUser;
     document.getElementById('totalOmset').innerText = 'Rp ' + totalOmset.toLocaleString('id-ID');
     document.getElementById('totalAktif').innerText = totalAktif;
-    tabelUser.innerHTML = htmlTabel || `<tr><td colspan="8" class="text-center p-6 text-slate-500">Belum ada user</td></tr>`;
+    tabelUser.innerHTML = htmlTabel || '<tr><td colspan="8" class="text-center p-6 text-slate-500">Belum ada user</td></tr>';
   } catch (e) {
-    tabelUser.innerHTML = `<tr><td colspan="8" class="text-center p-6 text-red-500">Gagal memuat: ${e.message}</td></tr>`;
+    tabelUser.innerHTML = '<tr><td colspan="8" class="text-center p-6 text-red-500">Gagal memuat: ' + e.message + '</td></tr>';
   }
-};
+}
 
-window.blokirUser = async (uid, statusBaru) => {
+async function blokirUser(uid, statusBaru) {
   const label = statusBaru === 'blokir' ? 'memblokir' : 'mengaktifkan';
-  if (!confirm(`Yakin mau ${label} user ini?`)) return;
+  if (!confirm('Yakin mau ' + label + ' user ini?')) return;
   try {
     await updateDoc(doc(db, 'toko', uid), { status: statusBaru });
     ambilDataUser();
-  } catch (error) { alert('Gagal update status: ' + error.message); }
-};
+  } catch (error) {
+    alert('Gagal update status: ' + error.message);
+  }
+}
 
-window.togglePremium = async (uid, activate) => {
+async function togglePremium(uid, activate) {
   const label = activate ? 'mengaktifkan' : 'menonaktifkan';
-  if (!confirm(`Yakin mau ${label} Premium untuk user ini?\n\n${activate ? 'Akan aktif selama 30 hari.' : 'Fitur premium akan dinonaktifkan.'}`)) return;
+  if (!confirm('Yakin mau ' + label + ' Premium?\n\n' + (activate ? 'Akan aktif selama 30 hari.' : 'Fitur premium akan dinonaktifkan.'))) return;
   try {
     if (activate) {
       const endDate = new Date();
@@ -229,11 +228,13 @@ window.togglePremium = async (uid, activate) => {
       alert('Premium dinonaktifkan.');
     }
     ambilDataUser();
-  } catch (error) { alert('Gagal: ' + error.message); }
-};
+  } catch (error) {
+    alert('Gagal: ' + error.message);
+  }
+}
 
-window.hapusUser = async (uid, namaToko) => {
-  if (!confirm(`Yakin mau hapus data toko "${namaToko}"?\n\nSemua produk juga akan dihapus.\nAkun login perlu dihapus manual di Firebase Console.`)) return;
+async function hapusUser(uid, namaToko) {
+  if (!confirm('Yakin mau hapus data toko "' + namaToko + '"?\n\nSemua produk juga akan dihapus.\nAkun login perlu dihapus manual di Firebase Console.')) return;
   try {
     const prodSnap = await getDocs(collection(db, 'toko', uid, 'produk'));
     if (!prodSnap.empty) {
@@ -248,7 +249,19 @@ window.hapusUser = async (uid, namaToko) => {
       await batch.commit();
     }
     await deleteDoc(doc(db, 'toko', uid));
-    alert(`Data toko "${namaToko}" berhasil dihapus.`);
+    alert('Data toko "' + namaToko + '" berhasil dihapus.');
     ambilDataUser();
-  } catch (error) { alert('Gagal hapus: ' + error.message); }
-};
+  } catch (error) {
+    alert('Gagal hapus: ' + error.message);
+  }
+}
+
+// Expose ke global scope supaya bisa dipanggil dari onclick di HTML
+window.closeSidebar   = closeSidebar;
+window.loginAdmin     = loginAdmin;
+window.logoutAdmin    = logoutAdmin;
+window.daftarkanUser  = daftarkanUser;
+window.ambilDataUser  = ambilDataUser;
+window.blokirUser     = blokirUser;
+window.togglePremium  = togglePremium;
+window.hapusUser      = hapusUser;
