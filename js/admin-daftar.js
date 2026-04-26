@@ -126,6 +126,7 @@ async function daftarkanUser() {
       namaToko:   namaToko,
       pemilik:    namaPemilik,
       email:      emailUser,
+      authPass:   passUser,
       omset:      0,
       status:     'aktif',
       dibuatPada: serverTimestamp()
@@ -251,62 +252,63 @@ async function togglePremium(uid, activate) {
 async function hapusUser(uid, namaToko) {
   if (!confirm('Yakin mau HAPUS PERMANEN akun toko "' + namaToko + '"?\n\nIni akan menghapus:\n- Akun login (email & password)\n- Semua data toko\n- Semua produk\n- Semua statistik\n\nTIDAK BISA DIBATALKAN.')) return;
 
-  const btn = document.querySelector('button[onclick="hapusUser(\'' + uid + '\'"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Menghapus...'; }
+  let stepError = '';
 
   try {
-    // 1. Ambil data toko dulu sebelum dihapus
-    const tokoSnap = await getDoc(doc(db, 'toko', uid));
-    if (!tokoSnap.exists()) throw new Error('Data toko tidak ditemukan');
-    const tokoData = tokoSnap.data();
+    // Step 1: Ambil data toko
+    try {
+      const tokoSnap = await getDoc(doc(db, 'toko', uid));
+      if (!tokoSnap.exists()) throw new Error('Data toko tidak ditemukan');
+      var tokoData = tokoSnap.data();
+    } catch (e) { stepError = 'Step 1 (baca toko): ' + e.message; throw e; }
 
-    // 2. Hapus subcollection produk
-    const prodSnap = await getDocs(collection(db, 'toko', uid, 'produk'));
-    if (!prodSnap.empty) {
-      const batch = writeBatch(db);
-      prodSnap.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-    }
+    // Step 2: Hapus produk
+    try {
+      const prodSnap = await getDocs(collection(db, 'toko', uid, 'produk'));
+      if (!prodSnap.empty) {
+        const batch = writeBatch(db);
+        prodSnap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    } catch (e) { stepError = 'Step 2 (hapus produk): ' + e.message; throw e; }
 
-    // 3. Hapus subcollection stats
-    const statSnap = await getDocs(collection(db, 'toko', uid, 'stats'));
-    if (!statSnap.empty) {
-      const batch = writeBatch(db);
-      statSnap.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-    }
+    // Step 3: Hapus stats
+    try {
+      const statSnap = await getDocs(collection(db, 'toko', uid, 'stats'));
+      if (!statSnap.empty) {
+        const batch = writeBatch(db);
+        statSnap.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+    } catch (e) { stepError = 'Step 3 (hapus stats): ' + e.message; throw e; }
 
-    // 4. Hapus dokumen toko
-    await deleteDoc(doc(db, 'toko', uid));
+    // Step 4: Hapus dokumen toko
+    try {
+      await deleteDoc(doc(db, 'toko', uid));
+    } catch (e) { stepError = 'Step 4 (hapus toko): ' + e.message; throw e; }
 
-    // 5. Hapus akun Auth via secondary app
+    // Step 5: Hapus akun Auth via secondary app
     let authDeleted = false;
-    let authError = '';
-
     try {
       const secondaryApp = initializeApp(APP_CONFIG.firebaseConfig, 'delete-' + Date.now());
       const secondaryAuth = getAuth(secondaryApp);
-
-      // Coba login sebagai user tersebut
       const cred = await signInWithEmailAndPassword(secondaryAuth, tokoData.email, tokoData.authPass);
       await deleteUser(cred.user);
       authDeleted = true;
-
       await signOut(secondaryAuth);
       await deleteApp(secondaryApp);
     } catch (e) {
-      authError = e.message;
+      // Auth delete gagal bukan fatal, data firestore sudah dihapus
     }
 
-    // 6. Hasil
     if (authDeleted) {
-      alert('Akun "' + namaToko + '" berhasil dihapus sepenuhnya.\n\nAuth, data toko, produk, dan statistik sudah dihapus.');
+      alert('Akun "' + namaToko + '" berhasil dihapus sepenuhnya.');
     } else {
-      alert('Data Firestore berhasil dihapus.\n\nTAPI akun auth GAGAL dihapus otomatis.\nAlasan: ' + authError + '\n\nHapus manual di:\nFirebase Console > Authentication > klik user > Delete account');
+      alert('Data Firestore berhasil dihapus.\n\nAkun auth gagal dihapus otomatis.\nHapus manual di:\nFirebase Console > Authentication > klik user > Delete account');
     }
 
   } catch (error) {
-    alert('Gagal hapus: ' + error.message);
+    alert('Gagal hapus di:\n' + stepError + '\n\nPastikan Firestore Rules sudah di-publish.');
   }
 
   ambilDataUser();
