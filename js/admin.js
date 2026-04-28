@@ -7,7 +7,7 @@ import {
   collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
   serverTimestamp, getDoc, query, orderBy, setDoc, where, increment
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { escHtml, checkPremium, hexToRgb, ACCENT_COLORS, DAY_NAMES, formatDate } from './utils.js';
+import { escHtml, checkPremium, hexToRgb, ACCENT_COLORS, DAY_NAMES, formatDate, TEMPLATE_LIST } from './utils.js';
 
 const CLOUD_NAME = CONFIG.cloudinary.cloudName;
 const CLOUD_PRESET = CONFIG.cloudinary.uploadPreset;
@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const inpProdFile  = document.getElementById('inp-prod-file');
   const imgPrevWrap  = document.getElementById('img-preview-wrap');
   const imgPreview   = document.getElementById('img-preview');
+  const inpProdKategori  = document.getElementById('inp-prod-kategori');
+  const inpProdHargaAsli = document.getElementById('inp-prod-harga-asli');
+  const inpProdUnggulan  = document.getElementById('inp-prod-unggulan');
 
   const logoPreview  = document.getElementById('logo-preview');
   const btnLogoPick  = document.getElementById('btn-logo-pick');
@@ -158,7 +161,44 @@ document.addEventListener('DOMContentLoaded', () => {
       currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
       renderColorPicker();
       renderQR();
+      renderTemplatePicker();
     }
+  }
+
+  // ── PREMIUM: TEMPLATE PICKER ──
+  function renderTemplatePicker() {
+    const wrap = document.getElementById('template-options');
+    if (!wrap) return;
+    const currentTpl = currentTokoData?.premium?.template || 'default';
+    wrap.innerHTML = TEMPLATE_LIST.map(t => `
+      <div class="tpl-card${t.id === currentTpl ? ' active' : ''}" data-tpl="${t.id}">
+        <div class="tpl-preview tpl-preview-${t.id}">
+          <div class="tpl-bar"></div>
+          <div class="tpl-circle"></div>
+          <div class="tpl-line"></div>
+          <div class="tpl-line tpl-line-short"></div>
+          <div class="tpl-btn-row"><div class="tpl-btn"></div><div class="tpl-btn"></div></div>
+        </div>
+        <div class="tpl-label">${t.label}</div>
+        <div class="tpl-desc">${t.desc}</div>
+        ${t.id === currentTpl ? '<div class="tpl-active-badge">✓ Aktif</div>' : ''}
+      </div>`).join('');
+
+    wrap.querySelectorAll('.tpl-card').forEach(card => {
+      card.addEventListener('click', async () => {
+        const tpl = card.dataset.tpl;
+        const uid = auth.currentUser?.uid;
+        if (!uid) return;
+        try {
+          await updateDoc(doc(db, 'toko', uid), { 'premium.template': tpl });
+          currentTokoData.premium = { ...currentTokoData.premium, template: tpl };
+          renderTemplatePicker();
+          toast('Template diperbarui!');
+        } catch (e) {
+          toast('Gagal simpan template', 'err');
+        }
+      });
+    });
   }
 
   // ── DASHBOARD STATS (total produk & stok habis) ──
@@ -331,9 +371,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <img class="p-img" src="${escHtml(p.img)}" alt="${escHtml(p.nama)}"
                  onerror="this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Error'">
             <div class="p-body">
-              <div class="p-name">${escHtml(p.nama)}</div>
-              <div class="p-price">Rp${Number(p.harga).toLocaleString('id-ID')}</div>
-              <div class="p-stock">Stok: ${p.stok}${stokNol ? ' · <span style="color:var(--danger)">Habis</span>' : ''}</div>
+              <div class="p-name">${escHtml(p.nama)}${p.unggulan ? ' <span style="color:#F59E0B;font-size:12px;">⭐</span>' : ''}</div>
+              <div class="p-price">Rp${Number(p.harga).toLocaleString('id-ID')}${p.hargaAsli > p.harga ? ` <span style="text-decoration:line-through;color:var(--text-muted);font-size:11px;font-weight:400">Rp${Number(p.hargaAsli).toLocaleString('id-ID')}</span>` : ''}</div>
+              <div class="p-stock">Stok: ${p.stok}${stokNol ? ' · <span style="color:var(--danger)">Habis</span>' : ''}${p.kategori ? ` · <span style="color:var(--text-muted)">${escHtml(p.kategori)}</span>` : ''}</div>
               <div class="p-acts">
                 <button type="button" class="btn-ed" data-id="${id}">Edit</button>
                 <button type="button" class="btn-del" data-id="${id}">Hapus</button>
@@ -356,6 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inp-prod-id').value  = '';
     document.getElementById('inp-prod-img').value = '';
     inpProdFile.value = '';
+    inpProdKategori.value = '';
+    inpProdHargaAsli.value = '';
+    inpProdUnggulan.checked = false;
     if (prodBlobUrl) { URL.revokeObjectURL(prodBlobUrl); prodBlobUrl = null; }
     imgPrevWrap.style.display = 'none';
     imgPreview.src = '';
@@ -396,6 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inp-prod-shopee').value= p.shopee    || '';
         document.getElementById('inp-prod-wa').value    = p.wa        || '';
         document.getElementById('inp-prod-img').value   = p.img       || '';
+        inpProdKategori.value  = p.kategori   || '';
+        inpProdHargaAsli.value = p.hargaAsli  || '';
+        inpProdUnggulan.checked = p.unggulan  || false;
         inpProdFile.value = '';
         if (p.img) {
           if (prodBlobUrl) URL.revokeObjectURL(prodBlobUrl);
@@ -447,6 +493,9 @@ document.addEventListener('DOMContentLoaded', () => {
         shopee:    document.getElementById('inp-prod-shopee').value.trim(),
         wa:        document.getElementById('inp-prod-wa').value.trim(),
         img:       imgUrl,
+        kategori:  inpProdKategori.value,
+        hargaAsli: Number(inpProdHargaAsli.value) || 0,
+        unggulan:  inpProdUnggulan.checked,
         updatedAt: serverTimestamp()
       };
 

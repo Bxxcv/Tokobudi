@@ -165,3 +165,42 @@ body.index-page[data-theme="white"] .social-icon-btn:hover { color: #fff; border
   .platform-btn { font-size: 14px; padding: 14px 16px; }
   .product-img { height: 130px; }
 }
+/* ── KATEGORI FILTER ── */
+.kategori-filter { display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:16px; scrollbar-width:none; -ms-overflow-style:none; }
+.kategori-filter::-webkit-scrollbar { display:none; }
+.kat-btn { flex-shrink:0; padding:6px 14px; border-radius:99px; border:1.5px solid var(--idx-border); background:transparent; color:rgba(255,255,255,0.6); font-size:12px; font-weight:500; cursor:pointer; transition:all 0.18s ease; white-space:nowrap; }
+.kat-btn:hover { border-color:var(--idx-accent); color:var(--idx-accent); }
+.kat-btn.active { background:var(--idx-accent); border-color:var(--idx-accent); color:#fff; }
+body.index-page[data-theme="white"] .kat-btn { color:rgba(0,0,0,0.5); border-color:rgba(0,0,0,0.15); }
+body.index-page[data-theme="white"] .kat-btn.active { color:#fff; }
+
+/* ── UNGGULAN SECTION ── */
+.unggulan-label { font-size:13px; font-weight:600; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:10px; }
+.unggulan-divider { height:1px; background:var(--idx-border); margin:8px 0; }
+body.index-page[data-theme="white"] .unggulan-label { color:rgba(0,0,0,0.4); }
+
+/* ── BADGE DISKON ── */
+.badge-diskon { position:absolute; top:8px; left:8px; background:#E53E3E; color:#fff; font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px; letter-spacing:0.3px; }
+.badge-unggulan { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.55); color:#F6C90E; font-size:10px; font-weight:600; padding:3px 7px; border-radius:6px; backdrop-filter:blur(4px); }
+
+/* ── HARGA CORET ── */
+.harga-coret { font-size:12px; color:rgba(255,255,255,0.38); text-decoration:line-through; font-weight:400; }
+body.index-page[data-theme="white"] .harga-coret { color:rgba(0,0,0,0.3); }
+
+/* ── TEMPLATE: minimal ── */
+body.index-page[data-template="minimal"] { --idx-bg: #F8F8F6; --idx-bg2: #FFFFFF; --idx-bg3: #F0F0EE; --idx-text: #111111; --idx-text2: #555555; --idx-border: rgba(0,0,0,0.09); }
+body.index-page[data-template="minimal"] .product-card { box-shadow:0 1px 6px rgba(0,0,0,0.07); border:1px solid rgba(0,0,0,0.06); }
+body.index-page[data-template="minimal"] .product-name { color:#111; }
+body.index-page[data-template="minimal"] .kat-btn { color:rgba(0,0,0,0.5); border-color:rgba(0,0,0,0.15); }
+body.index-page[data-template="minimal"] .kat-btn.active { color:#fff; }
+body.index-page[data-template="minimal"] .harga-coret { color:rgba(0,0,0,0.28); }
+body.index-page[data-template="minimal"] .unggulan-label { color:rgba(0,0,0,0.4); }
+body.index-page[data-template="minimal"] .social-icon-btn { background:rgba(0,0,0,0.05); border-color:rgba(0,0,0,0.08); color:rgba(17,24,39,0.55); }
+body.index-page[data-template="minimal"] .social-icon-btn:hover { color:#fff; border-color:transparent; }
+
+/* ── TEMPLATE: bold ── */
+body.index-page[data-template="bold"] .product-card { border-radius:20px; overflow:hidden; }
+body.index-page[data-template="bold"] .product-img { height:200px; }
+body.index-page[data-template="bold"] .product-name { font-size:15px; font-weight:700; }
+body.index-page[data-template="bold"] .product-price { font-size:18px; }
+body.index-page[data-template="bold"] .kat-btn { font-size:13px; padding:8px 18px; }

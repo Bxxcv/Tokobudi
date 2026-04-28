@@ -32,6 +32,17 @@ export function formatDate(dateStr) {
   return DAY_NAMES[d.getDay()];
 }
 
+export const KATEGORI_LIST = [
+  'Semua', 'Pakaian', 'Makanan & Minuman', 'Elektronik', 'Kecantikan',
+  'Rumah Tangga', 'Olahraga', 'Aksesoris', 'Lainnya'
+];
+
+export const TEMPLATE_LIST = [
+  { id: 'default',  label: 'Default',  desc: 'Gelap modern dengan aksen warna' },
+  { id: 'minimal',  label: 'Minimal',  desc: 'Putih bersih, typografi elegan' },
+  { id: 'bold',     label: 'Bold',     desc: 'Warna kuat, kartu besar' },
+];
+
 export const ACCENT_COLORS = [
   { hex: '#FF6B35', label: 'Oranye' },
   { hex: '#EE4D2D', label: 'Merah' },
