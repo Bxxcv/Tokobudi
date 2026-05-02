@@ -526,9 +526,9 @@ function updatePremiumUI() {
 
   currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
 
-  // Slug display
-  const slugEl = $('inp-custom-slug');
-  if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
+  // Premium price display
+  const priceEl = $('premium-price');
+  if (priceEl && currentTokoData.premium?.price) priceEl.textContent = 'Rp ' + (currentTokoData.premium.price).toLocaleString('id-ID');
 
   // Expiry
   const endDate = currentTokoData.premium?.endDate;
