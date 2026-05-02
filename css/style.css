@@ -539,10 +539,7 @@ html, body {
 .custom-btn-item .cb-remove:hover { background: var(--danger); color: #fff; }
 .custom-btn-item .cb-remove svg { width: 14px; height: 14px; }
 
-/* Custom slug input */
-.slug-input-row { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
-.slug-prefix { padding: 10px 12px; font-size: 13px; color: var(--text-3); background: var(--surface2); border-right: 1px solid var(--border); white-space: nowrap; }
-.slug-input  { flex: 1; border: none; background: transparent; padding: 10px 12px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text); outline: none; }
+
 
 /* ── TOAST ─────────────────────────────────────────────────────────────── */
 #toast {
