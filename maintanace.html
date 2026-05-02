@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sedang Maintenance — LINKify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <meta name="theme-color" content="#0F1117">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #0F1117;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      color: #fff;
+      -webkit-font-smoothing: antialiased;
+      /* Simple static radial — painted once, no animation */
+      background-image: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,107,53,0.10) 0%, transparent 70%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    /* Logo */
+    .logo-wrap {
+      width: 72px; height: 72px;
+      background: #FF6B35;
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      box-shadow: 0 0 0 8px rgba(255,107,53,0.10);
+    }
+    .logo-wrap img { width: 46px; height: 46px; border-radius: 12px; }
+
+    /* Gear icon — pure CSS, no emoji */
+    .gear-wrapper {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(255,107,53,0.10);
+      border: 1px solid rgba(255,107,53,0.18);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+    }
+    .gear-wrapper svg {
+      /* GPU-only animation — transform only */
+      animation: gear-spin 6s linear infinite;
+      will-change: transform;
+    }
+    @keyframes gear-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .gear-wrapper svg { animation: none; } }
+
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.50);
+      line-height: 1.65;
+      margin-bottom: 32px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Countdown */
+    .countdown-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .count-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      min-width: 72px;
+    }
+    .count-num {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #FF6B35;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .count-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 5px;
+    }
+
+    /* No countdown — estimated time text */
+    .est-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.40);
+      margin-bottom: 28px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 8px 16px;
+      border-radius: 99px;
+    }
+    .est-time svg { flex-shrink: 0; }
+
+    /* Progress bar — transform-based width animation */
+    .progress-outer {
+      height: 3px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .progress-inner {
+      height: 100%;
+      background: linear-gradient(90deg, #FF6B35, #FF9A6C);
+      border-radius: 99px;
+      transform-origin: left;
+      animation: progress-anim 2.4s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+    @keyframes progress-anim {
+      from { transform: scaleX(0.1) translateX(0); }
+      to   { transform: scaleX(0.9) translateX(8%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .progress-inner { animation: none; transform: scaleX(0.5); }
+    }
+
+    /* Refresh button */
+    .refresh-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,107,53,0.12);
+      border: 1px solid rgba(255,107,53,0.22);
+      color: #FF6B35;
+      padding: 11px 24px;
+      border-radius: 12px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s ease, transform 0.12s ease;
+      margin-bottom: 32px;
+    }
+    .refresh-btn:hover  { background: rgba(255,107,53,0.20); }
+    .refresh-btn:active { transform: scale(0.95); }
+    .refresh-btn svg { width: 14px; height: 14px; }
+
+    /* Footer */
+    .footer {
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      letter-spacing: 0.3px;
+    }
+    .footer a {
+      color: rgba(255,255,255,0.28);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <img src="logo-linkify.png" alt="LINKify">
+    </div>
+
+    <!-- Gear icon -->
+    <div class="gear-wrapper">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </div>
+
+    <h1 class="title" id="maint-title">Sedang Maintenance</h1>
+    <p class="subtitle" id="maint-msg">Sistem sedang dalam pemeliharaan. Kami akan segera kembali.</p>
+
+    <!-- Countdown (tampil jika ada estimatedDone) -->
+    <div class="countdown-wrap" id="countdown-wrap" style="display:none;">
+      <div class="count-box">
+        <div class="count-num" id="cd-hours">00</div>
+        <div class="count-lbl">Jam</div>
+      </div>
+      <div class="count-box">
+        <div class="count-num" id="cd-mins">00</div>
+        <div class="count-lbl">Menit</div>
+      </div>
+      <div class="count-box">
+        <div class="count-num" id="cd-secs">00</div>
+        <div class="count-lbl">Detik</div>
+      </div>
+    </div>
+
+    <!-- Estimasi text fallback -->
+    <div class="est-time" id="est-text" style="display:none;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span id="est-label">Estimasi selesai segera</span>
+    </div>
+
+    <!-- Indeterminate progress bar -->
+    <div class="progress-outer">
+      <div class="progress-inner"></div>
+    </div>
+
+    <button type="button" class="refresh-btn" onclick="location.reload()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+      </svg>
+      Coba Lagi
+    </button>
+
+    <p class="footer">
+      &copy; 2025 LINKify &nbsp;&middot;&nbsp;
+      <a href="admin.html">Admin Login</a>
+    </p>
+  </div>
+
+  <script>
+    // Baca info maintenance dari sessionStorage (diisi oleh maintenance.js)
+    (function () {
+      try {
+        const raw = sessionStorage.getItem('lf_maint');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+
+        if (data.title) document.getElementById('maint-title').textContent = data.title;
+        if (data.message) document.getElementById('maint-msg').textContent = data.message;
+
+        if (data.estimatedDone) {
+          const end = data.estimatedDone?.seconds
+            ? new Date(data.estimatedDone.seconds * 1000)
+            : new Date(data.estimatedDone);
+
+          if (end > new Date()) {
+            // Tampilkan countdown
+            document.getElementById('countdown-wrap').style.display = 'flex';
+
+            // Fallback text juga tampil di bawah countdown
+            const estEl = document.getElementById('est-text');
+            const estLbl = document.getElementById('est-label');
+            estEl.style.display = 'inline-flex';
+            estLbl.textContent = 'Estimasi selesai: ' + end.toLocaleString('id-ID', {
+              weekday: 'long', day: 'numeric', month: 'long',
+              hour: '2-digit', minute: '2-digit'
+            });
+
+            // Countdown ticker — uses only transform/opacity, zero repaint
+            function tick() {
+              const diff = Math.max(0, end - Date.now());
+              const h = Math.floor(diff / 3600000);
+              const m = Math.floor((diff % 3600000) / 60000);
+              const s = Math.floor((diff % 60000) / 1000);
+              document.getElementById('cd-hours').textContent = String(h).padStart(2, '0');
+              document.getElementById('cd-mins').textContent  = String(m).padStart(2, '0');
+              document.getElementById('cd-secs').textContent  = String(s).padStart(2, '0');
+              if (diff > 0) requestAnimationFrame(tick);
+            }
+            tick();
+          }
+        }
+      } catch { /* non-critical */ }
+    })();
+  </script>
+</body>
+</html>
