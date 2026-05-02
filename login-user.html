@@ -40,6 +40,10 @@
     <p id="errorMsg" class="login-error"></p>
   </div>
 
+  <script type="module">
+    import { checkMaintenance } from './js/maintenance.js';
+    await checkMaintenance(); // login page juga kena maintenance
+  </script>
   <script type="module" src="js/login-user.js"></script>
 </body>
 </html>
