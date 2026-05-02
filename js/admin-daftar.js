@@ -562,12 +562,14 @@ async function saveMaintenance() {
   const msg  = $('maint-msg-inp')?.value.trim()   || 'Sistem sedang dalam pemeliharaan.';
   const est  = $('maint-est-inp')?.value;
   const title = $('maint-title-inp')?.value.trim() || 'Sedang Maintenance';
+  const cur  = $('maint-toggle')?.checked || false;
   const btn  = $('maint-save-btn');
 
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
   try {
     const payload = {
+      active:    cur,
       message:   msg,
       title,
       updatedAt: serverTimestamp(),
