@@ -270,7 +270,8 @@ function hl(text, q) {
 function buildRow(u, no, now, q) {
   const prem = isPremiumActive(u, now);
   const omset = (u.omset || 0).toLocaleString('id-ID');
-  const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${u.uid}`;
+  const linkKey = u.premium?.slug ? u.premium.slug : u.uid;
+  const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${linkKey}`;
 
   const statusBadge = u.status === 'aktif'
     ? '<span class="badge badge-aktif">Aktif</span>'
