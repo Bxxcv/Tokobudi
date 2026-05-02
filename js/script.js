@@ -1,326 +1,412 @@
+/**
+ * LINKify — Public Storefront (script.js)
+ * Fixed: observer timing, removed backgroundAttachment:fixed, batched DOM
+ */
+
 import { db, CONFIG } from '../firebase.js';
-import { collection, getDocs, query, orderBy, doc, getDoc, setDoc, increment, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection, getDocs, query, orderBy,
+  doc, getDoc, setDoc, increment
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { escHtml, rupiah, checkPremium, hexToRgb } from './utils.js';
 
-const urlParams = new URLSearchParams(window.location.search);
-const USER_ID = urlParams.get('uid');
-let isPremium = false;
-let allProducts = [];
+// ── STATE ───────────────────────────────────────────────────────────────────
+const urlParams    = new URLSearchParams(window.location.search);
+const USER_ID      = urlParams.get('uid');
+let allProducts    = [];
 let activeKategori = 'Semua';
+let waUtama        = 'https://wa.me/';
 
-document.addEventListener('DOMContentLoaded', async () => {
+// Single IntersectionObserver instance — created once, never re-created
+let revealObserver = null;
+
+// ── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
   if (!USER_ID) {
-    document.body.innerHTML = '<div style="color:white;text-align:center;padding:40px;">Toko tidak ditemukan</div>';
+    document.body.innerHTML =
+      '<div style="color:rgba(255,255,255,0.5);text-align:center;padding:80px 20px;font-family:Poppins,sans-serif;font-size:14px;">Toko tidak ditemukan.<br><span style="font-size:12px;opacity:0.5;">Pastikan URL mengandung ?uid=...</span></div>';
     return;
   }
-  await loadSettings();
-  setupScrollAnimations();
-  setupJellyAnimations();
-  await loadProducts();
+
+  // Create observers once upfront
+  initRevealObserver();
+  initJellyHandler();
+
+  // Run async work
+  bootstrap();
 });
 
-function applyTheme() {
-  document.documentElement.style.setProperty('--text', CONFIG.theme.textColor);
-  document.documentElement.style.setProperty('--card', CONFIG.theme.bgCard);
+async function bootstrap() {
+  await loadSettings();
+  // Observe static fade-up elements AFTER settings applied
+  observeFadeUp();
+  await loadProducts();
 }
 
-function setupScrollAnimations() {
-  // Observer untuk .fade-up (elemen statis)
-  const fadeObserver = new IntersectionObserver(
-    entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('show'); fadeObserver.unobserve(e.target); } }),
-    { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+// ── REVEAL OBSERVER — single instance ──────────────────────────────────────
+function initRevealObserver() {
+  if (revealObserver) return;
+  revealObserver = new IntersectionObserver(
+    entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('visible');
+        revealObserver.unobserve(e.target);
+      });
+    },
+    { threshold: 0.06, rootMargin: '0px 0px -10px 0px' }
   );
-  document.querySelectorAll('.fade-up').forEach(el => fadeObserver.observe(el));
-
-  // Observer untuk .reveal (elemen dinamis — produk, section)
-  const revealObserver = new IntersectionObserver(
-    entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } }),
-    { threshold: 0.10, rootMargin: '0px 0px -24px 0px' }
-  );
-  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-  return revealObserver;
 }
 
-// Dipanggil ulang setelah produk di-render dinamis
-function observeNewCards() {
-  const revealObserver = new IntersectionObserver(
-    entries => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } }),
-    { threshold: 0.08, rootMargin: '0px 0px -16px 0px' }
+function observeFadeUp() {
+  const io = new IntersectionObserver(
+    entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('show');
+        io.unobserve(e.target);
+      });
+    },
+    { threshold: 0.08 }
   );
-  document.querySelectorAll('.reveal:not(.visible)').forEach((el, i) => {
-    // Stagger ringan tiap kartu, max 4 level
-    const delay = Math.min(i, 3);
-    el.classList.remove('reveal-delay-1','reveal-delay-2','reveal-delay-3','reveal-delay-4');
-    if (delay > 0) el.classList.add(`reveal-delay-${delay}`);
+  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+}
+
+function observeNewCards(container) {
+  if (!revealObserver || !container) return;
+  const cards = container.querySelectorAll('.reveal:not(.visible)');
+  cards.forEach((el, i) => {
+    // Max stagger: 4 steps
+    const step = Math.min(i, 4);
+    el.className = el.className.replace(/reveal-delay-\d/g, '').trim();
+    if (step > 0) el.classList.add('reveal-delay-' + step);
     revealObserver.observe(el);
   });
 }
 
-function setupJellyAnimations() {
-  document.querySelectorAll('.jelly-click').forEach(el => {
-    el.addEventListener('pointerdown', () => el.classList.remove('bounce-back'));
-    el.addEventListener('pointerup', () => {
-      setTimeout(() => el.classList.add('bounce-back'), 50);
-      setTimeout(() => el.classList.remove('bounce-back'), 300);
+// ── JELLY — delegation, one listener only ──────────────────────────────────
+function initJellyHandler() {
+  document.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.jelly-click');
+    if (el) { el.classList.remove('bounce-back'); }
+  }, { passive: true });
+
+  document.addEventListener('pointerup', e => {
+    const el = e.target.closest('.jelly-click');
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.classList.add('bounce-back');
+      setTimeout(() => el.classList.remove('bounce-back'), 240);
     });
-    el.addEventListener('pointerleave', () => el.classList.remove('bounce-back'));
-  });
+  }, { passive: true });
 }
 
+// ── ANALYTICS ───────────────────────────────────────────────────────────────
 async function trackEvent(field) {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    await setDoc(doc(db, 'toko', USER_ID, 'stats', today), {
-      [field]: increment(1)
-    }, { merge: true });
-  } catch (e) { /* silent */ }
+    const today = new Date().toISOString().slice(0, 10);
+    await setDoc(
+      doc(db, 'toko', USER_ID, 'stats', today),
+      { [field]: increment(1) },
+      { merge: true }
+    );
+  } catch { /* non-critical */ }
 }
 
-window.trackClick = (type) => {
-  trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClicks');
-};
+window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClicks');
 
+// ── LOAD SETTINGS ───────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
     const snap = await getDoc(doc(db, 'toko', USER_ID));
-    if (!snap.exists()) return;
-    const s = snap.data();
-
-    isPremium = checkPremium(s);
-
-    // Apply template (premium only) — dilakukan SEBELUM set accent
-    const tpl = isPremium ? (s.premium?.template || 'default') : 'default';
-    const tplBg = isPremium ? (s.premium?.templateBg || '') : '';
-    const tplAccent = isPremium ? (s.premium?.templateAccent || '') : '';
-    applyTemplate(tpl, tplBg);
-
-    // Warna aksen — custom color picker SELALU menang atas template accent
-    const accentColor = isPremium && s.premium?.accentColor ? s.premium.accentColor : (tplAccent || '#FF6B35');
-    document.documentElement.style.setProperty('--idx-accent', accentColor);
-    document.documentElement.style.setProperty('--idx-accent-rgb', hexToRgb(accentColor));
-
-    // Branding
-    const footerBrand = document.querySelector('.footer-brand');
-    if (footerBrand) footerBrand.style.display = isPremium ? 'none' : '';
-
-    // Data toko
-    document.getElementById('username').innerText = s.namaToko || 'My Store';
-    const footerStore = document.getElementById('footer-store');
-    if (footerStore) footerStore.textContent = '© 2025 ' + (s.namaToko || 'My Store');
-    document.getElementById('bio').innerText = s.bio || '';
-    if (s.logo) document.getElementById('profileImg').src = s.logo;
-
-    const waUtama = s.wa || 'https://wa.me/';
-    document.getElementById('waBtn').href = waUtama;
-    document.getElementById('waBtn').dataset.wa = waUtama;
-    document.getElementById('link-wa-main').href = waUtama;
-
-    if (s.shopee) {
-      const elShopee = document.getElementById('link-shopee');
-      if (elShopee) {
-        elShopee.href = s.shopee;
-        elShopee.classList.remove('hidden');
-      }
+    if (!snap.exists()) {
+      document.getElementById('username').textContent = 'Toko tidak ditemukan';
+      return;
     }
 
-    // Social media icons bar
-    const socialMap = [
-      { key: 'instagram', id: 'ico-instagram', label: 'Instagram', color: '#E1306C' },
-      { key: 'tiktok',    id: 'ico-tiktok',    label: 'TikTok',    color: '#000000' },
-      { key: 'twitter',   id: 'ico-twitter',   label: 'X',         color: '#000000' },
-      { key: 'facebook',  id: 'ico-facebook',  label: 'Facebook',  color: '#1877F2' },
-      { key: 'youtube',   id: 'ico-youtube',   label: 'YouTube',   color: '#FF0000' },
-    ];
-    const socialContainer = document.getElementById('social-icons');
-    const socialBar = document.getElementById('social-bar');
-    let hasSocial = false;
-    socialMap.forEach(({ key, id, label, color }) => {
-      if (s[key]) {
-        hasSocial = true;
-        const a = document.createElement('a');
-        a.href = s[key];
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.className = 'social-icon-btn';
-        a.setAttribute('aria-label', label);
-        a.style.setProperty('--social-color', color);
-        a.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#${id}"/></svg>`;
-        socialContainer.appendChild(a);
-      }
-    });
-    if (hasSocial && socialBar) socialBar.style.display = '';
+    const s       = snap.data();
+    const isPrem  = checkPremium(s);
 
-    const elTokped = document.getElementById('link-tokped');
-    if (elTokped && CONFIG.links && CONFIG.links.tokopedia)
-      elTokped.href = CONFIG.links.tokopedia;
+    // 1. Theme template — no backgroundAttachment:fixed (kills mobile perf)
+    const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
+    const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
+    const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
+    applyTemplate(tpl, tplBg);
 
-    document.title = `${s.namaToko || 'My Store'} - Link Bio`;
+    // 2. Accent color
+    const accent = (isPrem && s.premium?.accentColor)
+      ? s.premium.accentColor
+      : (tplAcc || '#FF6B35');
+    document.documentElement.style.setProperty('--idx-accent',     accent);
+    document.documentElement.style.setProperty('--idx-accent-rgb', hexToRgb(accent));
 
-    // Track visit (once per session)
+    // 3. Verified badge
+    const badge = document.getElementById('verified-badge');
+    if (badge) badge.style.display = isPrem ? 'inline-flex' : 'none';
+
+    // 4. Footer branding
+    const footerBrand = document.querySelector('.footer-brand');
+    if (footerBrand) footerBrand.style.display = isPrem ? 'none' : '';
+
+    // 5. Store info — batch all text writes
+    const storeName = s.namaToko || 'My Store';
+    document.getElementById('username').textContent      = storeName;
+    document.title                                        = storeName + ' - LINKify';
+    const fs = document.getElementById('footer-store');
+    if (fs) fs.textContent = '© 2025 ' + storeName;
+
+    const bioEl = document.getElementById('bio');
+    if (bioEl) bioEl.textContent = s.bio || '';
+
+    const profImg = document.getElementById('profileImg');
+    if (profImg && s.logo) profImg.src = s.logo;
+
+    // 6. WA links
+    waUtama = s.wa || 'https://wa.me/';
+    const waBtn  = document.getElementById('waBtn');
+    const waMain = document.getElementById('link-wa-main');
+    if (waBtn)  { waBtn.href = waUtama; waBtn.dataset.wa = waUtama; }
+    if (waMain) waMain.href = waUtama;
+
+    // 7. Shopee
+    if (s.shopee) {
+      const elShopee = document.getElementById('link-shopee');
+      if (elShopee) { elShopee.href = s.shopee; elShopee.classList.remove('hidden'); }
+    }
+
+    // 8. Social icons — single DocumentFragment write
+    renderSocialIcons(s);
+
+    // 9. Tokopedia default
+    const elTok = document.getElementById('link-tokped');
+    if (elTok && CONFIG?.links?.tokopedia) elTok.href = CONFIG.links.tokopedia;
+
+    // 10. Custom buttons (premium)
+    if (isPrem && Array.isArray(s.customButtons) && s.customButtons.length) {
+      renderCustomButtons(s.customButtons);
+    }
+
+    // 11. Track visit — once per session
     if (!sessionStorage.getItem('vf_' + USER_ID)) {
       sessionStorage.setItem('vf_' + USER_ID, '1');
       trackEvent('visits');
     }
   } catch (err) {
-    console.error('loadSettings error:', err);
+    console.error('[loadSettings]', err);
   }
 }
 
+function renderSocialIcons(s) {
+  const container = document.getElementById('social-icons');
+  const bar       = document.getElementById('social-bar');
+  if (!container || !bar) return;
+
+  const map = [
+    { key: 'instagram', id: 'ico-instagram', label: 'Instagram', color: '#E1306C' },
+    { key: 'tiktok',    id: 'ico-tiktok',    label: 'TikTok',    color: '#010101' },
+    { key: 'twitter',   id: 'ico-twitter',   label: 'X / Twitter', color: '#000000' },
+    { key: 'facebook',  id: 'ico-facebook',  label: 'Facebook',  color: '#1877F2' },
+    { key: 'youtube',   id: 'ico-youtube',   label: 'YouTube',   color: '#FF0000' },
+  ];
+
+  const frag = document.createDocumentFragment();
+  let has = false;
+
+  map.forEach(({ key, id, label, color }) => {
+    if (!s[key]) return;
+    has = true;
+    const a = document.createElement('a');
+    a.href      = s[key];
+    a.target    = '_blank';
+    a.rel       = 'noopener noreferrer';
+    a.className = 'social-icon-btn';
+    a.setAttribute('aria-label', label);
+    a.style.setProperty('--social-color', color);
+    a.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#${id}"/></svg>`;
+    frag.appendChild(a);
+  });
+
+  if (has) { container.appendChild(frag); bar.style.display = ''; }
+}
+
+function renderCustomButtons(buttons) {
+  const section = document.getElementById('custom-buttons-section');
+  if (!section) return;
+  const wrap = section.querySelector('.custom-btn-wrap');
+  if (!wrap) return;
+
+  const frag = document.createDocumentFragment();
+  buttons.forEach(btn => {
+    if (!btn.label || !btn.url) return;
+    const a = document.createElement('a');
+    a.href      = btn.url;
+    a.target    = '_blank';
+    a.rel       = 'noopener noreferrer';
+    a.className = 'platform-btn custom-btn';
+    if (btn.color) a.style.background = btn.color;
+    a.innerHTML = `
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true">
+          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+      </div>
+      ${escHtml(btn.label)}`;
+    frag.appendChild(a);
+  });
+
+  wrap.appendChild(frag);
+  section.style.display = '';
+}
+
+// ── LOAD PRODUCTS ───────────────────────────────────────────────────────────
 async function loadProducts() {
   const container = document.getElementById('productList');
+  if (!container) return;
+
   try {
-    const q = query(collection(db, 'toko', USER_ID, 'produk'), orderBy('createdAt', 'desc'));
+    const q    = query(collection(db, 'toko', USER_ID, 'produk'), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      container.innerHTML = `
-        <div class="grid-span-all text-center py-16 fade-up show" style="color:rgba(255,255,255,0.4);font-size:14px;">
-          Belum ada produk
-        </div>`;
+      container.innerHTML = '<div class="grid-span-all empty-state">Belum ada produk</div>';
       return;
     }
 
-    const waUtama = document.getElementById('waBtn').dataset.wa || 'https://wa.me/';
     allProducts = [];
     snap.forEach(ds => allProducts.push({ id: ds.id, ...ds.data() }));
 
-    // Render kategori filter
-    renderKategoriFilter(waUtama);
+    renderKategoriFilter();
 
-    // Render unggulan section
-    const unggulanList = allProducts.filter(p => p.unggulan);
-    const unggulanSection = document.getElementById('unggulan-section');
-    const unggulanContainer = document.getElementById('unggulanList');
-    if (unggulanList.length > 0) {
-      unggulanSection.style.display = '';
-      unggulanContainer.innerHTML = unggulanList.map(p => buildProductCard(p, waUtama)).join('');
-    } else {
-      unggulanSection.style.display = 'none';
+    // Unggulan section
+    const unggulan   = allProducts.filter(p => p.unggulan);
+    const secEl      = document.getElementById('unggulan-section');
+    const unggulanEl = document.getElementById('unggulanList');
+
+    if (unggulan.length && secEl && unggulanEl) {
+      secEl.style.display = '';
+      unggulanEl.innerHTML = unggulan.map(buildProductCard).join('');
+      observeNewCards(unggulanEl);
+    } else if (secEl) {
+      secEl.style.display = 'none';
     }
 
-    // Render semua produk
-    renderFilteredProducts(waUtama);
-
-    setTimeout(() => observeNewCards(), 80);
+    renderFilteredProducts();
 
   } catch (err) {
-    console.error('loadProducts error:', err);
-    container.innerHTML = `
-      <div class="grid-span-all text-center py-16 fade-up show" style="color:rgba(255,100,100,0.7);font-size:13px;">
-        Gagal memuat produk.
-      </div>`;
+    console.error('[loadProducts]', err);
+    container.innerHTML = '<div class="grid-span-all empty-state" style="color:rgba(255,100,100,0.6)">Gagal memuat produk. Refresh halaman.</div>';
   }
 }
 
-function renderKategoriFilter(waUtama) {
-  const filterEl = document.getElementById('kategori-filter');
-  const kategoriSet = new Set(allProducts.map(p => p.kategori).filter(Boolean));
-  if (kategoriSet.size === 0) { filterEl.style.display = 'none'; return; }
-  const tabs = ['Semua', ...kategoriSet];
-  filterEl.style.display = '';
-  filterEl.innerHTML = tabs.map(k =>
-    `<button class="kat-btn${k === activeKategori ? ' active' : ''}" data-kat="${k.replace(/"/g, '&quot;')}">${k.replace(/</g, '&lt;')}</button>`
+// ── KATEGORI ─────────────────────────────────────────────────────────────────
+function renderKategoriFilter() {
+  const el = document.getElementById('kategori-filter');
+  if (!el) return;
+
+  const cats = new Set(allProducts.map(p => p.kategori).filter(Boolean));
+  if (cats.size === 0) { el.style.display = 'none'; return; }
+
+  const tabs = ['Semua', ...cats];
+  el.style.display = '';
+  el.innerHTML = tabs.map(k =>
+    `<button class="kat-btn${k === activeKategori ? ' active' : ''}" data-kat="${escHtml(k)}">${escHtml(k)}</button>`
   ).join('');
-  filterEl.querySelectorAll('.kat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeKategori = btn.dataset.kat;
-      filterEl.querySelectorAll('.kat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderFilteredProducts(waUtama);
-    });
+
+  // Single delegated listener — not per-button
+  el.addEventListener('click', e => {
+    const btn = e.target.closest('.kat-btn');
+    if (!btn) return;
+    activeKategori = btn.dataset.kat;
+    el.querySelectorAll('.kat-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderFilteredProducts();
   });
 }
 
-function renderFilteredProducts(waUtama) {
+function renderFilteredProducts() {
   const container = document.getElementById('productList');
-  const filtered = activeKategori === 'Semua'
+  if (!container) return;
+
+  const list = activeKategori === 'Semua'
     ? allProducts
     : allProducts.filter(p => p.kategori === activeKategori);
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="grid-span-all" style="color:rgba(255,255,255,0.35);font-size:13px;text-align:center;padding:24px 0;">Tidak ada produk di kategori ini</div>`;
+
+  if (!list.length) {
+    container.innerHTML = '<div class="grid-span-all empty-state">Tidak ada produk di kategori ini</div>';
     return;
   }
-  container.innerHTML = filtered.map(p => buildProductCard(p, waUtama)).join('');
-  setTimeout(() => observeNewCards(), 50);
+
+  // Single innerHTML write — no per-card DOM touch
+  container.innerHTML = list.map(buildProductCard).join('');
+  observeNewCards(container);
 }
 
-function buildProductCard(p, waUtama) {
-  const wa = p.wa || waUtama;
-  const pesanWa = encodeURIComponent(
-    `Halo, saya mau pesan:\n- Produk: ${p.nama}\n- Harga: Rp ${rupiah(p.harga)}`
-  );
-  const stokNol = Number(p.stok) === 0;
-  const adaDiskon = p.hargaAsli && Number(p.hargaAsli) > Number(p.harga);
-  const pctDiskon = adaDiskon ? Math.round((1 - p.harga / p.hargaAsli) * 100) : 0;
+// ── PRODUCT CARD ─────────────────────────────────────────────────────────────
+function buildProductCard(p) {
+  const wa        = p.wa || waUtama;
+  const nama      = p.nama || '';
+  const stokNol   = Number(p.stok) === 0;
+  const hasDiskon = p.hargaAsli && Number(p.hargaAsli) > Number(p.harga);
+  const pct       = hasDiskon ? Math.round((1 - p.harga / p.hargaAsli) * 100) : 0;
+  const pesanWa   = encodeURIComponent('Halo, saya mau pesan:\n- Produk: ' + nama + '\n- Harga: Rp ' + rupiah(p.harga));
 
-  const badgeDiskon   = adaDiskon  ? `<div class="badge-diskon">-${pctDiskon}%</div>` : '';
-  const badgeUnggulan = p.unggulan ? `<div class="badge-unggulan">⭐ Unggulan</div>`  : '';
-  const hargaCoret    = adaDiskon  ? `<span class="harga-coret">Rp${rupiah(p.hargaAsli)}</span>` : '';
+  const shopeeBtn = p.shopee
+    ? `<a href="${escHtml(p.shopee)}" target="_blank" rel="noopener noreferrer" class="prod-btn prod-btn-shopee jelly-click" onclick="trackClick('shopee')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg>Shopee
+      </a>`
+    : '';
 
-  const shopeeBtn = p.shopee ? `
-    <a href="${p.shopee}" target="_blank" rel="noopener noreferrer"
-       class="prod-btn prod-btn-shopee jelly-click" onclick="trackClick('shopee')">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white">
-        <path d="M19.793 7.507c0-2.075-.828-3.952-2.168-5.308a.675.675 0 00-.95-.014.664.664 0 00-.013.944 6.506 6.506 0 011.8 4.378 6.501 6.501 0 01-6.504 6.487 6.499 6.499 0 01-6.5-6.487 6.497 6.497 0 011.8-4.378.664.664 0 00-.013-.944.675.675 0 00-.95.014A7.824 7.824 0 004.127 7.507H2.672a1.354 1.354 0 00-1.348 1.214L.024 21.347A1.344 1.344 0 001.37 22.86h21.26a1.344 1.344 0 001.346-1.513l-1.3-11.626a1.354 1.354 0 00-1.348-1.214h-1.597a7.9 7.9 0 00.062-.98zM12 1.14a2.694 2.694 0 110 5.388A2.694 2.694 0 0112 1.14z"/>
-      </svg>
-      Shopee
-    </a>` : '';
-
-  return `
-    <div class="product-card reveal">
-      <div style="position:relative;">
-        <img src="${p.img}" alt="${p.nama.replace(/"/g, "&quot;")}"
-             class="product-img"
-             onerror="this.src='https://placehold.co/600x400/1a1a2e/ffffff?text=Foto+Error'">
-        ${stokNol ? `<div class="out-of-stock">HABIS</div>` : ''}
-        ${badgeDiskon}
-        ${badgeUnggulan}
+  return `<div class="product-card reveal">
+    <div class="prod-img-wrap">
+      <img src="${escHtml(p.img || '')}" alt="${escHtml(nama)}" class="product-img" loading="lazy" decoding="async"
+           onerror="this.src='https://placehold.co/400x300/1a1a2e/555?text=Foto'">
+      ${stokNol   ? '<div class="badge-stok">HABIS</div>'       : ''}
+      ${hasDiskon ? `<div class="badge-diskon">-${pct}%</div>` : ''}
+      ${p.unggulan ? '<div class="badge-unggulan">⭐</div>'     : ''}
+    </div>
+    <div class="product-info">
+      <p class="product-name">${escHtml(nama)}</p>
+      <div class="price-row">
+        <span class="product-price">Rp${rupiah(p.harga)}</span>
+        ${hasDiskon ? `<span class="harga-coret">Rp${rupiah(p.hargaAsli)}</span>` : ''}
       </div>
-      <div class="product-info">
-        <h2 class="product-name">${p.nama.replace(/</g, '&lt;')}</h2>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <p class="product-price">Rp${rupiah(p.harga)}</p>
-          ${hargaCoret}
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <a href="${wa}?text=${pesanWa}" target="_blank" rel="noopener noreferrer"
-             class="prod-btn prod-btn-wa jelly-click" onclick="trackClick('wa')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="white">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-            </svg>
-            Pesan WA
-          </a>
-          ${shopeeBtn}
-        </div>
+      ${p.deskripsi ? `<p class="product-desc">${escHtml(p.deskripsi)}</p>` : ''}
+      <div class="prod-btns">
+        <a href="${escHtml(wa)}?text=${pesanWa}" target="_blank" rel="noopener noreferrer"
+           class="prod-btn prod-btn-wa jelly-click" onclick="trackClick('wa')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
+          Pesan WA
+        </a>
+        ${shopeeBtn}
       </div>
-    </div>`;
+    </div>
+  </div>`;
 }
 
+// ── TEMPLATE — no backgroundAttachment:fixed ────────────────────────────────
 function applyTemplate(tpl, bgUrl) {
   document.body.dataset.template = tpl;
 
+  // Use a pseudo-element approach via class instead of inline fixed bg
   let bgEl = document.getElementById('tpl-bg-layer');
   if (!bgEl) {
     bgEl = document.createElement('div');
     bgEl.id = 'tpl-bg-layer';
-    bgEl.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity 0.6s ease;';
+    bgEl.setAttribute('aria-hidden', 'true');
     document.body.prepend(bgEl);
   }
 
   if (bgUrl) {
-    bgEl.style.backgroundImage = `url('${bgUrl}')`;
-    bgEl.style.backgroundSize = 'cover';
-    bgEl.style.backgroundPosition = 'center';
-    bgEl.style.backgroundAttachment = 'fixed';
-    bgEl.style.opacity = '1';
-    bgEl.style.setProperty('--tpl-overlay', 'rgba(0,0,0,0.55)');
-    document.body.style.backgroundColor = 'transparent';
-    document.body.style.backgroundImage = 'none';
+    // backgroundAttachment: scroll is GPU-composited on mobile, not 'fixed'
+    bgEl.style.cssText = `
+      position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-image:url('${bgUrl}');
+      background-size:cover;background-position:center top;
+      background-attachment:scroll;
+      opacity:1;
+    `;
+    document.body.style.backgroundColor = 'rgba(0,0,0,0.01)';
   } else {
-    bgEl.style.opacity = '0';
-    bgEl.style.backgroundImage = 'none';
+    bgEl.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;';
     document.body.style.backgroundColor = '';
-    document.body.style.backgroundImage = '';
   }
-}}
+}
