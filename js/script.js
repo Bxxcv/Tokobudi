@@ -6,7 +6,7 @@
 import { db, CONFIG } from '../firebase.js';
 import {
   collection, getDocs, query, orderBy,
-  where, limit, doc, getDoc, setDoc, increment
+  doc, getDoc, setDoc, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { escHtml, rupiah, checkPremium, hexToRgb } from './utils.js';
 
@@ -125,12 +125,7 @@ window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClick
 // ── LOAD SETTINGS ───────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
-    let snap = await getDoc(doc(db, 'toko', STORE_KEY));
-    if (!snap.exists()) {
-      const slugQuery = query(collection(db, 'toko'), where('premium.slug', '==', STORE_KEY), limit(1));
-      const slugSnap  = await getDocs(slugQuery);
-      if (!slugSnap.empty) snap = slugSnap.docs[0];
-    }
+    const snap = await getDoc(doc(db, 'toko', STORE_KEY));
     if (!snap.exists()) {
       document.getElementById('username').textContent = 'Toko tidak ditemukan';
       return;
