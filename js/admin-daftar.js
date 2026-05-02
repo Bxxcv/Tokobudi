@@ -270,8 +270,7 @@ function hl(text, q) {
 function buildRow(u, no, now, q) {
   const prem = isPremiumActive(u, now);
   const omset = (u.omset || 0).toLocaleString('id-ID');
-  const linkKey = u.premium?.slug ? u.premium.slug : u.uid;
-  const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${linkKey}`;
+  const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${u.uid}`;
 
   const statusBadge = u.status === 'aktif'
     ? '<span class="badge badge-aktif">Aktif</span>'
@@ -416,7 +415,7 @@ function openPremiumModal(uid) {
   selectedColor    = '#FF6B35';
   $('pm-days').value     = 30;
   $('pm-template').value = 'default';
-  $('pm-slug').value     = '';
+  $('pm-price').value    = 0;
   document.querySelectorAll('.pm-col').forEach(b => {
     b.classList.toggle('selected', b.dataset.c === selectedColor);
   });
@@ -440,7 +439,7 @@ async function savePremiumModal() {
   if (!premiumTargetUid) return;
   const days     = parseInt($('pm-days').value) || 30;
   const template = $('pm-template').value;
-  const slug     = $('pm-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const price    = parseInt($('pm-price').value) || 0;
   const tplData  = TEMPLATE_LIST.find(t => t.id === template) || {};
 
   const endDate = new Date();
@@ -459,8 +458,8 @@ async function savePremiumModal() {
       'premium.template':       template,
       'premium.templateBg':     tplData.bg     || '',
       'premium.templateAccent': tplData.accent || '',
+      'premium.price':          price,
     };
-    if (slug) update['premium.slug'] = slug;
     await updateDoc(doc(db, 'toko', premiumTargetUid), update);
     toast(`Premium aktif ${days} hari!`);
     closePremiumModal();
