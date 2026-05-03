@@ -24,7 +24,7 @@
   "rewrites": [
     {
       "source": "/:path((?!.*\\.[a-zA-Z0-9]+$).*)",
-      "destination": "/index.html"
+      "destination": "/landing.html"
     }
   ]
 }
