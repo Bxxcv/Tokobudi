@@ -11,8 +11,24 @@ import {
 import { escHtml, rupiah, checkPremium, hexToRgb } from './utils.js';
 
 // ── STATE ───────────────────────────────────────────────────────────────────
+let USER_ID = null;
+let STORE_KEY = null;
+let waUtama = 'https://wa.me/';
+let allProducts = [];
+let activeKategori = 'Semua';
+let revealObserver = null;
+
+// slug parser
 const pathParts = window.location.pathname.split("/").filter(Boolean);
-const slug = pathParts[0] === "u" ? pathParts[1] : pathParts[0] || null;
+const urlUid = new URLSearchParams(window.location.search).get('uid');
+
+if (pathParts[0] === 'u' && pathParts[1]) {
+  STORE_KEY = pathParts[1];
+} else if (pathParts.length > 0) {
+  STORE_KEY = pathParts[0];
+} else if (urlUid) {
+  STORE_KEY = urlUid;
+}
 // ── INIT ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   if (!STORE_KEY) {

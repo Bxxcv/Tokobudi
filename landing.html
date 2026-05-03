@@ -512,7 +512,7 @@
     <div class="pricing-card popular fade-in fade-in-delay-1">
       <div class="popular-badge">Paling Populer</div>
       <div class="plan-name">Premium</div>
-      <div class="plan-price">Rp30.000<span>/bulan</span></div>
+      <div class="plan-price">Rp75.000<span>/bulan</span></div>
       <div class="plan-desc">Untuk toko yang serius. Semua fitur untuk meningkatkan penjualan.</div>
       <div class="plan-features">
         <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Semua fitur Gratis</div>
@@ -626,13 +626,24 @@
 </footer>
 
 <script>
-  // Intersection observer for fade-in animations
-  const io = new IntersectionObserver(entries => {
+const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
     });
   }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+
   document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+  // Hero glow subtle movement
+  const glow = document.querySelector('.hero-glow');
+  window.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 30;
+    const y = (e.clientY / window.innerHeight - 0.5) * 30;
+    glow.style.transform = `translateX(-50%) translate(${x}px, ${y}px)`;
+  });
 </script>
 </body>
 </html>
