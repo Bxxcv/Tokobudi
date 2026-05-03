@@ -11,16 +11,8 @@ import {
 import { escHtml, rupiah, checkPremium, hexToRgb } from './utils.js';
 
 // ── STATE ───────────────────────────────────────────────────────────────────
-const urlParams    = new URLSearchParams(window.location.search);
-const STORE_KEY    = urlParams.get('uid');
-let USER_ID        = null;
-let allProducts    = [];
-let activeKategori = 'Semua';
-let waUtama        = 'https://wa.me/';
-
-// Single IntersectionObserver instance — created once, never re-created
-let revealObserver = null;
-
+const pathParts = window.location.pathname.split("/").filter(Boolean);
+const slug = pathParts[0] === "u" ? pathParts[1] : pathParts[0] || null;
 // ── INIT ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   if (!STORE_KEY) {
