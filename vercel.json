@@ -29,7 +29,7 @@
   ],
   "rewrites": [
     {
-      "source": "/",
+      "source": "/landing.html",
       "destination": "/landing.html"
     },
     {
