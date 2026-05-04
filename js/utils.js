@@ -5,6 +5,18 @@ export function escHtml(str) {
   }[m]));
 }
 
+/**
+ * safeUrl — blokir javascript: dan data: protocol injection.
+ * Hanya izinkan https://, http://, wa.me, tel:, mailto:
+ */
+export function safeUrl(url) {
+  if (!url || typeof url !== 'string') return '#';
+  const trimmed = url.trim().toLowerCase();
+  // Blokir javascript:, data:, vbscript:, dan protocol lain yang berbahaya
+  if (/^(javascript|data|vbscript|file):/i.test(trimmed)) return '#';
+  return url.trim();
+}
+
 export function rupiah(val) {
   return Number(val || 0).toLocaleString('id-ID');
 }

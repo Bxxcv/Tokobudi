@@ -1,9 +1,11 @@
 /**
  * LINKify — Admin Daftar (Manajemen User)
- * Modular, production-grade, zero legacy deps
+ * Fix: import auth/db dari firebase.js — tidak init Firebase sendiri
+ *      supaya tidak konflik dengan maintenance.js yang juga import firebase.js
  */
 
 import { APP_CONFIG } from '../config.js';
+import { auth, db } from '../firebase.js';
 import {
   initializeApp, getApps, deleteApp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -13,46 +15,43 @@ import {
   sendPasswordResetEmail, deleteUser
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
-  getFirestore, doc, setDoc, getDoc, getDocs,
+  doc, setDoc, getDoc, getDocs,
   collection, updateDoc, deleteDoc, query, orderBy,
   serverTimestamp, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { escHtml, checkPremium, TEMPLATE_LIST } from './utils.js';
 import { getMaintenanceStatus } from './maintenance.js';
 
-// ── CONSTANTS ───────────────────────────────────────────────────────────────
-const EMAIL_ADMIN = 'unrageunrage@gmail.com';   // ← Ganti jika perlu
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const EMAIL_ADMIN = 'unrageunrage@gmail.com';
 const BASE_PATH   = window.location.hostname.includes('github.io') ? '/LINKify' : '';
 
-// ── FIREBASE ────────────────────────────────────────────────────────────────
-const app  = getApps().find(a => a.name === '[DEFAULT]') || initializeApp(APP_CONFIG.firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-
+// ── AUTH PERSISTENCE ─────────────────────────────────────────────────────────
+// Set persistence setelah auth sudah ada dari firebase.js
 await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-// ── STATE ───────────────────────────────────────────────────────────────────
+// ── STATE ────────────────────────────────────────────────────────────────────
 let allUsers         = [];
 let confirmCallback  = null;
 let premiumTargetUid = null;
 let selectedColor    = '#FF6B35';
 
-// ── DOM ─────────────────────────────────────────────────────────────────────
+// ── DOM ──────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-// ── TOAST ───────────────────────────────────────────────────────────────────
+// ── TOAST ────────────────────────────────────────────────────────────────────
 let toastTimer;
 function toast(msg, type = 'ok') {
   const el = $('toast');
   if (!el) return;
-  el.textContent  = msg;
+  el.textContent = msg;
   el.style.background = type === 'ok' ? '#10B981' : type === 'err' ? '#EF4444' : '#D97706';
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
 }
 
-// ── SIDEBAR ─────────────────────────────────────────────────────────────────
+// ── SIDEBAR ──────────────────────────────────────────────────────────────────
 function closeSidebar() {
   $('sidebar').classList.remove('open');
   $('overlay').style.display = 'none';
@@ -63,7 +62,7 @@ function openSidebar() {
 }
 $('btn-hamburger').addEventListener('click', openSidebar);
 
-// ── AUTH ────────────────────────────────────────────────────────────────────
+// ── AUTH ─────────────────────────────────────────────────────────────────────
 function loginAdmin() {
   const email = $('adminEmail').value.trim();
   const pass  = $('adminPass').value;
@@ -106,13 +105,13 @@ onAuthStateChanged(auth, user => {
   if (user && user.email === EMAIL_ADMIN) {
     $('loginAdmin').style.display = 'none';
     $('formDaftar').style.display = 'block';
-    const adminEmail = $('adminYgLogin');
-    const adminAvatar = $('admin-avatar');
-    if (adminEmail)  adminEmail.textContent  = user.email;
-    if (adminAvatar) adminAvatar.textContent = user.email.charAt(0).toUpperCase();
+    const emailEl  = $('adminYgLogin');
+    const avatarEl = $('admin-avatar');
+    if (emailEl)  emailEl.textContent  = user.email;
+    if (avatarEl) avatarEl.textContent = user.email.charAt(0).toUpperCase();
     ambilDataUser();
     loadMaintenancePanel();
-    const maintPanel = document.getElementById('maint-panel');
+    const maintPanel = $('maint-panel');
     if (maintPanel) maintPanel.style.display = 'block';
   } else {
     $('loginAdmin').style.display = 'flex';
@@ -124,7 +123,7 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-// ── REGISTER USER ───────────────────────────────────────────────────────────
+// ── REGISTER USER ─────────────────────────────────────────────────────────────
 async function daftarkanUser() {
   const namaToko    = $('namaToko').value.trim();
   const namaPemilik = $('namaPemilik').value.trim();
@@ -137,17 +136,17 @@ async function daftarkanUser() {
   }
   if (passUser.length < 6) return toast('Password minimal 6 karakter!', 'warn');
 
-  btn.disabled    = true;
-  btn.innerHTML   = '<span class="spinner"></span> Mendaftarkan...';
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="spinner"></span> Mendaftarkan...';
 
+  // Pakai secondary app agar admin tidak ter-logout
   const secName = 'sec-' + Date.now();
   const secApp  = initializeApp(APP_CONFIG.firebaseConfig, secName);
   const secAuth = getAuth(secApp);
 
   try {
     const cred = await createUserWithEmailAndPassword(secAuth, emailUser, passUser);
-    const uid  = cred.user.uid;
-    await setDoc(doc(db, 'toko', uid), {
+    await setDoc(doc(db, 'toko', cred.user.uid), {
       namaToko,
       pemilik:    namaPemilik,
       email:      emailUser,
@@ -156,7 +155,7 @@ async function daftarkanUser() {
       status:     'aktif',
       dibuatPada: serverTimestamp()
     });
-    toast('User ' + emailUser + ' berhasil didaftarkan!', 'ok');
+    toast('User ' + emailUser + ' berhasil didaftarkan!');
     clearForm();
     await ambilDataUser();
   } catch (err) {
@@ -169,7 +168,7 @@ async function daftarkanUser() {
     await signOut(secAuth).catch(() => {});
     await deleteApp(secApp).catch(() => {});
     btn.disabled  = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Daftarkan';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Daftarkan`;
   }
 }
 
@@ -177,7 +176,7 @@ function clearForm() {
   ['namaToko','namaPemilik','emailUser','passUser'].forEach(id => { $(id).value = ''; });
 }
 
-// ── LOAD USERS ──────────────────────────────────────────────────────────────
+// ── LOAD USERS ────────────────────────────────────────────────────────────────
 async function ambilDataUser() {
   $('tabelUser').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#4B5563;font-size:13px;">Memuat data...</td></tr>';
   try {
@@ -217,18 +216,16 @@ function isPremiumActive(u, now = new Date()) {
   return (end?.toDate ? end.toDate() : new Date(end)) > now;
 }
 
-// ── FILTER ──────────────────────────────────────────────────────────────────
+// ── FILTER ────────────────────────────────────────────────────────────────────
 function filterTable() {
   const q   = ($('searchInput')?.value || '').toLowerCase().trim();
   const fil = $('filterStatus')?.value  || '';
   const now = new Date();
-
   const filtered = allUsers.filter(u => {
     const matchText = !q
       || (u.namaToko || '').toLowerCase().includes(q)
       || (u.pemilik  || '').toLowerCase().includes(q)
       || (u.email    || '').toLowerCase().includes(q);
-
     const prem = isPremiumActive(u, now);
     let matchFil = true;
     if (fil === 'aktif')   matchFil = u.status === 'aktif';
@@ -237,22 +234,19 @@ function filterTable() {
     if (fil === 'gratis')  matchFil = !prem;
     return matchText && matchFil;
   });
-
   renderTable(filtered, q);
 }
 
-// ── RENDER TABLE ─────────────────────────────────────────────────────────────
+// ── RENDER TABLE ──────────────────────────────────────────────────────────────
 function renderTable(users, q = '') {
   const tbody = $('tabelUser');
   const count = $('tableCount');
-
   if (!users.length) {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#4B5563;font-size:13px;">Tidak ada user ditemukan</td></tr>';
     if (count) count.textContent = '0 user';
     return;
   }
-
-  const now  = new Date();
+  const now = new Date();
   tbody.innerHTML = users.map((u, i) => buildRow(u, i + 1, now, q)).join('');
   if (count) count.textContent = users.length + ' dari ' + allUsers.length + ' user';
 }
@@ -268,8 +262,8 @@ function hl(text, q) {
 }
 
 function buildRow(u, no, now, q) {
-  const prem = isPremiumActive(u, now);
-  const omset = (u.omset || 0).toLocaleString('id-ID');
+  const prem    = isPremiumActive(u, now);
+  const omset   = (u.omset || 0).toLocaleString('id-ID');
   const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${u.uid}`;
 
   const statusBadge = u.status === 'aktif'
@@ -281,16 +275,12 @@ function buildRow(u, no, now, q) {
     : '<span class="badge badge-gratis">Gratis</span>';
 
   const blockBtn = u.status === 'aktif'
-    ? `<button class="act-btn act-block" onclick="blokirUser('${u.uid}','blokir')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Blokir</button>`
-    : `<button class="act-btn act-unblock" onclick="blokirUser('${u.uid}','aktif')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Aktifkan</button>`;
+    ? `<button class="act-btn act-block" onclick="blokirUser('${u.uid}','blokir')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Blokir</button>`
+    : `<button class="act-btn act-unblock" onclick="blokirUser('${u.uid}','aktif')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Aktifkan</button>`;
 
   const premBtn = prem
-    ? `<button class="act-btn act-unprem" onclick="nonaktifPremium('${u.uid}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Nonaktif</button>`
-    : `<button class="act-btn act-prem" onclick="openPremiumModal('${u.uid}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</button>`;
+    ? `<button class="act-btn act-unprem" onclick="nonaktifPremium('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Nonaktif</button>`
+    : `<button class="act-btn act-prem" onclick="openPremiumModal('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</button>`;
 
   return `<tr>
     <td style="color:#4B5563;font-size:12px;">${no}</td>
@@ -304,20 +294,17 @@ function buildRow(u, no, now, q) {
     <td>${premBadge}</td>
     <td>
       <div class="act-wrap">
-        <a href="${viewUrl}" target="_blank" rel="noopener" class="act-btn act-view">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Lihat</a>
-        <button class="act-btn act-reset" onclick="resetPassword('${escHtml(u.email)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Reset</button>
+        <a href="${viewUrl}" target="_blank" rel="noopener" class="act-btn act-view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Lihat</a>
+        <button class="act-btn act-reset" onclick="resetPassword('${escHtml(u.email)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Reset</button>
         ${blockBtn}
         ${premBtn}
-        <button class="act-btn act-delete" onclick="hapusUser('${u.uid}','${escHtml(u.namaToko)}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Hapus</button>
+        <button class="act-btn act-delete" onclick="hapusUser('${u.uid}','${escHtml(u.namaToko)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Hapus</button>
       </div>
     </td>
   </tr>`;
 }
 
-// ── USER ACTIONS ─────────────────────────────────────────────────────────────
+// ── USER ACTIONS ──────────────────────────────────────────────────────────────
 function resetPassword(email) {
   showConfirm({
     title: 'Reset Password',
@@ -409,13 +396,13 @@ async function doHapusUser(uid, namaToko) {
   await ambilDataUser();
 }
 
-// ── PREMIUM MODAL ─────────────────────────────────────────────────────────────
+// ── PREMIUM MODAL ──────────────────────────────────────────────────────────────
 function openPremiumModal(uid) {
   premiumTargetUid = uid;
   selectedColor    = '#FF6B35';
   $('pm-days').value     = 30;
   $('pm-template').value = 'default';
-  $('pm-price').value    = 0;
+  $('pm-slug').value     = '';
   document.querySelectorAll('.pm-col').forEach(b => {
     b.classList.toggle('selected', b.dataset.c === selectedColor);
   });
@@ -437,18 +424,16 @@ document.querySelectorAll('.pm-col').forEach(btn => {
 
 async function savePremiumModal() {
   if (!premiumTargetUid) return;
-  const days     = parseInt($('pm-days').value) || 30;
+  const days    = parseInt($('pm-days').value) || 30;
   const template = $('pm-template').value;
-  const price    = parseInt($('pm-price').value) || 0;
-  const tplData  = TEMPLATE_LIST.find(t => t.id === template) || {};
-
+  const slug    = $('pm-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const tplData = TEMPLATE_LIST.find(t => t.id === template) || {};
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + days);
 
   const btn = $('pm-save-btn');
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
-
   try {
     const update = {
       'premium.active':         true,
@@ -458,8 +443,8 @@ async function savePremiumModal() {
       'premium.template':       template,
       'premium.templateBg':     tplData.bg     || '',
       'premium.templateAccent': tplData.accent || '',
-      'premium.price':          price,
     };
+    if (slug) update['premium.slug'] = slug;
     await updateDoc(doc(db, 'toko', premiumTargetUid), update);
     toast(`Premium aktif ${days} hari!`);
     closePremiumModal();
@@ -467,12 +452,12 @@ async function savePremiumModal() {
   } catch (e) {
     toast('Gagal: ' + e.message, 'err');
   } finally {
-    btn.disabled  = false;
+    btn.disabled    = false;
     btn.textContent = 'Aktifkan Premium';
   }
 }
 
-// ── CONFIRM MODAL ─────────────────────────────────────────────────────────────
+// ── CONFIRM MODAL ──────────────────────────────────────────────────────────────
 function showConfirm({ title, msg, type = 'danger', ok = 'Lanjutkan', onOk }) {
   confirmCallback = onOk;
   $('confirm-title').textContent = title;
@@ -480,22 +465,19 @@ function showConfirm({ title, msg, type = 'danger', ok = 'Lanjutkan', onOk }) {
 
   const icon  = $('confirm-icon');
   const okBtn = $('confirm-ok');
-
-  // Reset
   icon.className  = 'dark-modal-icon';
   okBtn.className = 'btn';
 
-  const cfg = {
+  const cfgs = {
     danger:  { ic: 'modal-icon-danger',  oc: 'btn-modal-danger',  svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>' },
     warning: { ic: 'modal-icon-warning', oc: 'btn-modal-warning', svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>' },
     info:    { ic: 'modal-icon-info',    oc: 'btn-modal-info',    svg: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' },
-  }[type] || cfg.danger;
-
+  };
+  const cfg = cfgs[type] || cfgs.danger;
   icon.classList.add(cfg.ic);
   icon.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20">${cfg.svg}</svg>`;
   okBtn.classList.add(cfg.oc);
   okBtn.textContent = ok;
-
   $('confirm-modal').classList.add('open');
 }
 
@@ -510,43 +492,44 @@ $('confirm-ok').addEventListener('click', async () => {
   if (typeof cb === 'function') await cb();
 });
 
-// ── EXPOSE TO HTML ────────────────────────────────────────────────────────────
-Object.assign(window, {
-  loginAdmin, logoutAdmin, daftarkanUser, ambilDataUser, filterTable,
-  blokirUser, nonaktifPremium, resetPassword, hapusUser,
-  openPremiumModal, closePremiumModal, savePremiumModal,
-  closeConfirm, closeSidebar,
-  toggleMaintenance, saveMaintenance,
-});
-
-// ── MAINTENANCE ───────────────────────────────────────────────────────────────
+// ── MAINTENANCE ────────────────────────────────────────────────────────────────
 async function loadMaintenancePanel() {
-  const data = await getMaintenanceStatus();
+  const data     = await getMaintenanceStatus();
   const activeEl = $('maint-toggle');
   const msgEl    = $('maint-msg-inp');
   const estEl    = $('maint-est-inp');
   const statusEl = $('maint-status-label');
+  const titleEl  = $('maint-title-inp');
 
-  if (activeEl) activeEl.checked = !!data.active;
-  if (msgEl)    msgEl.value      = data.message || '';
-  if (estEl && data.estimatedDone) {
+  if (activeEl) {
+    activeEl.checked = !!data.active;
+    // Sync toggle visual
+    const track = document.querySelector('.maint-track');
+    const thumb = document.querySelector('.maint-thumb');
+    if (track) track.style.background  = data.active ? '#EF4444' : '#2C313A';
+    if (thumb) thumb.style.transform   = data.active ? 'translateX(20px)' : 'translateX(0)';
+  }
+  if (msgEl   && data.message)       msgEl.value   = data.message;
+  if (titleEl && data.title)         titleEl.value = data.title;
+  if (estEl   && data.estimatedDone) {
     const d = data.estimatedDone?.seconds
       ? new Date(data.estimatedDone.seconds * 1000)
       : new Date(data.estimatedDone);
-    // Format for datetime-local input: YYYY-MM-DDTHH:MM
     const pad = n => String(n).padStart(2, '0');
     estEl.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   if (statusEl) {
-    statusEl.textContent  = data.active ? 'AKTIF' : 'NONAKTIF';
-    statusEl.style.color  = data.active ? '#F87171' : '#34D399';
+    statusEl.textContent = data.active ? 'AKTIF' : 'NONAKTIF';
+    statusEl.style.color = data.active ? '#F87171' : '#34D399';
   }
 }
 
 async function toggleMaintenance() {
-  const uid = auth.currentUser?.uid;
-  if (!uid) return;
   const cur = $('maint-toggle').checked;
+  const track = document.querySelector('.maint-track');
+  const thumb = document.querySelector('.maint-thumb');
+  if (track) track.style.background = cur ? '#EF4444' : '#2C313A';
+  if (thumb) thumb.style.transform  = cur ? 'translateX(20px)' : 'translateX(0)';
   try {
     await setDoc(doc(db, 'config', 'maintenance'), { active: cur }, { merge: true });
     const statusEl = $('maint-status-label');
@@ -554,22 +537,30 @@ async function toggleMaintenance() {
       statusEl.textContent = cur ? 'AKTIF' : 'NONAKTIF';
       statusEl.style.color = cur ? '#F87171' : '#34D399';
     }
-    toast(cur ? 'Maintenance AKTIF — toko publik tidak bisa diakses.' : 'Maintenance NONAKTIF — toko kembali normal.', cur ? 'warn' : 'ok');
-  } catch (e) { toast('Gagal: ' + e.message, 'err'); $('maint-toggle').checked = !cur; }
+    toast(cur
+      ? 'Maintenance AKTIF — toko publik tidak bisa diakses.'
+      : 'Maintenance NONAKTIF — toko kembali normal.',
+      cur ? 'warn' : 'ok'
+    );
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+    // Rollback toggle visual
+    $('maint-toggle').checked = !cur;
+    if (track) track.style.background = !cur ? '#EF4444' : '#2C313A';
+    if (thumb) thumb.style.transform  = !cur ? 'translateX(20px)' : 'translateX(0)';
+  }
 }
 
 async function saveMaintenance() {
-  const msg  = $('maint-msg-inp')?.value.trim()   || 'Sistem sedang dalam pemeliharaan.';
-  const est  = $('maint-est-inp')?.value;
+  const msg   = $('maint-msg-inp')?.value.trim()   || 'Sistem sedang dalam pemeliharaan.';
+  const est   = $('maint-est-inp')?.value;
   const title = $('maint-title-inp')?.value.trim() || 'Sedang Maintenance';
-  const cur  = $('maint-toggle')?.checked || false;
-  const btn  = $('maint-save-btn');
+  const btn   = $('maint-save-btn');
 
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
   try {
     const payload = {
-      active:    cur,
       message:   msg,
       title,
       updatedAt: serverTimestamp(),
@@ -580,9 +571,19 @@ async function saveMaintenance() {
 
     await setDoc(doc(db, 'config', 'maintenance'), payload, { merge: true });
     toast('Pengaturan maintenance disimpan!');
-  } catch (e) { toast('Gagal: ' + e.message, 'err'); }
-  finally {
-    btn.disabled  = false;
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    btn.disabled    = false;
     btn.textContent = 'Simpan Pengaturan';
   }
 }
+
+// ── EXPOSE TO WINDOW ──────────────────────────────────────────────────────────
+Object.assign(window, {
+  loginAdmin, logoutAdmin, daftarkanUser, ambilDataUser, filterTable,
+  blokirUser, nonaktifPremium, resetPassword, hapusUser,
+  openPremiumModal, closePremiumModal, savePremiumModal,
+  closeConfirm, closeSidebar,
+  toggleMaintenance, saveMaintenance,
+});

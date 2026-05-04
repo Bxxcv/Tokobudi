@@ -1,113 +1,56 @@
-/* ==========================================
-   LINKify — Admin Daftar Styles (Dark)
-   ========================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* ============================================================
+   LINKify — Admin Daftar Supplement (admin-daftar.css)
+   Extends style.css for dark admin panel specifics
+   ============================================================ */
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Responsive table col show/hide */
+@media (min-width: 640px)  { .md-show { display: table-cell !important; } }
+@media (min-width: 900px)  { .lg-show { display: table-cell !important; } }
 
-body {
-  font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Dark page background */
+body.dark-admin-page {
+  background: #0D0F14;
+  min-height: 100vh;
+}
+.dark-admin-page .wrapper { background: #0D0F14; }
+.dark-admin-page .main    { background: #0D0F14; min-height: 100vh; }
+
+/* Search highlight in table */
+mark {
+  background: rgba(255,107,53,0.22);
+  color: #FCA5A5;
+  border-radius: 2px;
+  padding: 0 1px;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2E3340; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3E4450; }
+/* Table overflow wrapper */
+.table-scroll { overflow-x: auto; }
 
-/* Table row hover */
-#tabelUser tr:hover td { background: rgba(255,255,255,0.02); }
-
-/* Action buttons in table */
-.act-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 8px;
+/* Table footer */
+.table-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #1E2027;
   font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-  text-decoration: none;
-  line-height: 1.4;
-}
-.act-view   { background: rgba(59,130,246,0.12); color: #60A5FA; border-color: rgba(59,130,246,0.2); }
-.act-view:hover { background: rgba(59,130,246,0.22); }
-.act-reset  { background: rgba(139,92,246,0.12); color: #A78BFA; border-color: rgba(139,92,246,0.2); }
-.act-reset:hover { background: rgba(139,92,246,0.22); }
-.act-block  { background: rgba(239,68,68,0.12); color: #F87171; border-color: rgba(239,68,68,0.2); }
-.act-block:hover { background: rgba(239,68,68,0.22); }
-.act-unblock { background: rgba(16,185,129,0.12); color: #34D399; border-color: rgba(16,185,129,0.2); }
-.act-unblock:hover { background: rgba(16,185,129,0.22); }
-.act-prem   { background: rgba(245,158,11,0.12); color: #FCD34D; border-color: rgba(245,158,11,0.2); }
-.act-prem:hover { background: rgba(245,158,11,0.22); }
-.act-unprem { background: rgba(107,114,128,0.12); color: #9CA3AF; border-color: rgba(107,114,128,0.2); }
-.act-unprem:hover { background: rgba(107,114,128,0.22); }
-.act-delete { background: rgba(127,29,29,0.15); color: #FCA5A5; border-color: rgba(239,68,68,0.15); }
-.act-delete:hover { background: rgba(239,68,68,0.25); color: #fff; }
-
-/* Actions wrap */
-.act-wrap { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-
-/* Status badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 99px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.badge-aktif   { background: rgba(16,185,129,0.15); color: #34D399; }
-.badge-blokir  { background: rgba(239,68,68,0.15);  color: #F87171; }
-.badge-premium { background: rgba(245,158,11,0.15); color: #FCD34D; }
-.badge-gratis  { background: rgba(100,116,139,0.15); color: #94A3B8; }
-
-/* PM color selected */
-.pm-col.selected { border-color: #fff !important; transform: scale(1.15); }
-
-/* Confirm modal icon variants */
-.icon-danger  { background: rgba(239,68,68,0.15); color: #F87171; }
-.icon-warning { background: rgba(245,158,11,0.15); color: #FCD34D; }
-.icon-info    { background: rgba(59,130,246,0.15); color: #60A5FA; }
-
-/* Confirm ok button variants */
-.ok-danger  { background: #EF4444; color: #fff; }
-.ok-danger:hover  { background: #DC2626; }
-.ok-warning { background: #F59E0B; color: #000; }
-.ok-warning:hover { background: #D97706; }
-.ok-info    { background: #3B82F6; color: #fff; }
-.ok-info:hover { background: #2563EB; }
-
-/* Loading spinner */
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-  display: inline-block;
-  width: 12px; height: 12px;
-  border: 2px solid rgba(255,255,255,0.2);
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  vertical-align: middle;
-  margin-right: 5px;
-}
-
-/* Table empty/loading state */
-.table-empty {
-  padding: 64px 20px;
-  text-align: center;
   color: #4B5563;
 }
-.table-empty svg { margin: 0 auto 12px; display: block; opacity: 0.3; }
 
-/* Highlight search match */
-.hl { background: rgba(238,77,45,0.25); color: #FCA5A5; border-radius: 2px; padding: 0 1px; }
+/* Maintenance toggle visual sync */
+.maint-track { transition: background 0.18s ease; }
+.maint-thumb { transition: transform 0.18s ease; }
 
-/* Sidebar nav active indicator */
-.sidebar-active { background: #EE4D2D !important; color: #fff !important; }
+/* Dark datetime-local input fix */
+input[type="datetime-local"].dark-form-input {
+  color-scheme: dark;
+}
+
+/* Sidebar nav link wrapper */
+.sidebar-nav-link {
+  text-decoration: none;
+  display: block;
+}
+
+/* Action wrap spacing on small screens */
+@media (max-width: 480px) {
+  .act-wrap { gap: 3px; }
+  .act-btn  { font-size: 10px; padding: 3px 7px; }
+}

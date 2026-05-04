@@ -2,7 +2,7 @@
   "name": "LINKify",
   "short_name": "LINKify",
   "description": "Link Bio Toko Online",
-  "start_url": "/landing.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

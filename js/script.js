@@ -1,6 +1,7 @@
 /**
- * LINKify — Public Storefront (script.js)
- * Fixed: observer timing, removed backgroundAttachment:fixed, batched DOM
+ * LINKify — Storefront Premium (script.js)
+ * Single IntersectionObserver. Batched DOM. GPU-only animations.
+ * No background-attachment:fixed. No box-shadow animation.
  */
 
 import { db, CONFIG } from '../firebase.js';
@@ -8,57 +9,47 @@ import {
   collection, getDocs, query, orderBy,
   doc, getDoc, setDoc, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { escHtml, rupiah, checkPremium, hexToRgb } from './utils.js';
+import { escHtml, rupiah, checkPremium, hexToRgb, safeUrl } from './utils.js';
 
-// ── STATE ───────────────────────────────────────────────────────────────────
-let USER_ID = null;
-let STORE_KEY = null;
-let waUtama = 'https://wa.me/';
-let allProducts = [];
+// ── STATE ────────────────────────────────────────────────────────────────────
+const urlParams    = new URLSearchParams(window.location.search);
+const USER_ID      = urlParams.get('uid');
+let allProducts    = [];
 let activeKategori = 'Semua';
+let waUtama        = 'https://wa.me/';
+
+// Single shared observer — created once, reused
 let revealObserver = null;
 
-// slug parser
-const pathParts = window.location.pathname.split("/").filter(Boolean);
-const urlUid = new URLSearchParams(window.location.search).get('uid');
-
-if (pathParts[0] === 'u' && pathParts[1]) {
-  STORE_KEY = pathParts[1];
-} else if (pathParts.length > 0) {
-  STORE_KEY = pathParts[0];
-} else if (urlUid) {
-  STORE_KEY = urlUid;
-}
-// ── INIT ────────────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if (!STORE_KEY) {
-    document.body.innerHTML =
-      '<div style="color:rgba(255,255,255,0.5);text-align:center;padding:80px 20px;font-family:Poppins,sans-serif;font-size:14px;">Toko tidak ditemukan.<br><span style="font-size:12px;opacity:0.5;">Pastikan URL mengandung ?uid=...</span></div>';
+  if (!USER_ID) {
+    renderNoStore();
     return;
   }
-
-  // Create observers once upfront
   initRevealObserver();
   initJellyHandler();
-
-  // Run async work
   bootstrap();
 });
 
-async function bootstrap() {
-  if (!STORE_KEY) {
-    document.body.innerHTML =
-      '<div style="color:rgba(255,255,255,0.5);text-align:center;padding:80px 20px;font-family:Poppins,sans-serif;font-size:14px;">Toko tidak ditemukan.<br><span style="font-size:12px;opacity:0.5;">Pastikan URL mengandung ?uid=...</span></div>';
-    return;
-  }
+function renderNoStore() {
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px;opacity:0.3">
+        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.6)">Toko tidak ditemukan</div>
+      <div style="font-size:12px;">Pastikan URL mengandung <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;">?uid=...</code></div>
+    </div>`;
+}
 
+async function bootstrap() {
   await loadSettings();
-  // Observe static fade-up elements AFTER settings applied
   observeFadeUp();
   await loadProducts();
 }
 
-// ── REVEAL OBSERVER — single instance ──────────────────────────────────────
+// ── OBSERVERS — created once ──────────────────────────────────────────────────
 function initRevealObserver() {
   if (revealObserver) return;
   revealObserver = new IntersectionObserver(
@@ -69,7 +60,7 @@ function initRevealObserver() {
         revealObserver.unobserve(e.target);
       });
     },
-    { threshold: 0.06, rootMargin: '0px 0px -10px 0px' }
+    { threshold: 0.06, rootMargin: '0px 0px -8px 0px' }
   );
 }
 
@@ -89,21 +80,18 @@ function observeFadeUp() {
 
 function observeNewCards(container) {
   if (!revealObserver || !container) return;
-  const cards = container.querySelectorAll('.reveal:not(.visible)');
-  cards.forEach((el, i) => {
-    // Max stagger: 4 steps
-    const step = Math.min(i, 4);
+  container.querySelectorAll('.reveal:not(.visible)').forEach((el, i) => {
     el.className = el.className.replace(/reveal-delay-\d/g, '').trim();
+    const step   = Math.min(i, 4);
     if (step > 0) el.classList.add('reveal-delay-' + step);
     revealObserver.observe(el);
   });
 }
 
-// ── JELLY — delegation, one listener only ──────────────────────────────────
+// ── JELLY — single delegated listener ────────────────────────────────────────
 function initJellyHandler() {
   document.addEventListener('pointerdown', e => {
-    const el = e.target.closest('.jelly-click');
-    if (el) { el.classList.remove('bounce-back'); }
+    e.target.closest('.jelly-click')?.classList.remove('bounce-back');
   }, { passive: true });
 
   document.addEventListener('pointerup', e => {
@@ -116,7 +104,7 @@ function initJellyHandler() {
   }, { passive: true });
 }
 
-// ── ANALYTICS ───────────────────────────────────────────────────────────────
+// ── ANALYTICS ────────────────────────────────────────────────────────────────
 async function trackEvent(field) {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -125,25 +113,23 @@ async function trackEvent(field) {
       { [field]: increment(1) },
       { merge: true }
     );
-  } catch { /* non-critical */ }
+  } catch { /* non-critical — fail silent */ }
 }
 
 window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClicks');
 
-// ── LOAD SETTINGS ───────────────────────────────────────────────────────────
+// ── LOAD SETTINGS ─────────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
-    const snap = await getDoc(doc(db, 'toko', STORE_KEY));
+    const snap = await getDoc(doc(db, 'toko', USER_ID));
     if (!snap.exists()) {
       document.getElementById('username').textContent = 'Toko tidak ditemukan';
       return;
     }
+    const s      = snap.data();
+    const isPrem = checkPremium(s);
 
-    USER_ID = snap.id;
-    const s = snap.data();
-    const isPrem  = checkPremium(s);
-
-    // 1. Theme template — no backgroundAttachment:fixed (kills mobile perf)
+    // 1. Theme — no background-attachment:fixed (kills mobile scroll perf)
     const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
     const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
     const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
@@ -164,21 +150,25 @@ async function loadSettings() {
     const footerBrand = document.querySelector('.footer-brand');
     if (footerBrand) footerBrand.style.display = isPrem ? 'none' : '';
 
-    // 5. Store info — batch all text writes
+    // 5. Store info — batch DOM writes
     const storeName = s.namaToko || 'My Store';
-    document.getElementById('username').textContent      = storeName;
-    document.title                                        = storeName + ' - LINKify';
-    const fs = document.getElementById('footer-store');
-    if (fs) fs.textContent = '© 2025 ' + storeName;
+    document.getElementById('username').textContent = storeName;
+    document.title = storeName + ' — LINKify';
+
+    // OG meta update for sharing
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', storeName + ' — Toko Online');
 
     const bioEl = document.getElementById('bio');
     if (bioEl) bioEl.textContent = s.bio || '';
 
     const profImg = document.getElementById('profileImg');
-    if (profImg && s.logo) profImg.src = s.logo;
+    if (profImg && s.logo) { profImg.src = s.logo; }
 
-    // 6. WA links
-    waUtama = s.wa || 'https://wa.me/';
+    const fsEl = document.getElementById('footer-store');
+    if (fsEl) fsEl.textContent = '© 2025 ' + storeName;
+
+    // 6. WA
+    waUtama = safeUrl(s.wa || 'https://wa.me/');
     const waBtn  = document.getElementById('waBtn');
     const waMain = document.getElementById('link-wa-main');
     if (waBtn)  { waBtn.href = waUtama; waBtn.dataset.wa = waUtama; }
@@ -187,17 +177,17 @@ async function loadSettings() {
     // 7. Shopee
     if (s.shopee) {
       const elShopee = document.getElementById('link-shopee');
-      if (elShopee) { elShopee.href = s.shopee; elShopee.classList.remove('hidden'); }
+      if (elShopee) { elShopee.href = safeUrl(s.shopee); elShopee.classList.remove('hidden'); }
     }
 
-    // 8. Social icons — single DocumentFragment write
+    // 8. Social icons — single fragment write
     renderSocialIcons(s);
 
-    // 9. Tokopedia default
+    // 9. Tokopedia
     const elTok = document.getElementById('link-tokped');
     if (elTok && CONFIG?.links?.tokopedia) elTok.href = CONFIG.links.tokopedia;
 
-    // 10. Custom buttons (premium)
+    // 10. Custom buttons (Premium)
     if (isPrem && Array.isArray(s.customButtons) && s.customButtons.length) {
       renderCustomButtons(s.customButtons);
     }
@@ -220,28 +210,23 @@ function renderSocialIcons(s) {
   const map = [
     { key: 'instagram', id: 'ico-instagram', label: 'Instagram', color: '#E1306C' },
     { key: 'tiktok',    id: 'ico-tiktok',    label: 'TikTok',    color: '#010101' },
-    { key: 'twitter',   id: 'ico-twitter',   label: 'X / Twitter', color: '#000000' },
+    { key: 'twitter',   id: 'ico-twitter',   label: 'X',         color: '#000000' },
     { key: 'facebook',  id: 'ico-facebook',  label: 'Facebook',  color: '#1877F2' },
     { key: 'youtube',   id: 'ico-youtube',   label: 'YouTube',   color: '#FF0000' },
   ];
 
   const frag = document.createDocumentFragment();
   let has = false;
-
   map.forEach(({ key, id, label, color }) => {
     if (!s[key]) return;
     has = true;
     const a = document.createElement('a');
-    a.href      = s[key];
-    a.target    = '_blank';
-    a.rel       = 'noopener noreferrer';
-    a.className = 'social-icon-btn';
-    a.setAttribute('aria-label', label);
+    a.href      = safeUrl(s[key]); a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.className = 'social-icon-btn'; a.setAttribute('aria-label', label);
     a.style.setProperty('--social-color', color);
-    a.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><use href="#${id}"/></svg>`;
+    a.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><use href="#${id}"/></svg>`;
     frag.appendChild(a);
   });
-
   if (has) { container.appendChild(frag); bar.style.display = ''; }
 }
 
@@ -255,36 +240,38 @@ function renderCustomButtons(buttons) {
   buttons.forEach(btn => {
     if (!btn.label || !btn.url) return;
     const a = document.createElement('a');
-    a.href      = btn.url;
-    a.target    = '_blank';
-    a.rel       = 'noopener noreferrer';
+    a.href = safeUrl(btn.url); a.target = '_blank'; a.rel = 'noopener noreferrer';
     a.className = 'platform-btn custom-btn';
     if (btn.color) a.style.background = btn.color;
     a.innerHTML = `
       <div class="icon-box">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="white" aria-hidden="true">
           <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
         </svg>
       </div>
-      ${escHtml(btn.label)}`;
+      <span>${escHtml(btn.label)}</span>
+      <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
     frag.appendChild(a);
   });
-
   wrap.appendChild(frag);
   section.style.display = '';
 }
 
-// ── LOAD PRODUCTS ───────────────────────────────────────────────────────────
+// ── LOAD PRODUCTS ─────────────────────────────────────────────────────────────
 async function loadProducts() {
   const container = document.getElementById('productList');
   if (!container) return;
 
   try {
-    const q    = query(collection(db, 'toko', USER_ID, 'produk'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(
+      query(collection(db, 'toko', USER_ID, 'produk'), orderBy('createdAt', 'desc'))
+    );
 
     if (snap.empty) {
-      container.innerHTML = '<div class="grid-span-all empty-state">Belum ada produk</div>';
+      container.innerHTML = `<div class="empty-state grid-span-all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Belum ada produk
+      </div>`;
       return;
     }
 
@@ -293,42 +280,35 @@ async function loadProducts() {
 
     renderKategoriFilter();
 
-    // Unggulan section
-    const unggulan   = allProducts.filter(p => p.unggulan);
-    const secEl      = document.getElementById('unggulan-section');
-    const unggulanEl = document.getElementById('unggulanList');
-
-    if (unggulan.length && secEl && unggulanEl) {
+    // Unggulan
+    const unggulan = allProducts.filter(p => p.unggulan);
+    const secEl    = document.getElementById('unggulan-section');
+    const ungEl    = document.getElementById('unggulanList');
+    if (unggulan.length && secEl && ungEl) {
       secEl.style.display = '';
-      unggulanEl.innerHTML = unggulan.map(buildProductCard).join('');
-      observeNewCards(unggulanEl);
-    } else if (secEl) {
-      secEl.style.display = 'none';
-    }
+      ungEl.innerHTML = unggulan.map(buildProductCard).join('');
+      observeNewCards(ungEl);
+    } else if (secEl) { secEl.style.display = 'none'; }
 
     renderFilteredProducts();
-
   } catch (err) {
     console.error('[loadProducts]', err);
-    container.innerHTML = '<div class="grid-span-all empty-state" style="color:rgba(255,100,100,0.6)">Gagal memuat produk. Refresh halaman.</div>';
+    container.innerHTML = `<div class="empty-state grid-span-all" style="color:rgba(255,100,100,0.55)">Gagal memuat produk. Refresh halaman.</div>`;
   }
 }
 
-// ── KATEGORI ─────────────────────────────────────────────────────────────────
+// ── KATEGORI ──────────────────────────────────────────────────────────────────
 function renderKategoriFilter() {
   const el = document.getElementById('kategori-filter');
   if (!el) return;
-
   const cats = new Set(allProducts.map(p => p.kategori).filter(Boolean));
-  if (cats.size === 0) { el.style.display = 'none'; return; }
+  if (!cats.size) { el.style.display = 'none'; return; }
 
-  const tabs = ['Semua', ...cats];
   el.style.display = '';
-  el.innerHTML = tabs.map(k =>
+  el.innerHTML = ['Semua', ...cats].map(k =>
     `<button class="kat-btn${k === activeKategori ? ' active' : ''}" data-kat="${escHtml(k)}">${escHtml(k)}</button>`
   ).join('');
 
-  // Single delegated listener — not per-button
   el.addEventListener('click', e => {
     const btn = e.target.closest('.kat-btn');
     if (!btn) return;
@@ -341,43 +321,42 @@ function renderKategoriFilter() {
 function renderFilteredProducts() {
   const container = document.getElementById('productList');
   if (!container) return;
-
   const list = activeKategori === 'Semua'
     ? allProducts
     : allProducts.filter(p => p.kategori === activeKategori);
 
   if (!list.length) {
-    container.innerHTML = '<div class="grid-span-all empty-state">Tidak ada produk di kategori ini</div>';
+    container.innerHTML = `<div class="empty-state grid-span-all">Tidak ada produk di kategori ini</div>`;
     return;
   }
-
-  // Single innerHTML write — no per-card DOM touch
   container.innerHTML = list.map(buildProductCard).join('');
   observeNewCards(container);
 }
 
-// ── PRODUCT CARD ─────────────────────────────────────────────────────────────
+// ── PRODUCT CARD ──────────────────────────────────────────────────────────────
 function buildProductCard(p) {
   const wa        = p.wa || waUtama;
   const nama      = p.nama || '';
   const stokNol   = Number(p.stok) === 0;
   const hasDiskon = p.hargaAsli && Number(p.hargaAsli) > Number(p.harga);
   const pct       = hasDiskon ? Math.round((1 - p.harga / p.hargaAsli) * 100) : 0;
-  const pesanWa   = encodeURIComponent('Halo, saya mau pesan:\n- Produk: ' + nama + '\n- Harga: Rp ' + rupiah(p.harga));
-
+  const pesanWa   = encodeURIComponent(
+    'Halo, saya mau pesan:\n- Produk: ' + nama + '\n- Harga: Rp ' + rupiah(p.harga)
+  );
   const shopeeBtn = p.shopee
-    ? `<a href="${escHtml(p.shopee)}" target="_blank" rel="noopener noreferrer" class="prod-btn prod-btn-shopee jelly-click" onclick="trackClick('shopee')">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg>Shopee
-      </a>`
-    : '';
+    ? `<a href="${escHtml(safeUrl(p.shopee))}" target="_blank" rel="noopener noreferrer"
+          class="prod-btn prod-btn-shopee jelly-click" onclick="trackClick('shopee')">
+         <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg>Shopee
+       </a>` : '';
 
   return `<div class="product-card reveal">
     <div class="prod-img-wrap">
-      <img src="${escHtml(p.img || '')}" alt="${escHtml(nama)}" class="product-img" loading="lazy" decoding="async"
-           onerror="this.src='https://placehold.co/400x300/1a1a2e/555?text=Foto'">
-      ${stokNol   ? '<div class="badge-stok">HABIS</div>'       : ''}
+      <img src="${escHtml(p.img || '')}" alt="${escHtml(nama)}"
+           class="product-img" loading="lazy" decoding="async"
+           onerror="this.src='https://placehold.co/400x300/111/333?text=Foto'">
+      ${stokNol   ? '<div class="badge-stok">HABIS</div>' : ''}
       ${hasDiskon ? `<div class="badge-diskon">-${pct}%</div>` : ''}
-      ${p.unggulan ? '<div class="badge-unggulan">⭐</div>'     : ''}
+      ${p.unggulan ? '<div class="badge-unggulan">★</div>' : ''}
     </div>
     <div class="product-info">
       <p class="product-name">${escHtml(nama)}</p>
@@ -387,9 +366,9 @@ function buildProductCard(p) {
       </div>
       ${p.deskripsi ? `<p class="product-desc">${escHtml(p.deskripsi)}</p>` : ''}
       <div class="prod-btns">
-        <a href="${escHtml(wa)}?text=${pesanWa}" target="_blank" rel="noopener noreferrer"
+        <a href="${escHtml(safeUrl(wa))}?text=${pesanWa}" target="_blank" rel="noopener noreferrer"
            class="prod-btn prod-btn-wa jelly-click" onclick="trackClick('wa')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
           Pesan WA
         </a>
         ${shopeeBtn}
@@ -398,31 +377,24 @@ function buildProductCard(p) {
   </div>`;
 }
 
-// ── TEMPLATE — no backgroundAttachment:fixed ────────────────────────────────
+// ── TEMPLATE ──────────────────────────────────────────────────────────────────
 function applyTemplate(tpl, bgUrl) {
   document.body.dataset.template = tpl;
-
-  // Use a pseudo-element approach via class instead of inline fixed bg
   let bgEl = document.getElementById('tpl-bg-layer');
   if (!bgEl) {
     bgEl = document.createElement('div');
-    bgEl.id = 'tpl-bg-layer';
-    bgEl.setAttribute('aria-hidden', 'true');
+    bgEl.id = 'tpl-bg-layer'; bgEl.setAttribute('aria-hidden', 'true');
     document.body.prepend(bgEl);
   }
-
   if (bgUrl) {
-    // backgroundAttachment: scroll is GPU-composited on mobile, not 'fixed'
-    bgEl.style.cssText = `
-      position:fixed;inset:0;z-index:-1;pointer-events:none;
-      background-image:url('${bgUrl}');
-      background-size:cover;background-position:center top;
-      background-attachment:scroll;
-      opacity:1;
-    `;
-    document.body.style.backgroundColor = 'rgba(0,0,0,0.01)';
+    bgEl.style.backgroundImage    = `url('${bgUrl}')`;
+    bgEl.style.backgroundSize     = 'cover';
+    bgEl.style.backgroundPosition = 'center top';
+    // scroll instead of fixed — GPU composited on mobile
+    bgEl.style.backgroundAttachment = 'scroll';
+    bgEl.classList.add('active');
   } else {
-    bgEl.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0;';
-    document.body.style.backgroundColor = '';
+    bgEl.style.backgroundImage = 'none';
+    bgEl.classList.remove('active');
   }
 }

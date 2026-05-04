@@ -172,10 +172,10 @@ function renderLowStockList(items) {
     <div class="activity-item" style="border-bottom:${i < items.length-1 ? '1px solid var(--border)' : 'none'}">
       <div class="activity-dot" style="background:${Number(p.stok) === 1 ? '#EF4444' : '#F59E0B'}"></div>
       <div class="activity-text">
-        <strong>${escHtml(p.nama)}</strong> — Stok: <span style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${p.stok}</span>
+        <strong>${escHtml(p.nama)}</strong> — Stok: <span style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${Number(p.stok)}</span>
         ${p.kategori ? `<span style="color:var(--text-3);font-size:11px"> · ${escHtml(p.kategori)}</span>` : ''}
       </div>
-      <div class="activity-time" style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${p.stok} sisa</div>
+      <div class="activity-time" style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${Number(p.stok)} sisa</div>
     </div>`).join('');
 }
 
@@ -223,7 +223,7 @@ async function loadProducts(uid) {
     const lbl = $('prod-count-label');
     if (lbl) lbl.textContent = allProductsCache.length + ' produk terdaftar';
   } catch (e) {
-    productsList.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+    productsList.innerHTML = `<div class="empty-state"><p>Gagal memuat produk. Coba refresh halaman.</p></div>`;
   }
 }
 
@@ -244,7 +244,7 @@ function renderProductGrid(list, uid) {
       <div class="p-body">
         <div class="p-name">${escHtml(p.nama)}${p.unggulan ? ' <span style="color:#F59E0B;font-size:11px;">★</span>' : ''}</div>
         <div class="p-price">Rp${rupiah(p.harga)}${p.hargaAsli > p.harga ? `<span style="text-decoration:line-through;color:var(--text-3);font-size:11px;font-weight:400;margin-left:5px">Rp${rupiah(p.hargaAsli)}</span>` : ''}</div>
-        <div class="p-stock">Stok: ${p.stok}${stokNol ? ' · <span style="color:var(--danger);font-weight:600">Habis</span>' : ''}${p.kategori ? ` · ${escHtml(p.kategori)}` : ''}</div>
+        <div class="p-stock">Stok: ${Number(p.stok)}${stokNol ? ' · <span style="color:var(--danger);font-weight:600">Habis</span>' : ''}${p.kategori ? ` · ${escHtml(p.kategori)}` : ''}</div>
         <div class="p-acts">
           <button type="button" class="btn-ed" data-id="${p.id}">Edit</button>
           <button type="button" class="btn-del" data-id="${p.id}">Hapus</button>
@@ -526,9 +526,9 @@ function updatePremiumUI() {
 
   currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
 
-  // Premium price display
-  const priceEl = $('premium-price');
-  if (priceEl && currentTokoData.premium?.price) priceEl.textContent = 'Rp ' + (currentTokoData.premium.price).toLocaleString('id-ID');
+  // Slug display
+  const slugEl = $('inp-custom-slug');
+  if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
 
   // Expiry
   const endDate = currentTokoData.premium?.endDate;
