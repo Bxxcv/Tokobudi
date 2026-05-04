@@ -349,7 +349,7 @@ body.index-page[data-template] .tokped-btn { background: linear-gradient(135deg,
   border-top: 1px solid rgba(255,255,255,0.05);
   margin-top: auto;
 }
-.footer-copy-text { font-size: 12px; color: var(--idx-footer); margin-bottom: 8px; }
+.footer-copy-text { font-size: 12px; color: white; margin-bottom: 8px; }
 .footer-brand {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 11px; color: var(--idx-muted2); opacity: 0.5;
