@@ -183,13 +183,25 @@ async function loadSettings() {
     // 8. Social icons — single fragment write
     renderSocialIcons(s);
 
-    // 9. Tokopedia
+    // 9. Tokopedia — per-user dari Firestore
     const elTok = document.getElementById('link-tokped');
-    if (elTok && CONFIG?.links?.tokopedia) elTok.href = CONFIG.links.tokopedia;
+    if (elTok) {
+      if (s.tokopedia) {
+        elTok.href = safeUrl(s.tokopedia);
+        elTok.classList.remove('hidden');
+      } else {
+        elTok.classList.add('hidden');
+      }
+    }
 
     // 10. Custom buttons (Premium)
     if (isPrem && Array.isArray(s.customButtons) && s.customButtons.length) {
       renderCustomButtons(s.customButtons);
+    }
+
+    // 11. Gallery button — link ke gallery.html (untuk semua user yg punya gallery)
+    if (Array.isArray(s.gallery) && s.gallery.length) {
+      renderGalleryButton(s.gallery, USER_ID);
     }
 
     // 11. Track visit — once per session
@@ -237,14 +249,16 @@ function renderCustomButtons(buttons) {
   if (!wrap) return;
 
   const frag = document.createDocumentFragment();
+  let count = 0;
   buttons.forEach(btn => {
     if (!btn.label || !btn.url) return;
     const a = document.createElement('a');
     a.href = safeUrl(btn.url); a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.className = 'platform-btn custom-btn';
-    if (btn.color) a.style.background = btn.color;
+    a.className = 'platform-btn custom-btn jelly-click';
+    const bgColor = btn.color || '#3B82F6';
+    a.style.cssText = `background:${bgColor};`;
     a.innerHTML = `
-      <div class="icon-box">
+      <div class="icon-box" style="background:rgba(0,0,0,.15);">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="white" aria-hidden="true">
           <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
         </svg>
@@ -252,9 +266,33 @@ function renderCustomButtons(buttons) {
       <span>${escHtml(btn.label)}</span>
       <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
     frag.appendChild(a);
+    count++;
   });
-  wrap.appendChild(frag);
-  section.style.display = '';
+  if (count) { wrap.appendChild(frag); section.style.display = ''; }
+}
+
+function renderGalleryButton(photos, uid) {
+  const wrap = document.getElementById('gallery-btn-wrap');
+  const btn  = document.getElementById('gallery-btn');
+  const prev = document.getElementById('gallery-previews');
+  const cnt  = document.getElementById('gallery-count');
+  if (!wrap || !btn) return;
+
+  // Build gallery URL — absolute path, cleanUrls vercel handle .html
+  btn.href = `gallery.html?uid=${uid}`;
+
+  // Preview 3 foto pertama sebagai thumbnail
+  if (prev) {
+    prev.innerHTML = '';
+    photos.slice(0, 3).forEach(url => {
+      const img = document.createElement('img');
+      img.src = url; img.alt = ''; img.loading = 'lazy';
+      img.onerror = () => { img.style.display = 'none'; };
+      prev.appendChild(img);
+    });
+  }
+  if (cnt) cnt.textContent = photos.length + ' foto';
+  wrap.style.display = '';
 }
 
 // ── LOAD PRODUCTS ─────────────────────────────────────────────────────────────

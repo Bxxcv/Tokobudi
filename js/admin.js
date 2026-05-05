@@ -30,6 +30,7 @@ let allProductsCache = [];
 let prodBlobUrl = null;
 let logoBlobUrl = null;
 let customBtns  = [];
+let galleryPhotos = [];
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -427,6 +428,7 @@ async function loadSettings(uid) {
     $('inp-bio').value        = s.bio        || '';
     $('inp-wa').value         = s.wa         || '';
     $('inp-shopee').value     = s.shopee     || '';
+    $('inp-tokopedia').value  = s.tokopedia  || '';
     $('inp-instagram').value  = s.instagram  || '';
     $('inp-tiktok').value     = s.tiktok     || '';
     $('inp-twitter').value    = s.twitter    || '';
@@ -467,6 +469,7 @@ $('btn-save-settings').addEventListener('click', async () => {
       bio:       $('inp-bio').value.trim(),
       wa:        $('inp-wa').value.trim(),
       shopee:    $('inp-shopee').value.trim(),
+      tokopedia: $('inp-tokopedia').value.trim(),
       instagram: $('inp-instagram').value.trim(),
       tiktok:    $('inp-tiktok').value.trim(),
       twitter:   $('inp-twitter').value.trim(),
@@ -543,6 +546,7 @@ function updatePremiumUI() {
   renderQR();
   renderTemplatePicker();
   renderCustomButtonEditor();
+  renderGalleryEditor();
 }
 
 // ── PREMIUM: STATS ─────────────────────────────────────────────────────────
@@ -682,6 +686,8 @@ function renderTemplatePicker() {
 }
 
 // ── PREMIUM: CUSTOM BUTTONS ────────────────────────────────────────────────
+const BTN_COLORS = ['#FF6B35','#EE4D2D','#25D366','#3B82F6','#8B5CF6','#EC4899','#F59E0B','#111111','#06B6D4','#10B981'];
+
 function renderCustomButtonEditor() {
   customBtns = Array.isArray(currentTokoData?.customButtons) ? [...currentTokoData.customButtons] : [];
   renderCustomBtnList();
@@ -690,20 +696,27 @@ function renderCustomButtonEditor() {
 function renderCustomBtnList() {
   const list = $('custom-btn-list');
   if (!list) return;
-  list.innerHTML = customBtns.map((btn, i) => `
-    <div class="custom-btn-item" data-idx="${i}">
-      <input type="text" placeholder="Label tombol" value="${escHtml(btn.label || '')}" data-field="label" data-idx="${i}">
-      <input type="text" placeholder="https://..." value="${escHtml(btn.url || '')}" data-field="url" data-idx="${i}" style="flex:1.6">
-      <button type="button" class="cb-remove" data-idx="${i}" aria-label="Hapus">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  if (!customBtns.length) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada tombol. Klik "+ Tambah Tombol".</div>';
+    return;
+  }
+  list.innerHTML = customBtns.map((btn, i) => {
+    const clr = btn.color || '#3B82F6';
+    return `<div class="custom-btn-item" data-idx="${i}" style="display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+      <div class="color-swatch-btn" data-idx="${i}" title="Ganti warna" style="width:28px;height:28px;border-radius:6px;background:${escHtml(clr)};cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);transition:transform .15s;" onclick="cycleColor(${i})"></div>
+      <input type="text" placeholder="Label (cth: GoFood)" value="${escHtml(btn.label || '')}" data-field="label" data-idx="${i}" style="flex:1;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
+      <input type="text" placeholder="https://..." value="${escHtml(btn.url || '')}" data-field="url" data-idx="${i}" style="flex:2;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
+      <button type="button" class="cb-remove" data-idx="${i}" aria-label="Hapus" style="background:rgba(239,68,68,.12);border:none;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#EF4444;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
-  list.querySelectorAll('input').forEach(inp => {
+  list.querySelectorAll('input[data-field]').forEach(inp => {
     inp.addEventListener('input', () => {
       const idx   = parseInt(inp.dataset.idx);
       const field = inp.dataset.field;
-      if (!customBtns[idx]) customBtns[idx] = { label: '', url: '' };
+      if (!customBtns[idx]) customBtns[idx] = { label: '', url: '', color: '#3B82F6' };
       customBtns[idx][field] = inp.value;
     });
   });
@@ -715,21 +728,104 @@ function renderCustomBtnList() {
   });
 }
 
+window.cycleColor = function(idx) {
+  if (!customBtns[idx]) return;
+  const cur = customBtns[idx].color || BTN_COLORS[0];
+  const pos = BTN_COLORS.indexOf(cur);
+  customBtns[idx].color = BTN_COLORS[(pos + 1) % BTN_COLORS.length];
+  renderCustomBtnList();
+};
+
 $('btn-add-custom-btn')?.addEventListener('click', () => {
   if (customBtns.length >= 10) { toast('Maksimal 10 tombol kustom.', 'warn'); return; }
-  customBtns.push({ label: '', url: '' });
+  customBtns.push({ label: '', url: '', color: BTN_COLORS[customBtns.length % BTN_COLORS.length] });
   renderCustomBtnList();
-  $('custom-btn-list').lastElementChild?.querySelector('input')?.focus();
+  const inputs = $('custom-btn-list').querySelectorAll('input[data-field="label"]');
+  inputs[inputs.length - 1]?.focus();
 });
 
 $('btn-save-custom-btns')?.addEventListener('click', async () => {
   const uid = auth.currentUser?.uid;
-  const cleaned = customBtns.filter(b => b.label && b.url);
+  if (!uid) return;
+  const cleaned = customBtns.filter(b => b.label?.trim() && b.url?.trim());
+  const btn = $('btn-save-custom-btns');
+  btn.disabled = true;
   try {
     await updateDoc(doc(db, 'toko', uid), { customButtons: cleaned });
     toast(`${cleaned.length} tombol kustom disimpan!`);
     currentTokoData.customButtons = cleaned;
   } catch (e) { toast('Gagal simpan: ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
+});
+
+// ── PREMIUM: GALLERY ───────────────────────────────────────────────────────
+function renderGalleryEditor() {
+  galleryPhotos = Array.isArray(currentTokoData?.gallery) ? [...currentTokoData.gallery] : [];
+  renderGalleryGrid();
+}
+
+function renderGalleryGrid() {
+  const grid = $('gallery-grid');
+  if (!grid) return;
+  if (!galleryPhotos.length) {
+    grid.innerHTML = '<div style="grid-column:span 3;padding:20px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto gallery. Klik "+ Tambah Foto".</div>';
+    return;
+  }
+  grid.innerHTML = galleryPhotos.map((url, i) => `
+    <div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--surface);" title="Klik untuk hapus">
+      <img src="${escHtml(url)}" alt="Gallery ${i+1}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.src='https://placehold.co/200x200/111/333?text=Error'">
+      <button type="button" onclick="removeGalleryPhoto(${i})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+window.removeGalleryPhoto = function(idx) {
+  galleryPhotos.splice(idx, 1);
+  renderGalleryGrid();
+};
+
+$('btn-add-gallery')?.addEventListener('click', () => {
+  if (galleryPhotos.length >= 12) { toast('Maksimal 12 foto gallery.', 'warn'); return; }
+  $('inp-gallery-file').click();
+});
+
+$('inp-gallery-file')?.addEventListener('change', async () => {
+  const files = Array.from($('inp-gallery-file').files);
+  if (!files.length) return;
+  const remaining = 12 - galleryPhotos.length;
+  const toUpload = files.slice(0, remaining);
+  if (files.length > remaining) toast(`Hanya ${remaining} foto lagi yang bisa ditambah (maks. 12).`, 'warn');
+
+  const statusEl = $('gallery-upload-status');
+  const addBtn   = $('btn-add-gallery');
+  if (addBtn) addBtn.disabled = true;
+  if (statusEl) statusEl.textContent = `Mengupload 0/${toUpload.length}...`;
+
+  let uploaded = 0;
+  for (const file of toUpload) {
+    const url = await uploadCloudinary(file);
+    if (url) { galleryPhotos.push(url); uploaded++; }
+    if (statusEl) statusEl.textContent = `Mengupload ${uploaded}/${toUpload.length}...`;
+  }
+  renderGalleryGrid();
+  if (statusEl) statusEl.textContent = uploaded ? `${uploaded} foto berhasil diupload. Klik "Simpan Gallery".` : 'Upload gagal.';
+  if (addBtn) addBtn.disabled = false;
+  $('inp-gallery-file').value = '';
+});
+
+$('btn-save-gallery')?.addEventListener('click', async () => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  const btn = $('btn-save-gallery');
+  btn.disabled = true;
+  try {
+    await updateDoc(doc(db, 'toko', uid), { gallery: galleryPhotos });
+    toast(`Gallery (${galleryPhotos.length} foto) disimpan!`);
+    currentTokoData.gallery = [...galleryPhotos];
+    $('gallery-upload-status').textContent = '';
+  } catch (e) { toast('Gagal simpan gallery: ' + e.message, 'err'); }
+  finally { btn.disabled = false; }
 });
 
 // ── CLOUDINARY ─────────────────────────────────────────────────────────────

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery — LINKify</title>
+  <meta name="description" content="Gallery foto toko">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="icon" type="image/png" sizes="32x32" href="/logo-linkify.png">
+  <link rel="apple-touch-icon" href="/logo-linkify.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FF6B35">
+  <style>
+    .gallery-page-wrap { min-height: 100vh; }
+    .gallery-topbar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 18px 0;
+      position: sticky; top: 0; z-index: 10;
+      background: var(--idx-bg, #0A0A0F);
+    }
+    .gallery-back-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+      cursor: pointer; color: rgba(255,255,255,.8); text-decoration: none;
+      transition: background .15s;
+    }
+    .gallery-back-btn:hover { background: rgba(255,255,255,.13); }
+    .gallery-page-title {
+      font-size: 16px; font-weight: 700; color: rgba(255,255,255,.9);
+    }
+    .gallery-store-name {
+      font-size: 12px; color: rgba(255,255,255,.4); margin-top: 1px;
+    }
+    .gallery-full-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      padding: 14px 0 80px;
+    }
+    .gallery-full-item {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: rgba(255,255,255,.04);
+      cursor: zoom-in;
+      position: relative;
+    }
+    .gallery-full-item img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform .25s ease;
+    }
+    .gallery-full-item:hover img { transform: scale(1.04); }
+    .gallery-empty {
+      grid-column: span 3;
+      text-align: center; padding: 60px 20px;
+      color: rgba(255,255,255,.3); font-size: 13px;
+    }
+    .gallery-empty svg { display: block; margin: 0 auto 12px; opacity: .25; }
+    /* Lightbox */
+    #glb {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,.93);
+      display: none; align-items: center; justify-content: center;
+    }
+    #glb.open { display: flex; }
+    #glb img {
+      max-width: 94vw; max-height: 90vh;
+      border-radius: 10px; object-fit: contain;
+      user-select: none;
+    }
+    #glb-close {
+      position: fixed; top: 16px; right: 16px;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.12); border: none;
+      cursor: pointer; color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #glb-prev, #glb-next {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,.12); border: none;
+      cursor: pointer; color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #glb-prev { left: 10px; }
+    #glb-next { right: 10px; }
+    #glb-counter {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      font-size: 12px; color: rgba(255,255,255,.5); font-family: Inter, sans-serif;
+    }
+    .skeleton-gallery {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; padding: 14px 0;
+    }
+    .skeleton-gallery-item {
+      aspect-ratio: 1;
+      background: rgba(255,255,255,.06);
+      animation: skel-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes skel-pulse {
+      0%,100% { opacity:.6 } 50% { opacity:.3 }
+    }
+    @media (min-width: 480px) {
+      .gallery-full-grid { grid-template-columns: repeat(4,1fr); gap: 4px; }
+      .gallery-empty { grid-column: span 4; }
+      .skeleton-gallery { grid-template-columns: repeat(4,1fr); }
+    }
+  </style>
+</head>
+<body class="index-page">
+<div class="gallery-page-wrap">
+
+  <!-- TOP BAR -->
+  <div class="gallery-topbar">
+    <a id="back-btn" href="#" class="gallery-back-btn" aria-label="Kembali ke toko">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    </a>
+    <div>
+      <div class="gallery-page-title">Gallery</div>
+      <div id="gallery-store-name" class="gallery-store-name">Memuat...</div>
+    </div>
+  </div>
+
+  <!-- SKELETON -->
+  <div id="skeleton-wrap" class="skeleton-gallery" style="padding:14px 0;">
+    <div class="skeleton-gallery-item"></div>
+    <div class="skeleton-gallery-item"></div>
+    <div class="skeleton-gallery-item"></div>
+    <div class="skeleton-gallery-item"></div>
+    <div class="skeleton-gallery-item"></div>
+    <div class="skeleton-gallery-item"></div>
+  </div>
+
+  <!-- GRID -->
+  <div id="gallery-full-grid" class="gallery-full-grid" style="display:none;"></div>
+
+</div>
+
+<!-- Lightbox -->
+<div id="glb" role="dialog" aria-modal="true" aria-label="Lihat foto">
+  <img id="glb-img" src="" alt="Gallery foto">
+  <button id="glb-close" aria-label="Tutup">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button id="glb-prev" aria-label="Sebelumnya">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button id="glb-next" aria-label="Berikutnya">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div id="glb-counter"></div>
+</div>
+
+<!-- SVG Sprite (minimal) -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="ico-wa" viewBox="0 0 24 24">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script type="module">
+import { db } from '/firebase.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { checkPremium, safeUrl, escHtml, hexToRgb } from '/js/utils.js';
+
+const params = new URLSearchParams(location.search);
+const uid    = params.get('uid');
+
+// Back button lugas ke storefront
+const backBtn = document.getElementById('back-btn');
+backBtn.href = uid ? `index.html?uid=${uid}` : 'landing.html';
+
+if (!uid) {
+  document.getElementById('skeleton-wrap').style.display = 'none';
+  document.getElementById('gallery-full-grid').style.display = 'grid';
+  document.getElementById('gallery-full-grid').innerHTML =
+    `<div class="gallery-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>URL tidak valid</div>`;
+} else {
+  loadGallery();
+}
+
+let photos = [];
+let curIdx  = 0;
+
+async function loadGallery() {
+  try {
+    const snap = await getDoc(doc(db, 'toko', uid));
+    if (!snap.exists()) throw new Error('not found');
+    const s      = snap.data();
+    const isPrem = checkPremium(s);
+
+    // Apply theme
+    const accent = isPrem && s.premium?.accentColor ? s.premium.accentColor : '#FF6B35';
+    document.documentElement.style.setProperty('--idx-accent', accent);
+    document.documentElement.style.setProperty('--idx-accent-rgb', hexToRgb(accent));
+    if (isPrem && s.premium?.templateBg) {
+      let bgEl = document.createElement('div');
+      bgEl.id = 'tpl-bg-layer'; bgEl.setAttribute('aria-hidden','true');
+      bgEl.style.cssText = `position:fixed;inset:0;z-index:0;background-image:url('${s.premium.templateBg}');background-size:cover;background-position:center top;opacity:.18;pointer-events:none;`;
+      document.body.prepend(bgEl);
+    }
+
+    document.getElementById('gallery-store-name').textContent = s.namaToko || 'Toko';
+    document.title = 'Gallery — ' + (s.namaToko || 'Toko');
+
+    photos = (isPrem && Array.isArray(s.gallery)) ? s.gallery : [];
+
+    document.getElementById('skeleton-wrap').style.display = 'none';
+    const grid = document.getElementById('gallery-full-grid');
+    grid.style.display = 'grid';
+
+    if (!photos.length) {
+      grid.innerHTML = `<div class="gallery-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Gallery belum ada foto</div>`;
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    photos.forEach((url, i) => {
+      const div = document.createElement('div');
+      div.className = 'gallery-full-item';
+      div.setAttribute('tabindex','0');
+      div.setAttribute('role','button');
+      div.setAttribute('aria-label', `Lihat foto ${i+1}`);
+      const img = document.createElement('img');
+      img.src = url; img.alt = `Gallery foto ${i+1}`;
+      img.loading = 'lazy'; img.decoding = 'async';
+      img.onerror = () => { div.style.display = 'none'; };
+      div.appendChild(img);
+      div.addEventListener('click', () => openLb(i));
+      div.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLb(i); });
+      frag.appendChild(div);
+    });
+    grid.appendChild(frag);
+  } catch(e) {
+    document.getElementById('skeleton-wrap').style.display = 'none';
+    const grid = document.getElementById('gallery-full-grid');
+    grid.style.display = 'grid';
+    grid.innerHTML = `<div class="gallery-empty">Gagal memuat gallery. Coba refresh.</div>`;
+  }
+}
+
+// ── LIGHTBOX ──────────────────────────────────────────────────────────────
+const lb      = document.getElementById('glb');
+const lbImg   = document.getElementById('glb-img');
+const lbCount = document.getElementById('glb-counter');
+
+function openLb(idx) {
+  curIdx = idx;
+  lbImg.src = photos[curIdx];
+  lbCount.textContent = `${curIdx + 1} / ${photos.length}`;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLb() {
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function prevLb() { curIdx = (curIdx - 1 + photos.length) % photos.length; lbImg.src = photos[curIdx]; lbCount.textContent = `${curIdx+1} / ${photos.length}`; }
+function nextLb() { curIdx = (curIdx + 1) % photos.length; lbImg.src = photos[curIdx]; lbCount.textContent = `${curIdx+1} / ${photos.length}`; }
+
+document.getElementById('glb-close').addEventListener('click', closeLb);
+document.getElementById('glb-prev').addEventListener('click', prevLb);
+document.getElementById('glb-next').addEventListener('click', nextLb);
+lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft') prevLb();
+  if (e.key === 'ArrowRight') nextLb();
+});
+
+// Touch swipe
+let touchX = null;
+lb.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+lb.addEventListener('touchend', e => {
+  if (touchX === null) return;
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) { dx < 0 ? nextLb() : prevLb(); }
+  touchX = null;
+});
+</script>
+
+<script type="module">
+  import { checkMaintenance } from '/js/maintenance.js';
+  await checkMaintenance();
+</script>
+</body>
+</html>
