@@ -27,8 +27,10 @@ const EMAIL_ADMIN = 'unrageunrage@gmail.com';
 const BASE_PATH   = window.location.hostname.includes('github.io') ? '/LINKify' : '';
 
 // ── AUTH PERSISTENCE ─────────────────────────────────────────────────────────
-// Set persistence setelah auth sudah ada dari firebase.js
-await setPersistence(auth, browserLocalPersistence).catch(() => {});
+// Wrap in IIFE for broad browser compat (some Safari versions reject top-level await in modules)
+(async () => {
+  await setPersistence(auth, browserLocalPersistence).catch(() => {});
+})();
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allUsers         = [];
@@ -435,6 +437,20 @@ async function savePremiumModal() {
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
   try {
+    // Validate slug uniqueness before saving
+    if (slug) {
+      const allSnap = await getDocs(collection(db, 'toko'));
+      const slugTaken = allSnap.docs.some(d => {
+        if (d.id === premiumTargetUid) return false; // allow same user
+        return d.data()?.premium?.slug === slug;
+      });
+      if (slugTaken) {
+        toast('Slug sudah dipakai user lain. Coba slug berbeda.', 'warn');
+        btn.disabled    = false;
+        btn.textContent = 'Aktifkan Premium';
+        return;
+      }
+    }
     const update = {
       'premium.active':         true,
       'premium.startDate':      serverTimestamp(),

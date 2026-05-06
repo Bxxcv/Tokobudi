@@ -305,3 +305,114 @@
     @media (prefers-reduced-motion: reduce) {
       .fade-in { opacity: 1; transform: none; transition: none; }
     }
+/* ── FIXES: nav-brand flex alignment ─────────────────────────────────────── */
+.nav-brand { display: inline-flex !important; align-items: center; gap: 10px; text-decoration: none; }
+
+/* ── TRUST BAR ─────────────────────────────────────────────────────────────── */
+.trust-bar {
+  background: rgba(255,255,255,0.03);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  overflow: hidden;
+}
+.trust-inner {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; flex-wrap: wrap; max-width: 900px; margin: 0 auto;
+}
+.trust-item {
+  display: flex; align-items: center; gap: 8px;
+  color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 500;
+  padding: 6px 16px; white-space: nowrap;
+}
+.trust-item svg { color: var(--accent); flex-shrink: 0; }
+.trust-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+@media (max-width: 600px) {
+  .trust-inner { justify-content: flex-start; }
+  .trust-bar { overflow-x: auto; }
+  .trust-divider { display: none; }
+  .trust-item { padding: 6px 10px; }
+}
+
+/* ── PREVIEW BADGE ─────────────────────────────────────────────────────────── */
+.preview-info { display: flex; flex-direction: column; gap: 2px; }
+.preview-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(59,130,246,0.2); color: #60A5FA;
+  font-size: 9px; font-weight: 700; padding: 2px 6px;
+  border-radius: 99px; letter-spacing: 0.3px; margin-left: 6px;
+  vertical-align: middle;
+}
+.preview-header { align-items: flex-start; }
+
+/* ── FEAT PREMIUM TAG ──────────────────────────────────────────────────────── */
+.feat-premium-tag {
+  display: inline-block; background: linear-gradient(135deg,#FF6B35,#FF9A6C);
+  color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px;
+  border-radius: 99px; letter-spacing: 0.3px; vertical-align: middle;
+  margin-left: 5px; text-transform: uppercase;
+}
+
+/* ── GUARANTEE BAR ─────────────────────────────────────────────────────────── */
+.guarantee-bar {
+  display: flex; align-items: center; gap: 10px;
+  max-width: 540px; margin: 32px auto 0;
+  background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 12px; padding: 14px 20px;
+  color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.5;
+}
+.guarantee-bar svg { color: #10B981; flex-shrink: 0; }
+
+/* ── FAQ ────────────────────────────────────────────────────────────────────── */
+.faq-list {
+  max-width: 680px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.faq-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.faq-item[open] { border-color: rgba(255,107,53,0.3); }
+.faq-q {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; padding: 16px 20px;
+  font-size: 14px; font-weight: 600; color: #fff;
+  cursor: pointer; list-style: none; user-select: none;
+}
+.faq-q::-webkit-details-marker { display: none; }
+.faq-q:hover { color: var(--accent); }
+.faq-arrow { width: 16px; height: 16px; flex-shrink: 0; color: var(--muted); transition: transform 0.2s; }
+.faq-item[open] .faq-arrow { transform: rotate(180deg); color: var(--accent); }
+.faq-a {
+  padding: 0 20px 16px;
+  font-size: 13.5px; color: var(--muted); line-height: 1.7;
+}
+
+/* ── CTA TRUST STRIP ───────────────────────────────────────────────────────── */
+.cta-trust {
+  display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: 13px; color: rgba(255,255,255,0.45); font-weight: 500;
+}
+
+/* ── FOOTER UPGRADE ────────────────────────────────────────────────────────── */
+.footer-top {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; margin-bottom: 28px;
+}
+.footer-tagline { font-size: 13px; color: var(--muted2); text-align: center; }
+.footer-mid {
+  display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+.footer-col { display: flex; flex-direction: column; gap: 8px; min-width: 100px; }
+.footer-col-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.footer-col a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+.footer-col a:hover { color: #fff; }
+.footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; text-align: center; font-size: 12px; color: var(--muted2); }
+
+/* ── POPULAR PRICING CARD extra polish ─────────────────────────────────────── */
+.pricing-card.popular .popular-badge {
+  font-size: 11px; letter-spacing: 0.5px;
+}

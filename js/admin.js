@@ -110,6 +110,13 @@ onAuthStateChanged(auth, async user => {
 
   currentTokoData = tokoSnap.data();
 
+  // SECURITY: block suspended users from accessing dashboard
+  if (currentTokoData.status === 'blokir') {
+    toast('Akun Anda telah dinonaktifkan. Hubungi admin.', 'err');
+    setTimeout(() => signOut(auth), 2200);
+    return;
+  }
+
   // Sidebar user block
   const emailEl = $('admin-email');
   const avatarEl = $('sidebar-avatar');
@@ -505,9 +512,10 @@ $('btn-save-account').addEventListener('click', async () => {
       await updateEmail(user, newEmail);
     }
     if (newPass) {
-      if (newPass.length < 6) throw new Error('Password minimal 6 karakter!');
+      if (newPass.length < 6) throw new Error('Password minimal 6 karakter!')
       await updatePassword(user, newPass);
-      await updateDoc(doc(db, 'toko', user.uid), { authPass: newPass });
+      // NOTE: authPass is NOT stored in Firestore for security.
+      // Admin delete flow uses its own re-auth mechanism.
     }
     toast('Akun diperbarui! Keluar otomatis...');
     setTimeout(() => signOut(auth), 1800);

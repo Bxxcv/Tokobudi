@@ -1,7 +1,6 @@
 /**
  * LINKify — Storefront Premium (script.js)
- * Single IntersectionObserver. Batched DOM. GPU-only animations.
- * No background-attachment:fixed. No box-shadow animation.
+ * FIXED: blocked user check, duplicate kategori listener, merged observers
  */
 
 import { db, CONFIG } from '../firebase.js';
@@ -17,6 +16,7 @@ const USER_ID      = urlParams.get('uid');
 let allProducts    = [];
 let activeKategori = 'Semua';
 let waUtama        = 'https://wa.me/';
+let katListenerSet = false; // prevent duplicate listener
 
 // Single shared observer — created once, reused
 let revealObserver = null;
@@ -43,9 +43,19 @@ function renderNoStore() {
     </div>`;
 }
 
+function renderBlockedStore() {
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px;opacity:0.5;color:#EF4444">
+        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.6)">Toko Tidak Tersedia</div>
+      <div style="font-size:12px;">Toko ini sedang tidak aktif.</div>
+    </div>`;
+}
+
 async function bootstrap() {
   await loadSettings();
-  observeFadeUp();
   await loadProducts();
 }
 
@@ -57,6 +67,7 @@ function initRevealObserver() {
       entries.forEach(e => {
         if (!e.isIntersecting) return;
         e.target.classList.add('visible');
+        e.target.classList.add('show'); // covers both .reveal and .fade-up
         revealObserver.unobserve(e.target);
       });
     },
@@ -64,18 +75,12 @@ function initRevealObserver() {
   );
 }
 
-function observeFadeUp() {
-  const io = new IntersectionObserver(
-    entries => {
-      entries.forEach(e => {
-        if (!e.isIntersecting) return;
-        e.target.classList.add('show');
-        io.unobserve(e.target);
-      });
-    },
-    { threshold: 0.08 }
-  );
-  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+// Observe both .fade-up and .reveal elements through single observer
+function observeAll() {
+  if (!revealObserver) return;
+  document.querySelectorAll('.fade-up:not(.show), .reveal:not(.visible)').forEach(el => {
+    revealObserver.observe(el);
+  });
 }
 
 function observeNewCards(container) {
@@ -126,10 +131,17 @@ async function loadSettings() {
       document.getElementById('username').textContent = 'Toko tidak ditemukan';
       return;
     }
-    const s      = snap.data();
+    const s = snap.data();
+
+    // SECURITY: check blocked status
+    if (s.status === 'blokir') {
+      renderBlockedStore();
+      return;
+    }
+
     const isPrem = checkPremium(s);
 
-    // 1. Theme — no background-attachment:fixed (kills mobile scroll perf)
+    // 1. Theme
     const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
     const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
     const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
@@ -155,7 +167,6 @@ async function loadSettings() {
     document.getElementById('username').textContent = storeName;
     document.title = storeName + ' — LINKify';
 
-    // OG meta update for sharing
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', storeName + ' — Toko Online');
 
     const bioEl = document.getElementById('bio');
@@ -180,10 +191,10 @@ async function loadSettings() {
       if (elShopee) { elShopee.href = safeUrl(s.shopee); elShopee.classList.remove('hidden'); }
     }
 
-    // 8. Social icons — single fragment write
+    // 8. Social icons
     renderSocialIcons(s);
 
-    // 9. Tokopedia — per-user dari Firestore
+    // 9. Tokopedia
     const elTok = document.getElementById('link-tokped');
     if (elTok) {
       if (s.tokopedia) {
@@ -199,12 +210,15 @@ async function loadSettings() {
       renderCustomButtons(s.customButtons);
     }
 
-    // 11. Gallery button — link ke gallery.html (untuk semua user yg punya gallery)
+    // 11. Gallery button
     if (Array.isArray(s.gallery) && s.gallery.length) {
       renderGalleryButton(s.gallery, USER_ID);
     }
 
-    // 11. Track visit — once per session
+    // 12. Observe fade-up elements
+    observeAll();
+
+    // 13. Track visit — once per session
     if (!sessionStorage.getItem('vf_' + USER_ID)) {
       sessionStorage.setItem('vf_' + USER_ID, '1');
       trackEvent('visits');
@@ -278,10 +292,8 @@ function renderGalleryButton(photos, uid) {
   const cnt  = document.getElementById('gallery-count');
   if (!wrap || !btn) return;
 
-  // Build gallery URL — absolute path, cleanUrls vercel handle .html
   btn.href = `gallery.html?uid=${uid}`;
 
-  // Preview 3 foto pertama sebagai thumbnail
   if (prev) {
     prev.innerHTML = '';
     photos.slice(0, 3).forEach(url => {
@@ -347,13 +359,17 @@ function renderKategoriFilter() {
     `<button class="kat-btn${k === activeKategori ? ' active' : ''}" data-kat="${escHtml(k)}">${escHtml(k)}</button>`
   ).join('');
 
-  el.addEventListener('click', e => {
-    const btn = e.target.closest('.kat-btn');
-    if (!btn) return;
-    activeKategori = btn.dataset.kat;
-    el.querySelectorAll('.kat-btn').forEach(b => b.classList.toggle('active', b === btn));
-    renderFilteredProducts();
-  });
+  // FIX: only attach listener once using a flag guard
+  if (!katListenerSet) {
+    katListenerSet = true;
+    el.addEventListener('click', e => {
+      const btn = e.target.closest('.kat-btn');
+      if (!btn) return;
+      activeKategori = btn.dataset.kat;
+      el.querySelectorAll('.kat-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderFilteredProducts();
+    });
+  }
 }
 
 function renderFilteredProducts() {
@@ -428,7 +444,6 @@ function applyTemplate(tpl, bgUrl) {
     bgEl.style.backgroundImage    = `url('${bgUrl}')`;
     bgEl.style.backgroundSize     = 'cover';
     bgEl.style.backgroundPosition = 'center top';
-    // scroll instead of fixed — GPU composited on mobile
     bgEl.style.backgroundAttachment = 'scroll';
     bgEl.classList.add('active');
   } else {

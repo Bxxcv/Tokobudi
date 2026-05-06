@@ -1,30 +1,62 @@
-import { auth } from '../firebase.js';
-import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, db } from '../firebase.js';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-onAuthStateChanged(auth, (user) => {
-  if (user) window.location.href = 'admin.html';
+// ── AUTH STATE — check blocked status before redirect ─────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  try {
+    const snap = await getDoc(doc(db, 'toko', user.uid));
+    if (!snap.exists()) { await signOut(auth); return; }
+    const data = snap.data();
+    if (data.status === 'blokir') {
+      showError('Akun Anda telah dinonaktifkan. Hubungi admin.');
+      await signOut(auth);
+      return;
+    }
+    window.location.href = 'admin.html';
+  } catch {
+    // Fail open — let admin.html do its own guard
+    window.location.href = 'admin.html';
+  }
 });
 
-document.getElementById('loginBtn').onclick = () => {
-  const btn = document.getElementById('loginBtn');
+function showError(msg) {
   const errorMsg = document.getElementById('errorMsg');
-  btn.innerHTML = '<span class="spinner"></span> Memproses...';
-  btn.disabled = true;
+  if (errorMsg) errorMsg.innerText = msg;
+}
+
+// ── LOGIN HANDLER ─────────────────────────────────────────────────────────────
+document.getElementById('loginBtn').onclick = () => {
+  const btn      = document.getElementById('loginBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const email    = document.getElementById('email')?.value?.trim();
+  const password = document.getElementById('password')?.value;
+
   errorMsg.innerText = '';
 
-  signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-    .then(() => {})
+  if (!email || !password) {
+    errorMsg.innerText = 'Email dan password wajib diisi.';
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Memproses...';
+  btn.disabled  = true;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => { /* onAuthStateChanged handles redirect */ })
     .catch((err) => {
       const msgs = {
-        'auth/user-not-found': 'Akun tidak ditemukan',
-        'auth/wrong-password': 'Password salah',
-        'auth/invalid-email': 'Format email tidak valid',
-        'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi nanti.',
-        'auth/user-disabled': 'Akun dinonaktifkan. Hubungi admin.',
+        'auth/user-not-found':         'Akun tidak ditemukan',
+        'auth/wrong-password':         'Password salah',
+        'auth/invalid-credential':     'Email atau password salah',
+        'auth/invalid-email':          'Format email tidak valid',
+        'auth/too-many-requests':      'Terlalu banyak percobaan. Coba lagi nanti.',
+        'auth/user-disabled':          'Akun dinonaktifkan. Hubungi admin.',
         'auth/network-request-failed': 'Tidak ada koneksi internet',
       };
       errorMsg.innerText = msgs[err.code] || 'Login gagal: ' + err.message;
       btn.innerHTML = 'Masuk';
-      btn.disabled = false;
+      btn.disabled  = false;
     });
 };
