@@ -277,7 +277,10 @@ function renderCustomButtons(buttons) {
           <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
         </svg>
       </div>
-      <span>${escHtml(btn.label)}</span>
+      <div class="custom-btn-text">
+        <span class="custom-btn-label">${escHtml(btn.label)}</span>
+        ${btn.desc ? `<span class="custom-btn-desc">${escHtml(btn.desc)}</span>` : ''}
+      </div>
       <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
     frag.appendChild(a);
     count++;

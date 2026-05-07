@@ -710,13 +710,16 @@ function renderCustomBtnList() {
   }
   list.innerHTML = customBtns.map((btn, i) => {
     const clr = btn.color || '#3B82F6';
-    return `<div class="custom-btn-item" data-idx="${i}" style="display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
-      <div class="color-swatch-btn" data-idx="${i}" title="Ganti warna" style="width:28px;height:28px;border-radius:6px;background:${escHtml(clr)};cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);transition:transform .15s;" onclick="cycleColor(${i})"></div>
-      <input type="text" placeholder="Label (cth: GoFood)" value="${escHtml(btn.label || '')}" data-field="label" data-idx="${i}" style="flex:1;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
-      <input type="text" placeholder="https://..." value="${escHtml(btn.url || '')}" data-field="url" data-idx="${i}" style="flex:2;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
-      <button type="button" class="cb-remove" data-idx="${i}" aria-label="Hapus" style="background:rgba(239,68,68,.12);border:none;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#EF4444;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+    return `<div class="custom-btn-item" data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="color-swatch-btn" data-idx="${i}" title="Ganti warna" style="width:28px;height:28px;border-radius:6px;background:${escHtml(clr)};cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);transition:transform .15s;" onclick="cycleColor(${i})"></div>
+        <input type="text" placeholder="Label (cth: GoFood)" value="${escHtml(btn.label || '')}" data-field="label" data-idx="${i}" style="flex:1;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
+        <button type="button" class="cb-remove" data-idx="${i}" aria-label="Hapus" style="background:rgba(239,68,68,.12);border:none;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#EF4444;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="text" placeholder="https://link.com" value="${escHtml(btn.url || '')}" data-field="url" data-idx="${i}" style="width:100%;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);">
+      <input type="text" placeholder="Deskripsi singkat (opsional, tampil di bawah label)" value="${escHtml(btn.desc || '')}" data-field="desc" data-idx="${i}" style="width:100%;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text);opacity:.85;">
     </div>`;
   }).join('');
 
@@ -724,7 +727,7 @@ function renderCustomBtnList() {
     inp.addEventListener('input', () => {
       const idx   = parseInt(inp.dataset.idx);
       const field = inp.dataset.field;
-      if (!customBtns[idx]) customBtns[idx] = { label: '', url: '', color: '#3B82F6' };
+      if (!customBtns[idx]) customBtns[idx] = { label: '', url: '', color: '#3B82F6', desc: '' };
       customBtns[idx][field] = inp.value;
     });
   });
@@ -746,7 +749,7 @@ window.cycleColor = function(idx) {
 
 $('btn-add-custom-btn')?.addEventListener('click', () => {
   if (customBtns.length >= 10) { toast('Maksimal 10 tombol kustom.', 'warn'); return; }
-  customBtns.push({ label: '', url: '', color: BTN_COLORS[customBtns.length % BTN_COLORS.length] });
+  customBtns.push({ label: '', url: '', color: BTN_COLORS[customBtns.length % BTN_COLORS.length], desc: '' });
   renderCustomBtnList();
   const inputs = $('custom-btn-list').querySelectorAll('input[data-field="label"]');
   inputs[inputs.length - 1]?.focus();
@@ -767,8 +770,21 @@ $('btn-save-custom-btns')?.addEventListener('click', async () => {
 });
 
 // ── PREMIUM: GALLERY ───────────────────────────────────────────────────────
+// Normalize gallery item — support legacy string array and new object format
+function normalizeGalleryItem(item) {
+  if (typeof item === 'string') return { url: item, caption: '', kategori: '' };
+  return { url: item?.url || '', caption: item?.caption || '', kategori: item?.kategori || '' };
+}
+
+// Collect all unique gallery categories from current data
+function getGalleryKategoriList() {
+  const cats = new Set(galleryPhotos.map(p => p.kategori).filter(Boolean));
+  return [...cats];
+}
+
 function renderGalleryEditor() {
-  galleryPhotos = Array.isArray(currentTokoData?.gallery) ? [...currentTokoData.gallery] : [];
+  galleryPhotos = (Array.isArray(currentTokoData?.gallery) ? currentTokoData.gallery : [])
+    .map(normalizeGalleryItem).filter(p => p.url);
   renderGalleryGrid();
 }
 
@@ -776,16 +792,44 @@ function renderGalleryGrid() {
   const grid = $('gallery-grid');
   if (!grid) return;
   if (!galleryPhotos.length) {
-    grid.innerHTML = '<div style="grid-column:span 3;padding:20px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto gallery. Klik "+ Tambah Foto".</div>';
+    grid.innerHTML = '<div style="grid-column:span 1;padding:20px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto gallery. Klik "+ Tambah Foto".</div>';
     return;
   }
-  grid.innerHTML = galleryPhotos.map((url, i) => `
-    <div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--surface);" title="Klik untuk hapus">
-      <img src="${escHtml(url)}" alt="Gallery ${i+1}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.src='https://placehold.co/200x200/111/333?text=Error'">
-      <button type="button" onclick="removeGalleryPhoto(${i})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>`).join('');
+
+  // Collect kategori list for datalist
+  const cats = getGalleryKategoriList();
+  const datalistId = 'gal-kat-list';
+
+  grid.innerHTML = `
+    <datalist id="${datalistId}">${cats.map(c => `<option value="${escHtml(c)}">`).join('')}</datalist>
+    ${galleryPhotos.map((p, i) => `
+    <div class="gal-edit-card" data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="position:relative;aspect-ratio:1;overflow:hidden;background:rgba(0,0,0,.3);flex-shrink:0;">
+        <img src="${escHtml(p.url)}" alt="Gallery ${i+1}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"
+             onerror="this.src='https://placehold.co/200x200/111/333?text=Error'">
+        <button type="button" onclick="removeGalleryPhoto(${i})"
+          style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:8px 8px 10px;display:flex;flex-direction:column;gap:5px;">
+        <input type="text" placeholder="Kategori (cth: Interior)" value="${escHtml(p.kategori)}"
+          data-field="kategori" data-idx="${i}" list="${datalistId}"
+          style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;">
+        <input type="text" placeholder="Caption foto..." value="${escHtml(p.caption)}"
+          data-field="caption" data-idx="${i}"
+          style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;">
+      </div>
+    </div>`).join('')}`;
+
+  // Live input binding
+  grid.querySelectorAll('input[data-field]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx   = parseInt(inp.dataset.idx);
+      const field = inp.dataset.field;
+      if (galleryPhotos[idx]) galleryPhotos[idx][field] = inp.value;
+    });
+  });
 }
 
 window.removeGalleryPhoto = function(idx) {
@@ -802,7 +846,7 @@ $('inp-gallery-file')?.addEventListener('change', async () => {
   const files = Array.from($('inp-gallery-file').files);
   if (!files.length) return;
   const remaining = 12 - galleryPhotos.length;
-  const toUpload = files.slice(0, remaining);
+  const toUpload  = files.slice(0, remaining);
   if (files.length > remaining) toast(`Hanya ${remaining} foto lagi yang bisa ditambah (maks. 12).`, 'warn');
 
   const statusEl = $('gallery-upload-status');
@@ -813,11 +857,11 @@ $('inp-gallery-file')?.addEventListener('change', async () => {
   let uploaded = 0;
   for (const file of toUpload) {
     const url = await uploadCloudinary(file);
-    if (url) { galleryPhotos.push(url); uploaded++; }
+    if (url) { galleryPhotos.push({ url, caption: '', kategori: '' }); uploaded++; }
     if (statusEl) statusEl.textContent = `Mengupload ${uploaded}/${toUpload.length}...`;
   }
   renderGalleryGrid();
-  if (statusEl) statusEl.textContent = uploaded ? `${uploaded} foto berhasil diupload. Klik "Simpan Gallery".` : 'Upload gagal.';
+  if (statusEl) statusEl.textContent = uploaded ? `${uploaded} foto diupload. Isi caption/kategori lalu Simpan.` : 'Upload gagal.';
   if (addBtn) addBtn.disabled = false;
   $('inp-gallery-file').value = '';
 });
@@ -828,10 +872,16 @@ $('btn-save-gallery')?.addEventListener('click', async () => {
   const btn = $('btn-save-gallery');
   btn.disabled = true;
   try {
-    await updateDoc(doc(db, 'toko', uid), { gallery: galleryPhotos });
-    toast(`Gallery (${galleryPhotos.length} foto) disimpan!`);
-    currentTokoData.gallery = [...galleryPhotos];
-    $('gallery-upload-status').textContent = '';
+    // Sync any currently-focused inputs before saving
+    $('gallery-grid')?.querySelectorAll('input[data-field]').forEach(inp => {
+      const idx = parseInt(inp.dataset.idx);
+      if (galleryPhotos[idx]) galleryPhotos[idx][inp.dataset.field] = inp.value;
+    });
+    const clean = galleryPhotos.filter(p => p.url);
+    await updateDoc(doc(db, 'toko', uid), { gallery: clean });
+    toast(`Gallery (${clean.length} foto) disimpan!`);
+    currentTokoData.gallery = [...clean];
+    if ($('gallery-upload-status')) $('gallery-upload-status').textContent = '';
   } catch (e) { toast('Gagal simpan gallery: ' + e.message, 'err'); }
   finally { btn.disabled = false; }
 });
