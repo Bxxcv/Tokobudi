@@ -1,468 +1,646 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LINKify — Toko Online Kamu, Lebih Profesional</title>
-  <meta name="description" content="Buat link bio toko online kamu yang cantik, cepat, dan meningkatkan pesanan. Setup 5 menit. Sudah dipercaya 500+ pemilik toko.">
-  <meta property="og:title" content="LINKify — Link Bio Toko Online Premium">
-  <meta property="og:description" content="Satu link untuk semua platform. WhatsApp, Shopee, Tokopedia, Instagram — tampil profesional dalam hitungan menit.">
-  <meta property="og:image" content="logo-linkify.png">
-  <link rel="icon" type="image/png" href="logo-linkify.png">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- Primary SEO -->
+  <title>LINKify — Link Bio Toko Online UMKM Indonesia | Linktree Alternative</title>
+  <meta name="description" content="Buat halaman toko online profesional dalam 5 menit. Satu link untuk WhatsApp, Shopee, Tokopedia, dan semua platform jualan. Alternatif Linktree terbaik untuk UMKM Indonesia.">
+  <meta name="keywords" content="link in bio, bio link tool, linktree alternative, UMKM digital, link bio toko online, creator landing page, halaman profil digital, toko online UMKM, link bio Indonesia">
+  <meta name="author" content="LINKify">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+  <link rel="canonical" href="https://linkbio.vercel.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://linkbio.vercel.app/">
+  <meta property="og:title" content="LINKify — Satu Link untuk Semua Platform Jualan">
+  <meta property="og:description" content="Buat halaman toko online profesional dalam 5 menit. WhatsApp, Shopee, Tokopedia — semua dalam satu link yang mudah dibagikan.">
+  <meta property="og:image" content="https://linkbio.vercel.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:site_name" content="LINKify">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LINKify — Link Bio Toko Online Premium">
+  <meta name="twitter:description" content="Satu link untuk semua platform jualan. Setup 5 menit, langsung live.">
+  <meta name="twitter:image" content="https://linkbio.vercel.app/og-image.png">
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#FF6B35">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <link rel="apple-touch-icon" href="logo-linkify.png">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/landing.css">
+
+  <!-- Structured Data / Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LINKify",
+    "description": "Platform link bio toko online terbaik untuk UMKM Indonesia. Buat halaman toko profesional dalam 5 menit.",
+    "url": "https://linkbio.vercel.app/",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Basic",
+        "price": "50000",
+        "priceCurrency": "IDR",
+        "priceValidUntil": "2026-12-31"
+      },
+      {
+        "@type": "Offer",
+        "name": "Premium",
+        "price": "80000",
+        "priceCurrency": "IDR",
+        "priceValidUntil": "2026-12-31"
+      }
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "127",
+      "bestRating": "5"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Apakah ada biaya pendaftaran LINKify?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Tidak ada biaya pendaftaran. Hubungi admin via WhatsApp, akun langsung aktif gratis." }
+      },
+      {
+        "@type": "Question",
+        "name": "Berapa lama proses aktivasi akun LINKify?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Kurang dari 5 menit setelah admin menerima data kamu." }
+      },
+      {
+        "@type": "Question",
+        "name": "Apa itu LINKify? Apakah sama dengan Linktree?",
+        "acceptedAnswer": { "@type": "Answer", "text": "LINKify adalah alternatif Linktree yang dirancang khusus untuk UMKM dan toko online Indonesia, dengan fitur katalog produk, integrasi WhatsApp, Shopee, dan Tokopedia." }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="landing.html" class="nav-brand">
-    <img src="logo-linkify.png" alt="LINKify">
-    <span class="logo-text">
-      <span class="logo-link">LINK</span><span class="logo-ify">ify</span>
-    </span>
-  </a>
-  <div class="nav-links">
-    <a href="#features" class="nav-link">Fitur</a>
-    <a href="#pricing" class="nav-link">Harga</a>
-    <a href="#faq" class="nav-link">FAQ</a>
-    <a href="login-user.html" class="nav-link">Masuk</a>
-    <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify" target="_blank" rel="noopener" class="nav-link nav-cta">Daftar +</a>
-  </div>
-</nav>
+<!-- ── NAV ─────────────────────────────────────────────────────────────── -->
+<header role="banner">
+  <nav aria-label="Navigasi utama">
+    <a href="/" class="nav-brand" aria-label="LINKify - Beranda">
+      <img src="logo-linkify.png" alt="LINKify logo" width="28" height="28">
+      <span class="logo-text">
+        <span class="logo-link">LINK</span><span class="logo-ify">ify</span>
+      </span>
+    </a>
+    <div class="nav-links" role="list">
+      <a href="#fitur" class="nav-link" role="listitem">Fitur</a>
+      <a href="#harga" class="nav-link" role="listitem">Harga</a>
+      <a href="#faq" class="nav-link" role="listitem">FAQ</a>
+      <a href="login-user.html" class="nav-link" role="listitem">Masuk</a>
+      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify" target="_blank" rel="noopener noreferrer" class="nav-link nav-cta" role="listitem" aria-label="Daftar LINKify via WhatsApp">Daftar Gratis</a>
+    </div>
+  </nav>
+</header>
 
-<!-- HERO -->
-<div class="hero">
+<!-- ── HERO ────────────────────────────────────────────────────────────── -->
+<main>
+<section class="hero" aria-labelledby="hero-heading">
   <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
 
-  <div class="hero-badge">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    Setup hanya 5 menit — langsung live
+  <div class="hero-badge" role="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Dipercaya 500+ toko aktif Indonesia
   </div>
 
-  <h1 class="hero-title">
+  <h1 id="hero-heading" class="hero-title">
     Satu Link untuk<br>
-    <span class="accent">Semua Platform Jualan</span><br>
-    Kamu
+    <span class="accent">Semua Platform</span><br>
+    Jualan Kamu
   </h1>
 
   <p class="hero-sub">
-    Buat halaman toko online yang cantik, cepat, dan profesional. WhatsApp, Shopee, Tokopedia — semua dalam satu link yang mudah dibagikan.
+    Buat halaman toko online profesional — katalog produk, WhatsApp, Shopee, Tokopedia, semua dalam satu link. Setup 5 menit, langsung dapat pesanan.
   </p>
 
   <div class="hero-ctas">
-    <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify%20untuk%20toko%20saya" target="_blank" rel="noopener" class="btn-primary">
-      <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Daftar via WhatsApp
+    <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify%20untuk%20toko%20saya" target="_blank" rel="noopener noreferrer" class="btn-primary" aria-label="Daftar LINKify gratis via WhatsApp">
+      <svg viewBox="0 0 24 24" fill="white" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Daftar Gratis via WhatsApp
     </a>
-    <a href="login-user.html" class="btn-secondary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      Login ke Dashboard
+    <a href="login-user.html" class="btn-secondary" aria-label="Masuk ke dashboard toko">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Masuk Dashboard
     </a>
   </div>
 
-  <!-- Live demo preview -->
-  <div class="hero-preview fade-in">
-    <div class="preview-header">
-      <div class="preview-avatar">T</div>
-      <div class="preview-info">
-        <div class="preview-name">Toko Berkah Jaya
-          <span class="preview-badge">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Terverifikasi
-          </span>
+  <!-- Live phone mockup -->
+  <div class="phone-mockup" aria-label="Contoh tampilan halaman toko LINKify" role="img">
+    <div class="phone-frame" aria-hidden="true">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="pscreen-top">
+          <div class="pscreen-avatar">T</div>
+          <div class="pscreen-info">
+            <div class="pscreen-name">Toko Berkah
+              <span class="pscreen-badge">✓</span>
+            </div>
+            <div class="pscreen-bio">Fashion wanita premium</div>
+          </div>
         </div>
-        <div class="preview-bio">Fashion wanita terlengkap, harga terjangkau</div>
+        <a class="pscreen-btn psbtn-wa" href="#" onclick="return false" tabindex="-1">
+          <div class="psb-ico">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          </div>
+          <span>Pesan WhatsApp</span>
+        </a>
+        <a class="pscreen-btn psbtn-shopee" href="#" onclick="return false" tabindex="-1">
+          <div class="psb-ico" style="background:rgba(0,0,0,.2)">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="white"><path d="M19.793 7.507c0-2.075-.828-3.952-2.168-5.308a.675.675 0 00-.95-.014.664.664 0 00-.013.944 6.506 6.506 0 011.8 4.378 6.501 6.501 0 01-6.504 6.487 6.499 6.499 0 01-6.5-6.487 6.497 6.497 0 011.8-4.378.664.664 0 00-.013-.944.675.675 0 00-.95.014A7.824 7.824 0 004.127 7.507H2.672a1.354 1.354 0 00-1.348 1.214L.024 21.347A1.344 1.344 0 001.37 22.86h21.26a1.344 1.344 0 001.346-1.513l-1.3-11.626a1.354 1.354 0 00-1.348-1.214h-1.597a7.9 7.9 0 00.062-.98zM12 1.14a2.694 2.694 0 110 5.388A2.694 2.694 0 0112 1.14z"/></svg>
+          </div>
+          <span>Beli di Shopee</span>
+        </a>
+        <div class="pscreen-prods">
+          <div class="pscreen-prod">
+            <div class="psp-img" style="background:linear-gradient(135deg,rgba(255,107,53,.25),rgba(255,154,108,.1))"></div>
+            <div class="psp-body"><div class="psp-name">Dress Floral</div><div class="psp-price">Rp89k</div></div>
+          </div>
+          <div class="pscreen-prod">
+            <div class="psp-img" style="background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(139,92,246,.1))"></div>
+            <div class="psp-body"><div class="psp-name">Blouse Katun</div><div class="psp-price">Rp125k</div></div>
+          </div>
+        </div>
       </div>
     </div>
-    <a href="#" class="preview-btn pbtn-wa" onclick="return false">
-      <div class="preview-btn-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
-      Pesan Lewat WhatsApp
-    </a>
-    <a href="#" class="preview-btn pbtn-shopee" onclick="return false">
-      <div class="preview-btn-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M19.793 7.507c0-2.075-.828-3.952-2.168-5.308a.675.675 0 00-.95-.014.664.664 0 00-.013.944 6.506 6.506 0 011.8 4.378 6.501 6.501 0 01-6.504 6.487 6.499 6.499 0 01-6.5-6.487 6.497 6.497 0 011.8-4.378.664.664 0 00-.013-.944.675.675 0 00-.95.014A7.824 7.824 0 004.127 7.507H2.672a1.354 1.354 0 00-1.348 1.214L.024 21.347A1.344 1.344 0 001.37 22.86h21.26a1.344 1.344 0 001.346-1.513l-1.3-11.626a1.354 1.354 0 00-1.348-1.214h-1.597a7.9 7.9 0 00.062-.98zM12 1.14a2.694 2.694 0 110 5.388A2.694 2.694 0 0112 1.14z"/></svg></div>
-      Lihat di Shopee
-    </a>
-    <div class="preview-products">
-      <div class="preview-product"><div class="preview-product-img"></div><div class="preview-product-body"><div class="preview-product-name">Dress Floral Summer</div><div class="preview-product-price">Rp89.000</div></div></div>
-      <div class="preview-product"><div class="preview-product-img" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(147,51,234,0.1))"></div><div class="preview-product-body"><div class="preview-product-name">Blouse Katun Premium</div><div class="preview-product-price">Rp125.000</div></div></div>
+    <!-- Floating metrics -->
+    <div class="metric-card metric-visitors" aria-hidden="true">
+      <div class="metric-icon">👁</div>
+      <div><div class="metric-val">1.2k</div><div class="metric-lbl">Pengunjung hari ini</div></div>
+    </div>
+    <div class="metric-card metric-orders" aria-hidden="true">
+      <div class="metric-icon">💬</div>
+      <div><div class="metric-val">47</div><div class="metric-lbl">Chat WA masuk</div></div>
     </div>
   </div>
 
   <!-- Social proof -->
-  <div class="social-proof" style="margin-top:40px;">
+  <div class="social-proof" role="note" aria-label="Bukti sosial LINKify">
     <div class="proof-item">
-      <div class="proof-avatars">
-        <div class="proof-avatar">A</div>
+      <div class="proof-avatars" aria-hidden="true">
+        <div class="proof-avatar" style="background:linear-gradient(135deg,#FF6B35,#FF9A6C)">A</div>
         <div class="proof-avatar" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">B</div>
         <div class="proof-avatar" style="background:linear-gradient(135deg,#10B981,#059669)">C</div>
         <div class="proof-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">D</div>
+        <div class="proof-avatar" style="background:linear-gradient(135deg,#8B5CF6,#EC4899)">E</div>
       </div>
       <span>500+ toko aktif</span>
     </div>
+    <div class="proof-sep" aria-hidden="true"></div>
     <div class="proof-item">
-      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span>4.9/5 rating</span>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>4.9/5 rating rata-rata</span>
     </div>
+    <div class="proof-sep" aria-hidden="true"></div>
     <div class="proof-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-      <span>Gratis selamanya</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+      <span>Daftar gratis, aktif instan</span>
     </div>
   </div>
-</div>
+</section>
 
-<!-- TRUST BADGES -->
-<div class="trust-bar">
+<!-- ── TRUST BAR ────────────────────────────────────────────────────────── -->
+<div class="trust-bar" role="complementary" aria-label="Kepercayaan dan keamanan">
   <div class="trust-inner">
     <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span>Firebase Secured</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Ditenagai Firebase</span>
     </div>
-    <div class="trust-divider"></div>
+    <div class="trust-divider" aria-hidden="true"></div>
     <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      <span>Data 100% Aman</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <span>SSL &amp; Data Aman</span>
     </div>
-    <div class="trust-divider"></div>
+    <div class="trust-divider" aria-hidden="true"></div>
     <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       <span>Uptime 99.9%</span>
     </div>
-    <div class="trust-divider"></div>
+    <div class="trust-divider" aria-hidden="true"></div>
     <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-      <span>500+ Toko Aktif</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <span>Deploy di Vercel CDN</span>
     </div>
-    <div class="trust-divider"></div>
+    <div class="trust-divider" aria-hidden="true"></div>
     <div class="trust-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      <span>Support Cepat</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <span>500+ UMKM Bergabung</span>
     </div>
   </div>
 </div>
 
-<!-- FEATURES -->
-<div class="divider"></div>
-<section id="features">
-  <div class="section-badge">Fitur Unggulan</div>
-  <h2 class="section-title">Semua yang kamu butuhkan<br>untuk jualan online</h2>
-  <p class="section-sub">Dari tampilan toko hingga analitik penjualan — semuanya sudah tersedia, siap pakai.</p>
+<!-- ── FEATURES ─────────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section id="fitur" aria-labelledby="fitur-heading">
+  <div class="section-badge" aria-hidden="true">Fitur Unggulan</div>
+  <h2 id="fitur-heading" class="section-title">Semua yang kamu butuhkan<br>untuk jualan lebih banyak</h2>
+  <p class="section-sub">Dari tampilan toko hingga analitik pengunjung — semuanya sudah siap pakai tanpa perlu coding.</p>
 
-  <div class="features-grid">
-    <div class="feature-card fade-in">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <div class="features-grid" role="list">
+
+    <article class="feature-card fade-in" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
       </div>
-      <h3>Pesan via WhatsApp Instan</h3>
-      <p>Pembeli klik tombol WA, langsung terhubung ke nomor kamu dengan pesan otomatis berisi nama produk dan harga.</p>
-    </div>
-    <div class="feature-card fade-in fade-in-delay-1">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      </div>
-      <h3>Dashboard Admin Lengkap</h3>
-      <p>Kelola produk, lihat statistik pengunjung, dan atur semua pengaturan toko dari satu panel yang intuitif.</p>
-    </div>
-    <div class="feature-card fade-in fade-in-delay-2">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <h3>Analitik Real-time <span class="feat-premium-tag">Premium</span></h3>
-      <p>Pantau berapa orang mengunjungi toko, klik tombol WA, dan lihat produk mana yang paling diminati.</p>
-    </div>
-    <div class="feature-card fade-in">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
-      </div>
-      <h3>Multi-Platform</h3>
-      <p>Tampilkan link WhatsApp, Shopee, Tokopedia, Instagram, TikTok sekaligus dalam satu halaman yang rapi.</p>
-    </div>
-    <div class="feature-card fade-in fade-in-delay-1">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <h3>Pesan WhatsApp Instan</h3>
+      <p>Pembeli klik, langsung terhubung ke WA kamu dengan pesan otomatis berisi nama produk dan harga. Nol gesekan.</p>
+    </article>
+
+    <article class="feature-card fade-in fade-in-delay-1" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
       </div>
       <h3>Katalog Produk Visual</h3>
-      <p>Upload foto produk, set harga, tambah deskripsi. Tampil seperti toko online premium dengan grid produk yang menarik.</p>
-    </div>
-    <div class="feature-card fade-in fade-in-delay-2">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <p>Upload foto, set harga, tambah kategori. Tampil seperti toko online besar dengan grid produk yang menarik.</p>
+    </article>
+
+    <article class="feature-card fade-in fade-in-delay-2" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h3>Analitik Real-time <span class="feat-premium-tag">Premium</span></h3>
+      <p>Pantau pengunjung, klik WA, dan produk terlaris setiap hari. Data yang membantu kamu jualan lebih cerdas.</p>
+    </article>
+
+    <article class="feature-card fade-in" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+      </div>
+      <h3>Multi-Platform Sekaligus</h3>
+      <p>Satu link menampilkan semua platform — WhatsApp, Shopee, Tokopedia, Instagram, TikTok, YouTube.</p>
+    </article>
+
+    <article class="feature-card fade-in fade-in-delay-1" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
       <h3>Tema Premium Eksklusif <span class="feat-premium-tag">Premium</span></h3>
-      <p>Pilih dari 6 tema foto eksklusif. Dark Forest, Aurora Night, Deep Ocean — jadikan toko kamu beda dari yang lain.</p>
+      <p>Pilih dari 6 tema foto eksklusif. Dark Forest, Aurora Night, Deep Ocean. Beda dari toko lain.</p>
+    </article>
+
+    <article class="feature-card fade-in fade-in-delay-2" role="listitem">
+      <div class="feature-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h3>Gallery Foto Toko</h3>
+      <p>Tampilkan foto suasana toko, produk, dan behind the scene. Bikin calon pembeli makin yakin.</p>
+    </article>
+
+  </div>
+</section>
+
+<!-- ── USE CASES ────────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section aria-labelledby="usecase-heading">
+  <div class="section-badge" aria-hidden="true">Cocok untuk Siapa?</div>
+  <h2 id="usecase-heading" class="section-title">Untuk semua jenis penjual</h2>
+  <p class="section-sub">LINKify dirancang untuk semua pelaku UMKM, kreator, dan penjual online Indonesia.</p>
+
+  <div class="usecase-grid" role="list">
+    <div class="usecase-card fade-in" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">👗</div>
+      <h3>Fashion &amp; Clothing</h3>
+      <p>Katalog baju, dress, hijab dengan foto produk yang menarik pembeli.</p>
+    </div>
+    <div class="usecase-card fade-in fade-in-delay-1" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">🍱</div>
+      <h3>Kuliner &amp; UMKM Makanan</h3>
+      <p>Menu visual, harga, dan tombol pesan WA — sistem order otomatis.</p>
+    </div>
+    <div class="usecase-card fade-in fade-in-delay-2" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">💄</div>
+      <h3>Kecantikan &amp; Skincare</h3>
+      <p>Tampilkan produk skincare dengan gallery sebelum-sesudah yang meyakinkan.</p>
+    </div>
+    <div class="usecase-card fade-in fade-in-delay-3" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">📱</div>
+      <h3>Elektronik &amp; Gadget</h3>
+      <p>Spesifikasi, harga, dan multi-platform link ke semua marketplace.</p>
+    </div>
+    <div class="usecase-card fade-in" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">🎨</div>
+      <h3>Kreator &amp; Freelancer</h3>
+      <p>Portfolio, layanan, dan cara hire kamu dalam satu halaman profesional.</p>
+    </div>
+    <div class="usecase-card fade-in fade-in-delay-1" role="listitem">
+      <div class="usecase-emoji" aria-hidden="true">🛍️</div>
+      <h3>Reseller &amp; Dropshipper</h3>
+      <p>Multi-link ke semua toko Shopee, Tokopedia, dan WA dalam satu tempat.</p>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<div class="divider"></div>
-<section>
-  <div class="section-badge">Cara Kerja</div>
-  <h2 class="section-title">Live dalam 5 menit, serius</h2>
-  <p class="section-sub">Tidak perlu coding. Tidak perlu desainer. Cukup isi data, upload foto, dan bagikan link kamu.</p>
+<!-- ── HOW IT WORKS ──────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section aria-labelledby="cara-heading">
+  <div class="section-badge" aria-hidden="true">Cara Kerja</div>
+  <h2 id="cara-heading" class="section-title">Live dalam 5 menit, serius</h2>
+  <p class="section-sub">Tidak perlu coding. Tidak perlu desainer. Isi data, upload foto, bagikan link.</p>
 
-  <div class="how-grid">
-    <div class="how-step fade-in">
-      <div class="how-num">1</div>
+  <div class="how-grid" role="list">
+    <div class="how-step fade-in" role="listitem">
+      <div class="how-num" aria-hidden="true">1</div>
       <h3>Daftar via WhatsApp</h3>
-      <p>Hubungi admin, kirim nama toko dan email. Akun langsung aktif dalam hitungan menit.</p>
+      <p>Hubungi admin, kirim nama toko dan email. Akun aktif dalam hitungan menit, tanpa perlu isi form panjang.</p>
     </div>
-    <div class="how-step fade-in fade-in-delay-1">
-      <div class="how-num">2</div>
+    <div class="how-step fade-in fade-in-delay-1" role="listitem">
+      <div class="how-num" aria-hidden="true">2</div>
       <h3>Isi Profil Toko</h3>
-      <p>Upload logo, isi deskripsi, masukkan nomor WA dan link platform jualan kamu.</p>
+      <p>Upload logo, isi bio, masukkan nomor WA dan link Shopee/Tokopedia/Instagram kamu.</p>
     </div>
-    <div class="how-step fade-in fade-in-delay-2">
-      <div class="how-num">3</div>
+    <div class="how-step fade-in fade-in-delay-2" role="listitem">
+      <div class="how-num" aria-hidden="true">3</div>
       <h3>Upload Produk</h3>
-      <p>Tambah foto produk, harga, stok, dan deskripsi. Langsung tampil di halaman toko.</p>
+      <p>Tambah foto, harga, stok, dan kategori produk. Tampil otomatis di halaman toko.</p>
     </div>
-    <div class="how-step fade-in fade-in-delay-3">
-      <div class="how-num">4</div>
-      <h3>Share Link, Terima Pesanan</h3>
-      <p>Bagikan link toko ke semua platform. Pembeli bisa langsung pesan dari satu halaman.</p>
+    <div class="how-step fade-in fade-in-delay-3" role="listitem">
+      <div class="how-num" aria-hidden="true">4</div>
+      <h3>Bagikan, Terima Pesanan</h3>
+      <p>Copy link toko, tempel di bio Instagram, TikTok, atau story. Pembeli langsung bisa order.</p>
     </div>
   </div>
 </section>
 
-<!-- PRICING -->
-<div class="divider"></div>
-<section id="pricing">
-  <div class="section-badge">Harga</div>
-  <h2 class="section-title">Transparan, tanpa biaya tersembunyi</h2>
-  <p class="section-sub">Mulai dengan Basic, upgrade saat kamu butuh fitur lebih. Tidak ada kontrak, bisa berhenti kapan saja.</p>
+<!-- ── PRICING ──────────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section id="harga" aria-labelledby="harga-heading">
+  <div class="section-badge" aria-hidden="true">Harga</div>
+  <h2 id="harga-heading" class="section-title">Transparan, tanpa biaya tersembunyi</h2>
+  <p class="section-sub">Mulai Basic, upgrade saat butuh lebih. Tidak ada kontrak, bisa berhenti kapan saja.</p>
 
-  <div class="pricing-grid">
+  <div class="pricing-grid" role="list">
+
     <!-- Basic -->
-    <div class="pricing-card fade-in">
-      <div class="plan-name">Basic</div>
+    <article class="pricing-card fade-in" role="listitem" aria-labelledby="plan-basic">
+      <div class="plan-name" id="plan-basic">Basic</div>
       <div class="plan-price">Rp50.000<span>/bulan</span></div>
-      <div class="plan-desc">Untuk toko yang baru mulai. Sudah cukup untuk langsung berjualan.</div>
-      <div class="plan-features">
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Halaman toko publik</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Upload produk unlimited</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>WA, Shopee, Tokopedia</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Kategori produk</div>
-        <div class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Analitik &amp; statistik</div>
-        <div class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Tema premium</div>
-        <div class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>QR Code download</div>
-      </div>
-      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20paket%20Basic%20LINKify" target="_blank" rel="noopener" class="btn-plan btn-plan-outline">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Mulai Basic
+      <p class="plan-desc">Untuk toko yang baru mulai. Sudah cukup untuk langsung berjualan online.</p>
+      <ul class="plan-features" aria-label="Fitur paket Basic">
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Halaman toko publik</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Upload produk unlimited</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>WA, Shopee, Tokopedia</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Kategori produk</li>
+        <li class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Analitik &amp; statistik</li>
+        <li class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Tema premium eksklusif</li>
+        <li class="plan-feat no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="feat-no" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>QR Code print-ready</li>
+      </ul>
+      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20paket%20Basic%20LINKify" target="_blank" rel="noopener noreferrer" class="btn-plan btn-plan-outline" aria-label="Daftar paket Basic LINKify">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Mulai dengan Basic
       </a>
-    </div>
+    </article>
 
-    <!-- Premium — MOST POPULAR -->
-    <div class="pricing-card popular fade-in fade-in-delay-1">
-      <div class="popular-badge">⚡ Paling Populer</div>
-      <div class="plan-name">Premium</div>
+    <!-- Premium -->
+    <article class="pricing-card popular fade-in fade-in-delay-1" role="listitem" aria-labelledby="plan-premium">
+      <div class="popular-badge" aria-label="Paket paling populer">⚡ Paling Populer</div>
+      <div class="plan-name" id="plan-premium">Premium</div>
       <div class="plan-price">Rp80.000<span>/bulan</span></div>
-      <div class="plan-desc">Untuk toko yang serius. Semua fitur untuk meningkatkan penjualan.</div>
-      <div class="plan-features">
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Semua fitur Basic</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Analitik pengunjung real-time</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>6 tema foto eksklusif</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Badge Terverifikasi ✓</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>QR Code print-ready</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Tombol link kustom unlimited</div>
-        <div class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes"><polyline points="20 6 9 17 4 12"/></svg>Hapus branding LINKify</div>
-      </div>
-      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20upgrade%20ke%20Premium%20LINKify" target="_blank" rel="noopener" class="btn-plan btn-plan-primary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        Upgrade Premium
+      <p class="plan-desc">Untuk toko yang serius. Semua fitur untuk meningkatkan penjualan secara signifikan.</p>
+      <ul class="plan-features" aria-label="Fitur paket Premium">
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Semua fitur Basic</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Analitik pengunjung real-time</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>6 tema foto eksklusif</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Badge Terverifikasi ✓</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>QR Code print-ready</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Tombol kustom unlimited</li>
+        <li class="plan-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="feat-yes" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Hapus branding LINKify</li>
+      </ul>
+      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20upgrade%20ke%20Premium%20LINKify" target="_blank" rel="noopener noreferrer" class="btn-plan btn-plan-primary" aria-label="Upgrade ke paket Premium LINKify">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Upgrade ke Premium
       </a>
-    </div>
-  </div><!-- /pricing-grid -->
+    </article>
 
-  <!-- Money-back guarantee -->
-  <div class="guarantee-bar fade-in">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    <span>Tidak puas? Hubungi admin dan kami bantu selesaikan masalah kamu. Kepuasan toko adalah prioritas kami.</span>
+  </div>
+
+  <div class="guarantee-bar" role="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>Tidak puas? Hubungi admin dan kami bantu selesaikan. Kepuasan toko adalah prioritas kami.</span>
   </div>
 </section>
 
-<!-- TESTIMONIALS -->
-<div class="divider"></div>
-<section>
-  <div class="section-badge">Testimoni</div>
-  <h2 class="section-title">Dipercaya ratusan pemilik toko</h2>
-  <p class="section-sub">Bukan janji — ini kata mereka yang sudah pakai LINKify untuk toko online mereka.</p>
+<!-- ── TESTIMONIALS ─────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section aria-labelledby="testi-heading">
+  <div class="section-badge" aria-hidden="true">Testimoni</div>
+  <h2 id="testi-heading" class="section-title">Kata mereka yang sudah pakai</h2>
+  <p class="section-sub">Bukan janji — ini pengalaman nyata dari pemilik toko yang aktif menggunakan LINKify.</p>
 
-  <div class="testimonials-grid">
-    <div class="testi-card fade-in">
-      <div class="testi-stars">
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  <div class="testimonials-grid" role="list">
+
+    <article class="testi-card fade-in" role="listitem">
+      <div class="testi-stars" aria-label="Rating 5 dari 5 bintang">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
-      <p class="testi-text">"Sekarang pelanggan saya bisa lihat semua produk dan langsung order WA dari satu link. Pesanan naik 40% dalam sebulan pertama!"</p>
-      <div class="testi-author">
-        <div class="testi-avatar">S</div>
+      <blockquote class="testi-text">"Sekarang pelanggan bisa lihat semua produk dan langsung order WA dari satu link. Pesanan naik 40% dalam sebulan pertama!"</blockquote>
+      <footer class="testi-author">
+        <div class="testi-avatar" aria-hidden="true">S</div>
         <div>
           <div class="testi-name">Siti Rahayu</div>
           <div class="testi-role">Toko Batik Rahayu, Yogyakarta</div>
         </div>
-      </div>
-    </div>
+      </footer>
+    </article>
 
-    <div class="testi-card fade-in fade-in-delay-1">
-      <div class="testi-stars">
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <article class="testi-card fade-in fade-in-delay-1" role="listitem">
+      <div class="testi-stars" aria-label="Rating 5 dari 5 bintang">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
-      <p class="testi-text">"Tampilan tokonya keren banget, mirip toko online besar. Pelanggan sering nanya 'website kamu mahal nggak?' padahal pakai LINKify harga bersahabat."</p>
-      <div class="testi-author">
-        <div class="testi-avatar" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)">A</div>
+      <blockquote class="testi-text">"Tampilan tokonya profesional banget. Pelanggan sering nanya 'website kamu mahal ya?' padahal LINKify murah meriah."</blockquote>
+      <footer class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6)" aria-hidden="true">A</div>
         <div>
           <div class="testi-name">Ahmad Fauzi</div>
           <div class="testi-role">Toko Elektronik Fauzi, Surabaya</div>
         </div>
-      </div>
-    </div>
+      </footer>
+    </article>
 
-    <div class="testi-card fade-in fade-in-delay-2">
-      <div class="testi-stars">
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <article class="testi-card fade-in fade-in-delay-2" role="listitem">
+      <div class="testi-stars" aria-label="Rating 5 dari 5 bintang">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </div>
-      <p class="testi-text">"Fitur analitiknya berguna banget. Saya bisa tau jam berapa banyak orang buka toko, dan produk mana yang paling sering dilihat."</p>
-      <div class="testi-author">
-        <div class="testi-avatar" style="background:linear-gradient(135deg,#10B981,#059669)">N</div>
+      <blockquote class="testi-text">"Fitur analitiknya berguna banget. Saya bisa tau jam berapa banyak orang buka toko, dan produk mana yang paling sering diklik."</blockquote>
+      <footer class="testi-author">
+        <div class="testi-avatar" style="background:linear-gradient(135deg,#10B981,#059669)" aria-hidden="true">N</div>
         <div>
           <div class="testi-name">Nurul Hidayah</div>
           <div class="testi-role">Skincare by Nurul, Bandung</div>
         </div>
-      </div>
-    </div>
+      </footer>
+    </article>
+
   </div>
 </section>
 
-<!-- FAQ -->
-<div class="divider"></div>
-<section id="faq">
-  <div class="section-badge">FAQ</div>
-  <h2 class="section-title">Pertanyaan yang sering ditanyakan</h2>
-  <p class="section-sub">Ada yang kurang jelas? Cek jawaban di bawah atau hubungi admin langsung.</p>
+<!-- ── FAQ ──────────────────────────────────────────────────────────────── -->
+<div class="section-divider" aria-hidden="true"></div>
+<section id="faq" aria-labelledby="faq-heading">
+  <div class="section-badge" aria-hidden="true">FAQ</div>
+  <h2 id="faq-heading" class="section-title">Pertanyaan yang sering ditanyakan</h2>
+  <p class="section-sub">Ada yang kurang jelas? Hubungi admin langsung via WhatsApp untuk jawaban cepat.</p>
 
-  <div class="faq-list">
-    <details class="faq-item fade-in">
+  <div class="faq-list" role="list">
+
+    <details class="faq-item fade-in" role="listitem">
+      <summary class="faq-q">
+        Apa itu LINKify? Apa bedanya dengan Linktree?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="faq-a">LINKify adalah platform link bio yang dirancang khusus untuk UMKM dan toko online Indonesia. Berbeda dengan Linktree yang hanya menampilkan link, LINKify punya fitur katalog produk visual, integrasi pesan WhatsApp otomatis, analitik pengunjung, dan tema premium — semua yang dibutuhkan toko online.</div>
+    </details>
+
+    <details class="faq-item fade-in" role="listitem">
       <summary class="faq-q">
         Apakah ada biaya pendaftaran?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
-      <div class="faq-a">Tidak ada biaya pendaftaran. Cukup hubungi admin via WhatsApp, dan akun toko kamu langsung dibuatkan secara gratis. Paket Basic mulai Rp50.000/bulan sudah bisa langsung aktif.</div>
+      <div class="faq-a">Tidak ada biaya pendaftaran. Cukup hubungi admin via WhatsApp, kirim nama toko dan email, akun langsung dibuatkan secara gratis. Paket Basic mulai Rp50.000/bulan langsung bisa aktif.</div>
     </details>
-    <details class="faq-item fade-in">
+
+    <details class="faq-item fade-in" role="listitem">
       <summary class="faq-q">
         Berapa lama proses aktivasi akun?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
-      <div class="faq-a">Biasanya kurang dari 5 menit setelah admin menerima data kamu. Kami aktif setiap hari dan merespons dengan cepat.</div>
+      <div class="faq-a">Kurang dari 5 menit setelah admin menerima data kamu. Kami aktif setiap hari dan merespons dengan cepat via WhatsApp.</div>
     </details>
-    <details class="faq-item fade-in">
+
+    <details class="faq-item fade-in" role="listitem">
       <summary class="faq-q">
-        Apakah saya bisa punya banyak produk?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+        Apakah bisa upload produk sebanyak-banyaknya?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
-      <div class="faq-a">Ya! Tidak ada batasan jumlah produk. Kamu bisa upload produk sebanyak-banyaknya, lengkap dengan foto, harga, stok, kategori, dan deskripsi.</div>
+      <div class="faq-a">Ya! Tidak ada batasan jumlah produk di semua paket. Kamu bisa upload produk sebanyak yang dibutuhkan, lengkap dengan foto, harga, stok, kategori, dan deskripsi.</div>
     </details>
-    <details class="faq-item fade-in">
+
+    <details class="faq-item fade-in" role="listitem">
       <summary class="faq-q">
         Apa bedanya paket Basic dan Premium?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
-      <div class="faq-a">Basic sudah cukup untuk mulai berjualan: halaman toko, produk, dan link ke semua platform. Premium menambahkan: analitik real-time, 6 tema eksklusif, badge terverifikasi, QR Code, tombol kustom, dan hapus branding LINKify.</div>
+      <div class="faq-a">Basic sudah cukup untuk mulai berjualan: halaman toko publik, katalog produk, WA/Shopee/Tokopedia. Premium menambahkan: analitik real-time, 6 tema foto eksklusif, badge terverifikasi, QR Code print-ready, tombol kustom unlimited, dan hapus branding LINKify.</div>
     </details>
-    <details class="faq-item fade-in">
+
+    <details class="faq-item fade-in" role="listitem">
       <summary class="faq-q">
-        Bisakah saya upgrade/downgrade kapan saja?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
+        Apakah data toko saya aman?
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
-      <div class="faq-a">Tentu saja. Hubungi admin kapan saja untuk upgrade ke Premium atau jika ingin kembali ke Basic. Tidak ada kontrak jangka panjang.</div>
+      <div class="faq-a">Sangat aman. Semua data tersimpan di Firebase (Google Cloud), diproteksi enkripsi SSL end-to-end, dan hanya bisa diakses oleh akun kamu. Kami tidak pernah menjual atau membagikan data ke pihak ketiga.</div>
     </details>
-    <details class="faq-item fade-in">
-      <summary class="faq-q">
-        Data toko saya aman?
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="faq-arrow"><polyline points="6 9 12 15 18 9"/></svg>
-      </summary>
-      <div class="faq-a">Sangat aman. Semua data tersimpan di Firebase (Google Cloud), diproteksi enkripsi SSL, dan hanya bisa diakses oleh akun kamu. Kami tidak pernah menjual atau membagikan data toko ke pihak ketiga.</div>
-    </details>
+
   </div>
 </section>
 
-<!-- CTA FINAL -->
-<div class="cta-final">
+<!-- ── CTA FINAL ────────────────────────────────────────────────────────── -->
+<section class="cta-final" aria-labelledby="cta-heading">
   <div class="hero-badge" style="margin-bottom:20px;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    Mulai dengan Basic, upgrade kapan saja
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Mulai Basic, upgrade kapan saja
   </div>
-  <h2>Siap buat toko kamu lebih profesional?</h2>
-  <p>Bergabung dengan ratusan pemilik toko yang sudah merasakan manfaatnya. Setup 5 menit, langsung live.</p>
+  <h2 id="cta-heading">Siap buat toko kamu<br>lebih profesional?</h2>
+  <p>Bergabung dengan ratusan pemilik toko yang sudah merasakan manfaatnya.<br>Setup 5 menit, langsung live, langsung dapat pesanan.</p>
   <div class="hero-ctas">
-    <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify%20untuk%20toko%20saya" target="_blank" rel="noopener" class="btn-primary" style="font-size:16px;padding:16px 32px;">
-      <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      Daftar via WhatsApp Sekarang
+    <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify%20untuk%20toko%20saya" target="_blank" rel="noopener noreferrer" class="btn-primary btn-primary-lg" aria-label="Daftar LINKify gratis sekarang via WhatsApp">
+      <svg viewBox="0 0 24 24" fill="white" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Daftar Gratis Sekarang
     </a>
   </div>
-  <div class="cta-trust">
+  <div class="cta-trust" role="note">
     <span>✓ Gratis daftar</span>
     <span>✓ Aktif dalam 5 menit</span>
     <span>✓ Tidak ada kontrak</span>
+    <span>✓ Support aktif setiap hari</span>
   </div>
-</div>
+</section>
+</main>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-top">
-    <div class="footer-brand2">
-      <img src="logo-linkify.png" alt="LINKify">
-      <span class="logo-text">
-        <span class="logo-link">LINK</span><span class="logo-ify">ify</span>
-      </span>
+<!-- ── FOOTER ───────────────────────────────────────────────────────────── -->
+<footer role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <a href="/" class="footer-brand2" aria-label="LINKify beranda">
+        <img src="logo-linkify.png" alt="LINKify" width="24" height="24" loading="lazy">
+        <span class="logo-text"><span class="logo-link">LINK</span><span class="logo-ify">ify</span></span>
+      </a>
+      <p class="footer-tagline">Platform link bio toko online terbaik untuk UMKM Indonesia.<br>Satu link untuk semua platform jualan.</p>
     </div>
-    <p class="footer-tagline">Platform link bio toko online terbaik untuk UMKM Indonesia.</p>
-  </div>
-  <div class="footer-mid">
-    <div class="footer-col">
-      <div class="footer-col-title">Produk</div>
-      <a href="#features">Fitur</a>
-      <a href="#pricing">Harga</a>
-      <a href="#faq">FAQ</a>
+    <div class="footer-mid">
+      <nav class="footer-col" aria-label="Menu produk">
+        <div class="footer-col-title">Produk</div>
+        <a href="#fitur">Fitur</a>
+        <a href="#harga">Harga</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <nav class="footer-col" aria-label="Menu akun">
+        <div class="footer-col-title">Akun</div>
+        <a href="login-user.html">Login Toko</a>
+        <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify" target="_blank" rel="noopener noreferrer">Daftar Toko</a>
+      </nav>
+      <nav class="footer-col" aria-label="Menu kontak">
+        <div class="footer-col-title">Kontak</div>
+        <a href="https://wa.me/6285191245042" target="_blank" rel="noopener noreferrer">WhatsApp Admin</a>
+      </nav>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Akun</div>
-      <a href="login-user.html">Login Toko</a>
-      <a href="https://wa.me/6285191245042?text=Halo%2C%20saya%20mau%20daftar%20LINKify" target="_blank" rel="noopener">Daftar Toko</a>
+    <div class="footer-bottom">
+      <span>&copy; 2025 LINKify. Dibuat dengan ❤ untuk UMKM Indonesia.</span>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <span>Alternatif <strong>Linktree</strong> terbaik untuk toko online</span>
     </div>
-    <div class="footer-col">
-      <div class="footer-col-title">Kontak</div>
-      <a href="https://wa.me/6285191245042" target="_blank" rel="noopener">WhatsApp Admin</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>&copy; 2025 LINKify. Dibuat dengan ❤ untuk UMKM Indonesia.</span>
   </div>
 </footer>
 
 <script>
-  // Intersection observer for fade-in animations
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+(function(){
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
-  document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+  }, { threshold: 0.07, rootMargin: '0px 0px -16px 0px' });
+  document.querySelectorAll('.fade-in').forEach(function(el){ io.observe(el); });
+})();
 </script>
 </body>
 </html>

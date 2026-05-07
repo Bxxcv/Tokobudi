@@ -3,46 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Toko</title>
+  <title>Login Toko — LINKify Dashboard</title>
+  <meta name="description" content="Masuk ke dashboard LINKify untuk mengelola produk, profil toko, dan analitik pengunjung.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://linkbio.vercel.app/login-user">
+  <meta name="theme-color" content="#FF6B35">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
+  <link rel="apple-touch-icon" href="logo-linkify.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
-  <link rel="apple-touch-icon" href="logo-linkify.png">
+  <style>
+    body.login-page{
+      min-height:100vh;min-height:100dvh;
+      display:flex;align-items:center;justify-content:center;
+      background:#F5F6FA;padding:20px;
+    }
+    .login-wrap{
+      width:100%;max-width:400px;
+      background:#fff;border-radius:20px;
+      padding:36px 32px 32px;
+      box-shadow:0 4px 24px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.04);
+      border:1px solid #E5E7EB;
+    }
+    .login-logo{
+      display:flex;align-items:center;justify-content:center;
+      gap:8px;margin-bottom:28px;text-decoration:none;
+    }
+    .login-logo img{width:32px;height:32px;border-radius:9px;}
+    .login-logo .logo-text{font-weight:800;font-size:20px;letter-spacing:-0.8px;}
+    .login-logo .logo-link{color:#F06529;}
+    .login-logo .logo-ify{color:#8E44AD;}
+    .login-title{
+      font-size:22px;font-weight:800;letter-spacing:-.6px;
+      text-align:center;margin-bottom:5px;color:#0D1117;
+    }
+    .login-sub{
+      font-size:13px;color:#6B7280;text-align:center;
+      margin-bottom:24px;line-height:1.5;
+    }
+    .login-fields{display:flex;flex-direction:column;gap:14px;margin-bottom:16px;}
+    .login-label{display:block;font-size:12.5px;font-weight:600;color:#374151;margin-bottom:5px;}
+    .login-input{
+      width:100%;padding:11px 14px;border-radius:10px;
+      border:1.5px solid #E5E7EB;font-size:14px;font-family:'Inter',sans-serif;
+      color:#0D1117;background:#fff;outline:none;
+      transition:border-color .15s,box-shadow .15s;
+    }
+    .login-input:focus{border-color:#FF6B35;box-shadow:0 0 0 3px rgba(255,107,53,0.12);}
+    .login-btn{
+      width:100%;padding:12px;margin-top:4px;
+      background:#FF6B35;color:#fff;border:none;border-radius:10px;
+      font-size:14.5px;font-weight:700;font-family:'Inter',sans-serif;
+      cursor:pointer;transition:filter .15s,transform .12s;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .login-btn:hover{filter:brightness(1.07);}
+    .login-btn:active{transform:scale(0.98);}
+    .login-btn:disabled{opacity:.65;cursor:not-allowed;transform:none;}
+    .login-error{
+      font-size:13px;color:#EF4444;text-align:center;
+      margin-top:12px;min-height:20px;line-height:1.5;
+    }
+    .login-back{
+      display:flex;align-items:center;justify-content:center;gap:5px;
+      margin-top:20px;font-size:12.5px;color:#9CA3AF;text-decoration:none;
+      transition:color .14s;
+    }
+    .login-back:hover{color:#374151;}
+    .login-back svg{width:13px;height:13px;}
+    .spinner{
+      width:15px;height:15px;border-radius:50%;
+      border:2px solid rgba(255,255,255,0.35);
+      border-top-color:#fff;
+      animation:spin .7s linear infinite;
+      flex-shrink:0;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @media(max-width:440px){
+      .login-wrap{padding:28px 20px 24px;}
+      body.login-page{padding:12px;}
+    }
+  </style>
 </head>
 <body class="login-page">
-  <div class="earth-card" style="width:100%;max-width:400px;padding:32px;animation:fadeIn 0.6s ease-out;">
-    <div style="display:flex;justify-content:center;margin-bottom:24px;">
-      <div class="login-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-          <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
-          <path d="M2 7h20"/>
-          <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/>
-        </svg>
+  <main>
+    <div class="login-wrap" role="main">
+      <a href="landing.html" class="login-logo" aria-label="Kembali ke beranda LINKify">
+        <img src="logo-linkify.png" alt="LINKify logo" width="32" height="32">
+        <span class="logo-text">
+          <span class="logo-link">LINK</span><span class="logo-ify">ify</span>
+        </span>
+      </a>
+
+      <h1 class="login-title">Masuk ke Toko</h1>
+      <p class="login-sub">Kelola produk, profil, dan analitik toko kamu</p>
+
+      <div class="login-fields">
+        <div>
+          <label class="login-label" for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" placeholder="email@tokokamu.com"
+                 class="login-input" aria-required="true" aria-label="Alamat email">
+        </div>
+        <div>
+          <label class="login-label" for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••"
+                 class="login-input" aria-required="true" aria-label="Password">
+        </div>
       </div>
+
+      <button type="button" id="loginBtn" class="login-btn" aria-label="Masuk ke dashboard toko">
+        Masuk ke Dashboard
+      </button>
+      <p id="errorMsg" class="login-error" role="alert" aria-live="polite"></p>
+
+      <a href="landing.html" class="login-back" aria-label="Kembali ke halaman utama">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Kembali ke beranda
+      </a>
     </div>
-    <h1 class="login-title">Login Toko Kamu</h1>
-    <p class="login-sub">Masuk untuk kelola produk & toko</p>
-    <div class="login-fields">
-      <div>
-        <label class="login-label">Email</label>
-        <input id="email" type="email" autocomplete="email" placeholder="email@tokokamu.com" class="login-input">
-      </div>
-      <div>
-        <label class="login-label">Password</label>
-        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" class="login-input">
-      </div>
-    </div>
-    <button type="button" id="loginBtn" class="login-btn">Masuk</button>
-    <p id="errorMsg" class="login-error"></p>
-  </div>
+  </main>
 
   <script type="module">
     import { checkMaintenance } from './js/maintenance.js';
-    await checkMaintenance(); // login page juga kena maintenance
+    await checkMaintenance();
   </script>
   <script type="module" src="js/login-user.js"></script>
 </body>

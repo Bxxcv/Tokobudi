@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-daftar.html
+Disallow: /maintenance.html
+
+Sitemap: https://linkbio.vercel.app/sitemap.xml
