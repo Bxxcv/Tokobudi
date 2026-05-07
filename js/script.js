@@ -8,7 +8,7 @@ import {
   collection, getDocs, query, orderBy,
   doc, getDoc, setDoc, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { escHtml, rupiah, checkPremium, hexToRgb, safeUrl } from './utils.js';
+import { escHtml, rupiah, checkPlan, hexToRgb, safeUrl } from './utils.js';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 const urlParams    = new URLSearchParams(window.location.search);
@@ -139,34 +139,35 @@ async function loadSettings() {
       return;
     }
 
-    const isPrem = checkPremium(s);
+    const plan    = checkPlan(s);      // 'free' | 'basic' | 'premium'
+    const isBasic = plan === 'basic' || plan === 'premium';
+    const isPrem  = plan === 'premium';
 
-    // 1. Theme
+    // 1. Theme (Premium only)
     const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
     const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
     const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
     applyTemplate(tpl, tplBg);
 
-    // 2. Accent color
+    // 2. Accent color (Premium only)
     const accent = (isPrem && s.premium?.accentColor)
       ? s.premium.accentColor
       : (tplAcc || '#FF6B35');
     document.documentElement.style.setProperty('--idx-accent',     accent);
     document.documentElement.style.setProperty('--idx-accent-rgb', hexToRgb(accent));
 
-    // 3. Verified badge
+    // 3. Verified badge (Premium only)
     const badge = document.getElementById('verified-badge');
     if (badge) badge.style.display = isPrem ? 'inline-flex' : 'none';
 
-    // 4. Footer branding
+    // 4. Footer branding — hide if Premium
     const footerBrand = document.querySelector('.footer-brand');
     if (footerBrand) footerBrand.style.display = isPrem ? 'none' : '';
 
-    // 5. Store info — batch DOM writes
+    // 5. Store info
     const storeName = s.namaToko || 'My Store';
     document.getElementById('username').textContent = storeName;
     document.title = storeName + ' — LINKify';
-
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', storeName + ' — Toko Online');
 
     const bioEl = document.getElementById('bio');
@@ -185,19 +186,19 @@ async function loadSettings() {
     if (waBtn)  { waBtn.href = waUtama; waBtn.dataset.wa = waUtama; }
     if (waMain) waMain.href = waUtama;
 
-    // 7. Shopee
-    if (s.shopee) {
+    // 7. Shopee (Basic + Premium)
+    if (isBasic && s.shopee) {
       const elShopee = document.getElementById('link-shopee');
       if (elShopee) { elShopee.href = safeUrl(s.shopee); elShopee.classList.remove('hidden'); }
     }
 
-    // 8. Social icons
-    renderSocialIcons(s);
+    // 8. Social icons (Basic + Premium)
+    if (isBasic) renderSocialIcons(s);
 
-    // 9. Tokopedia
+    // 9. Tokopedia (Basic + Premium)
     const elTok = document.getElementById('link-tokped');
     if (elTok) {
-      if (s.tokopedia) {
+      if (isBasic && s.tokopedia) {
         elTok.href = safeUrl(s.tokopedia);
         elTok.classList.remove('hidden');
       } else {
@@ -205,13 +206,13 @@ async function loadSettings() {
       }
     }
 
-    // 10. Custom buttons (Premium)
+    // 10. Custom buttons (Premium only)
     if (isPrem && Array.isArray(s.customButtons) && s.customButtons.length) {
       renderCustomButtons(s.customButtons);
     }
 
-    // 11. Gallery button
-    if (Array.isArray(s.gallery) && s.gallery.length) {
+    // 11. Gallery (Basic + Premium)
+    if (isBasic && Array.isArray(s.gallery) && s.gallery.length) {
       renderGalleryButton(s.gallery, USER_ID);
     }
 

@@ -199,23 +199,47 @@ async function ambilDataUser() {
 
 function updateCards() {
   const now = new Date();
-  let aktif = 0, prem = 0, suspend = 0;
+  let aktif = 0, basicCount = 0, premCount = 0, suspend = 0;
   allUsers.forEach(u => {
     if (u.status === 'aktif') aktif++;
     if (u.status === 'blokir') suspend++;
-    if (isPremiumActive(u, now)) prem++;
+    const p = isPlanActive(u, null, now);
+    if (p === 'premium') premCount++;
+    if (p === 'basic')   basicCount++;
   });
   $('totalUser').textContent    = allUsers.length;
   $('totalAktif').textContent   = aktif;
-  $('totalPremium').textContent = prem;
+  $('totalPremium').textContent = premCount;
+  $('totalBasic') && ($('totalBasic').textContent = basicCount);
   $('totalSuspend').textContent = suspend;
 }
 
+function isPlanActive(u, plan = null, now = new Date()) {
+  // New plan system
+  if (u.plan && u.planEndDate) {
+    const end = u.planEndDate?.toDate ? u.planEndDate.toDate() : new Date(u.planEndDate);
+    if (end > now) {
+      if (!plan) return u.plan; // return plan name
+      return u.plan === plan;
+    }
+  }
+  // Legacy premium support
+  if (u.premium?.active) {
+    const end = u.premium.endDate;
+    if (end) {
+      const endTime = end?.toDate ? end.toDate() : new Date(end);
+      if (endTime > now) {
+        if (!plan) return 'premium';
+        return plan === 'premium';
+      }
+    }
+  }
+  return plan ? false : 'free';
+}
+
+// backward compat
 function isPremiumActive(u, now = new Date()) {
-  if (!u.premium?.active) return false;
-  const end = u.premium.endDate;
-  if (!end) return false;
-  return (end?.toDate ? end.toDate() : new Date(end)) > now;
+  return isPlanActive(u, 'premium', now);
 }
 
 // ── FILTER ────────────────────────────────────────────────────────────────────
@@ -228,12 +252,14 @@ function filterTable() {
       || (u.namaToko || '').toLowerCase().includes(q)
       || (u.pemilik  || '').toLowerCase().includes(q)
       || (u.email    || '').toLowerCase().includes(q);
-    const prem = isPremiumActive(u, now);
+    const now  = new Date();
+    const plan = isPlanActive(u, null, now);
     let matchFil = true;
     if (fil === 'aktif')   matchFil = u.status === 'aktif';
     if (fil === 'blokir')  matchFil = u.status === 'blokir';
-    if (fil === 'premium') matchFil = prem;
-    if (fil === 'gratis')  matchFil = !prem;
+    if (fil === 'premium') matchFil = plan === 'premium';
+    if (fil === 'basic')   matchFil = plan === 'basic';
+    if (fil === 'gratis')  matchFil = plan === 'free';
     return matchText && matchFil;
   });
   renderTable(filtered, q);
@@ -264,7 +290,9 @@ function hl(text, q) {
 }
 
 function buildRow(u, no, now, q) {
-  const prem    = isPremiumActive(u, now);
+  const plan    = isPlanActive(u, null, now);
+  const isPrem  = plan === 'premium';
+  const isBasic = plan === 'basic';
   const omset   = (u.omset || 0).toLocaleString('id-ID');
   const viewUrl = `${window.location.origin}${BASE_PATH}/?uid=${u.uid}`;
 
@@ -272,17 +300,41 @@ function buildRow(u, no, now, q) {
     ? '<span class="badge badge-aktif">Aktif</span>'
     : '<span class="badge badge-blokir">Diblokir</span>';
 
-  const premBadge = prem
+  const planBadge = isPrem
     ? '<span class="badge badge-premium">Premium</span>'
-    : '<span class="badge badge-gratis">Gratis</span>';
+    : isBasic
+      ? '<span class="badge badge-basic">Basic</span>'
+      : '<span class="badge badge-gratis">Gratis</span>';
 
   const blockBtn = u.status === 'aktif'
     ? `<button class="act-btn act-block" onclick="blokirUser('${u.uid}','blokir')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Blokir</button>`
     : `<button class="act-btn act-unblock" onclick="blokirUser('${u.uid}','aktif')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Aktifkan</button>`;
 
-  const premBtn = prem
-    ? `<button class="act-btn act-unprem" onclick="nonaktifPremium('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Nonaktif</button>`
-    : `<button class="act-btn act-prem" onclick="openPremiumModal('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Premium</button>`;
+  const planBtn = (isPrem || isBasic)
+    ? `<button class="act-btn act-unprem" onclick="nonaktifPlan('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Nonaktif</button>`
+    : `<button class="act-btn act-prem" onclick="openPlanModal('${u.uid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Atur Paket</button>`;
+
+  return `<tr>
+    <td style="color:#4B5563;font-size:12px;">${no}</td>
+    <td>
+      <div style="font-size:13px;font-weight:600;color:#fff;">${hl(u.namaToko, q)}</div>
+      <div style="font-size:11px;color:#6B7280;margin-top:2px;">${hl(u.pemilik || '—', q)}</div>
+    </td>
+    <td class="md-show" style="display:none;font-size:12px;color:#9CA3AF;">${hl(u.email, q)}</td>
+    <td class="lg-show" style="display:none;font-size:12px;color:#D1D5DB;font-weight:500;">Rp ${omset}</td>
+    <td>${statusBadge}</td>
+    <td>${planBadge}</td>
+    <td>
+      <div class="act-wrap">
+        <a href="${viewUrl}" target="_blank" rel="noopener" class="act-btn act-view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Lihat</a>
+        <button class="act-btn act-reset" onclick="resetPassword('${escHtml(u.email)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>Reset</button>
+        ${blockBtn}
+        ${planBtn}
+        <button class="act-btn act-delete" onclick="hapusUser('${u.uid}','${escHtml(u.namaToko)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>Hapus</button>
+      </div>
+    </td>
+  </tr>`;
+}
 
   return `<tr>
     <td style="color:#4B5563;font-size:12px;">${no}</td>
@@ -338,21 +390,31 @@ function blokirUser(uid, status) {
   });
 }
 
-function nonaktifPremium(uid) {
+function nonaktifPlan(uid) {
   showConfirm({
-    title: 'Nonaktifkan Premium?',
-    msg:   'Fitur premium user ini akan dinonaktifkan.',
+    title: 'Nonaktifkan Paket?',
+    msg:   'Paket Basic/Premium user ini akan dinonaktifkan. User kembali ke mode Gratis.',
     type:  'warning',
     ok:    'Ya, Nonaktifkan',
     onOk: async () => {
       try {
-        await updateDoc(doc(db, 'toko', uid), { 'premium.active': false });
-        toast('Premium dinonaktifkan.');
+        await updateDoc(doc(db, 'toko', uid), {
+          plan: null,
+          planEndDate: null,
+          'premium.active': false,  // also clear legacy
+        });
+        toast('Paket dinonaktifkan.');
         await ambilDataUser();
       } catch (e) { toast('Gagal: ' + e.message, 'err'); }
     }
   });
 }
+
+// backward compat alias
+window.openPlanModal    = openPlanModal;
+window.closePlanModal   = closePlanModal;
+window.savePlanModal    = savePlanModal;
+window.nonaktifPlan     = nonaktifPlan;
 
 function hapusUser(uid, namaToko) {
   showConfirm({
@@ -399,22 +461,40 @@ async function doHapusUser(uid, namaToko) {
 }
 
 // ── PREMIUM MODAL ──────────────────────────────────────────────────────────────
-function openPremiumModal(uid) {
+function openPlanModal(uid) {
   premiumTargetUid = uid;
   selectedColor    = '#FF6B35';
   $('pm-days').value     = 30;
   $('pm-template').value = 'default';
   $('pm-slug').value     = '';
+  // Default to premium tab
+  switchPlanTab('premium');
   document.querySelectorAll('.pm-col').forEach(b => {
     b.classList.toggle('selected', b.dataset.c === selectedColor);
   });
-  $('premium-modal').classList.add('open');
+  $('plan-modal').classList.add('open');
 }
 
-function closePremiumModal() {
-  $('premium-modal').classList.remove('open');
+// backward compat
+window.openPremiumModal = openPlanModal;
+
+function closePlanModal() {
+  $('plan-modal').classList.remove('open');
   premiumTargetUid = null;
 }
+window.closePremiumModal = closePlanModal;
+
+let activePlanTab = 'premium';
+function switchPlanTab(tab) {
+  activePlanTab = tab;
+  $('tab-basic-btn')?.classList.toggle('active', tab === 'basic');
+  $('tab-premium-btn')?.classList.toggle('active', tab === 'premium');
+  $('plan-basic-fields')?.classList.toggle('hidden', tab !== 'basic');
+  $('plan-premium-fields')?.classList.toggle('hidden', tab !== 'premium');
+  const saveBtn = $('pm-save-btn');
+  if (saveBtn) saveBtn.textContent = tab === 'basic' ? 'Aktifkan Basic' : 'Aktifkan Premium';
+}
+window.switchPlanTab = switchPlanTab;
 
 document.querySelectorAll('.pm-col').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -424,54 +504,77 @@ document.querySelectorAll('.pm-col').forEach(btn => {
   });
 });
 
-async function savePremiumModal() {
+async function savePlanModal() {
   if (!premiumTargetUid) return;
+
   const days    = parseInt($('pm-days').value) || 30;
-  const template = $('pm-template').value;
-  const slug    = $('pm-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
-  const tplData = TEMPLATE_LIST.find(t => t.id === template) || {};
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + days);
 
   const btn = $('pm-save-btn');
   btn.disabled  = true;
   btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+
   try {
-    // Validate slug uniqueness before saving
-    if (slug) {
-      const allSnap = await getDocs(collection(db, 'toko'));
-      const slugTaken = allSnap.docs.some(d => {
-        if (d.id === premiumTargetUid) return false; // allow same user
-        return d.data()?.premium?.slug === slug;
+    if (activePlanTab === 'basic') {
+      // ── BASIC PLAN ──────────────────────────────────────────────
+      await updateDoc(doc(db, 'toko', premiumTargetUid), {
+        plan:        'basic',
+        planEndDate: endDate,
+        // Clear premium if upgrading from legacy
+        'premium.active': false,
       });
-      if (slugTaken) {
-        toast('Slug sudah dipakai user lain. Coba slug berbeda.', 'warn');
-        btn.disabled    = false;
-        btn.textContent = 'Aktifkan Premium';
-        return;
+      toast(`Paket Basic aktif ${days} hari!`);
+
+    } else {
+      // ── PREMIUM PLAN ─────────────────────────────────────────────
+      const template = $('pm-template').value;
+      const slug     = $('pm-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      const tplData  = TEMPLATE_LIST.find(t => t.id === template) || {};
+
+      // Validate slug uniqueness
+      if (slug) {
+        const allSnap  = await getDocs(collection(db, 'toko'));
+        const slugTaken = allSnap.docs.some(d => {
+          if (d.id === premiumTargetUid) return false;
+          return d.data()?.premium?.slug === slug;
+        });
+        if (slugTaken) {
+          toast('Slug sudah dipakai user lain. Coba slug berbeda.', 'warn');
+          btn.disabled = false;
+          btn.textContent = 'Aktifkan Premium';
+          return;
+        }
       }
+
+      const update = {
+        plan:                     'premium',
+        planEndDate:              endDate,
+        'premium.active':         true,
+        'premium.startDate':      serverTimestamp(),
+        'premium.endDate':        endDate,
+        'premium.accentColor':    selectedColor,
+        'premium.template':       template,
+        'premium.templateBg':     tplData.bg     || '',
+        'premium.templateAccent': tplData.accent || '',
+      };
+      if (slug) update['premium.slug'] = slug;
+      await updateDoc(doc(db, 'toko', premiumTargetUid), update);
+      toast(`Paket Premium aktif ${days} hari!`);
     }
-    const update = {
-      'premium.active':         true,
-      'premium.startDate':      serverTimestamp(),
-      'premium.endDate':        endDate,
-      'premium.accentColor':    selectedColor,
-      'premium.template':       template,
-      'premium.templateBg':     tplData.bg     || '',
-      'premium.templateAccent': tplData.accent || '',
-    };
-    if (slug) update['premium.slug'] = slug;
-    await updateDoc(doc(db, 'toko', premiumTargetUid), update);
-    toast(`Premium aktif ${days} hari!`);
-    closePremiumModal();
+
+    closePlanModal();
     await ambilDataUser();
   } catch (e) {
     toast('Gagal: ' + e.message, 'err');
   } finally {
     btn.disabled    = false;
-    btn.textContent = 'Aktifkan Premium';
+    btn.textContent = activePlanTab === 'basic' ? 'Aktifkan Basic' : 'Aktifkan Premium';
   }
 }
+
+// backward compat
+window.savePremiumModal = savePlanModal;
 
 // ── CONFIRM MODAL ──────────────────────────────────────────────────────────────
 function showConfirm({ title, msg, type = 'danger', ok = 'Lanjutkan', onOk }) {

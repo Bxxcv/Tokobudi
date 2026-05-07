@@ -5,15 +5,9 @@ export function escHtml(str) {
   }[m]));
 }
 
-/**
- * safeUrl — blokir javascript: dan data: protocol injection.
- * Hanya izinkan https://, http://, wa.me, tel:, mailto:
- */
 export function safeUrl(url) {
   if (!url || typeof url !== 'string') return '#';
-  const trimmed = url.trim().toLowerCase();
-  // Blokir javascript:, data:, vbscript:, dan protocol lain yang berbahaya
-  if (/^(javascript|data|vbscript|file):/i.test(trimmed)) return '#';
+  if (/^(javascript|data|vbscript|file):/i.test(url.trim())) return '#';
   return url.trim();
 }
 
@@ -21,12 +15,42 @@ export function rupiah(val) {
   return Number(val || 0).toLocaleString('id-ID');
 }
 
+/**
+ * PLAN SYSTEM
+ * Firestore structure:
+ *   toko/{uid}.plan = 'basic' | 'premium' | null/undefined (no plan)
+ *   toko/{uid}.planEndDate = Timestamp | ISO string
+ *   toko/{uid}.premium = { active, endDate, ... }  (legacy, still supported)
+ *
+ * checkPlan(data) → 'premium' | 'basic' | 'free'
+ */
+export function checkPlan(tokoData) {
+  if (!tokoData) return 'free';
+  const now = new Date();
+
+  // New plan system
+  const plan    = tokoData.plan;
+  const planEnd = tokoData.planEndDate;
+  if (plan && planEnd) {
+    const endTime = planEnd?.toDate ? planEnd.toDate() : new Date(planEnd);
+    if (endTime > now) return plan; // 'basic' or 'premium'
+  }
+
+  // Legacy premium support
+  if (tokoData.premium?.active) {
+    const legEnd = tokoData.premium.endDate;
+    if (legEnd) {
+      const endTime = legEnd?.toDate ? legEnd.toDate() : new Date(legEnd);
+      if (endTime > now) return 'premium';
+    }
+  }
+
+  return 'free';
+}
+
+/** Backward compat — used by old code expecting boolean */
 export function checkPremium(tokoData) {
-  if (!tokoData?.premium?.active) return false;
-  const end = tokoData.premium.endDate;
-  if (!end) return false;
-  const endTime = end?.toDate ? end.toDate() : new Date(end);
-  return endTime > new Date();
+  return checkPlan(tokoData) === 'premium';
 }
 
 export function hexToRgb(hex) {
@@ -50,54 +74,12 @@ export const KATEGORI_LIST = [
 ];
 
 export const TEMPLATE_LIST = [
-  {
-    id: 'default',
-    label: 'Midnight City',
-    desc: 'Gelap modern, aksen neon',
-    bg: '',
-    accent: '#FF6B35',
-    preview: '#0d0d1a'
-  },
-  {
-    id: 'forest',
-    label: 'Dark Forest',
-    desc: 'Hutan gelap misterius',
-    bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80&fit=crop&auto=format',
-    accent: '#4ADE80',
-    preview: '#0d1a0f'
-  },
-  {
-    id: 'ocean',
-    label: 'Deep Ocean',
-    desc: 'Lautan dalam yang tenang',
-    bg: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80&fit=crop&auto=format',
-    accent: '#38BDF8',
-    preview: '#030e1a'
-  },
-  {
-    id: 'aurora',
-    label: 'Aurora Night',
-    desc: 'Langit malam aurora borealis',
-    bg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80&fit=crop&auto=format',
-    accent: '#A78BFA',
-    preview: '#080d1e'
-  },
-  {
-    id: 'desert',
-    label: 'Golden Desert',
-    desc: 'Padang pasir saat golden hour',
-    bg: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80&fit=crop&auto=format',
-    accent: '#FBBF24',
-    preview: '#1a0e00'
-  },
-  {
-    id: 'sakura',
-    label: 'Sakura Bloom',
-    desc: 'Taman bunga sakura Jepang',
-    bg: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&q=80&fit=crop&auto=format',
-    accent: '#F472B6',
-    preview: '#1a0a10'
-  },
+  { id: 'default', label: 'Midnight City', desc: 'Gelap modern, aksen neon', bg: '', accent: '#FF6B35', preview: '#0d0d1a' },
+  { id: 'forest',  label: 'Dark Forest',   desc: 'Hutan gelap misterius',   bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80&fit=crop&auto=format', accent: '#4ADE80', preview: '#0d1a0f' },
+  { id: 'ocean',   label: 'Deep Ocean',    desc: 'Lautan dalam yang tenang', bg: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80&fit=crop&auto=format', accent: '#38BDF8', preview: '#030e1a' },
+  { id: 'aurora',  label: 'Aurora Night',  desc: 'Langit malam aurora',     bg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80&fit=crop&auto=format', accent: '#A78BFA', preview: '#080d1e' },
+  { id: 'desert',  label: 'Golden Desert', desc: 'Padang pasir golden hour', bg: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80&fit=crop&auto=format', accent: '#FBBF24', preview: '#1a0e00' },
+  { id: 'sakura',  label: 'Sakura Bloom',  desc: 'Taman bunga sakura',      bg: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&q=80&fit=crop&auto=format', accent: '#F472B6', preview: '#1a0a10' },
 ];
 
 export const ACCENT_COLORS = [
@@ -110,3 +92,43 @@ export const ACCENT_COLORS = [
   { hex: '#F59E0B', label: 'Kuning' },
   { hex: '#111111', label: 'Hitam' },
 ];
+
+/** Plan feature definitions — single source of truth */
+export const PLAN_FEATURES = {
+  basic: {
+    label: 'Basic',
+    color: '#3B82F6',
+    features: [
+      'Halaman toko publik',
+      'Upload produk unlimited',
+      'Tombol WA, Shopee, Tokopedia',
+      'Kategori produk',
+      'Social icons (IG, TikTok, dll)',
+      'Gallery foto toko',
+    ],
+    locked: [
+      'Analitik & statistik pengunjung',
+      'Tema foto eksklusif (6 tema)',
+      'Badge Terverifikasi',
+      'QR Code print-ready',
+      'Tombol kustom unlimited',
+      'Hapus branding LINKify',
+      'Accent color kustom',
+    ]
+  },
+  premium: {
+    label: 'Premium',
+    color: '#FF6B35',
+    features: [
+      'Semua fitur Basic',
+      'Analitik & statistik pengunjung real-time',
+      'Tema foto eksklusif (6 tema)',
+      'Badge Terverifikasi ✓',
+      'QR Code print-ready',
+      'Tombol kustom unlimited + deskripsi',
+      'Hapus branding LINKify',
+      'Accent color kustom',
+    ],
+    locked: []
+  }
+};

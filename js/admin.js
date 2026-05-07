@@ -14,7 +14,7 @@ import {
   serverTimestamp, getDoc, query, orderBy, setDoc, where, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
-  escHtml, checkPremium, hexToRgb, ACCENT_COLORS, DAY_NAMES,
+  escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
   formatDate, TEMPLATE_LIST
 } from './utils.js';
 
@@ -528,38 +528,66 @@ $('btn-save-account').addEventListener('click', async () => {
   }
 });
 
-// ── PREMIUM UI ─────────────────────────────────────────────────────────────
+// ── PLAN UI ──────────────────────────────────────────────────────────────────
 function updatePremiumUI() {
-  const isPrem = checkPremium(currentTokoData);
-  $('premium-cta')?.classList.toggle('hidden', isPrem);
-  $('premium-content')?.classList.toggle('hidden', !isPrem);
-  if (!isPrem) return;
+  const plan   = checkPlan(currentTokoData);
+  const isPrem = plan === 'premium';
+  const isBasic = plan === 'basic' || plan === 'premium';
 
-  currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
-
-  // Slug display
-  const slugEl = $('inp-custom-slug');
-  if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
-
-  // Expiry
-  const endDate = currentTokoData.premium?.endDate;
-  if (endDate) {
-    const end = endDate?.toDate ? endDate.toDate() : new Date(endDate);
-    const exEl = $('premium-expiry');
-    if (exEl) exEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Aktif sampai ${end.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' })}`;
+  // Plan badge in header
+  const planBadgeEl = $('current-plan-badge');
+  if (planBadgeEl) {
+    if (plan === 'premium') {
+      planBadgeEl.textContent = '⚡ Premium';
+      planBadgeEl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);color:#FF6B35;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;';
+    } else if (plan === 'basic') {
+      planBadgeEl.textContent = '● Basic';
+      planBadgeEl.style.cssText = 'display:inline-flex;align-items:center;gap:5px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:#3B82F6;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;';
+    } else {
+      planBadgeEl.textContent = 'Gratis';
+      planBadgeEl.style.cssText = 'display:inline-flex;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#9CA3AF;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;';
+    }
   }
 
-  renderColorPicker();
-  renderQR();
-  renderTemplatePicker();
-  renderCustomButtonEditor();
-  renderGalleryEditor();
+  // Show/hide Premium CTA vs Premium content
+  $('premium-cta')?.classList.toggle('hidden', isPrem);
+  $('premium-content')?.classList.toggle('hidden', !isPrem);
+
+  // Plan info section (shows for both basic and premium)
+  const planInfoEl = $('plan-info-section');
+  if (planInfoEl) planInfoEl.classList.toggle('hidden', !isBasic);
+
+  // Plan expiry display
+  const planEndDate = currentTokoData.planEndDate
+    || currentTokoData.premium?.endDate; // legacy
+  if (planEndDate) {
+    const end   = planEndDate?.toDate ? planEndDate.toDate() : new Date(planEndDate);
+    const label = end.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    const exEl  = $('premium-expiry');
+    if (exEl) exEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Paket ${plan === 'premium' ? 'Premium' : 'Basic'} aktif sampai <strong>${label}</strong>`;
+  }
+
+  // Basic features always available
+  if (isBasic) {
+    renderGalleryEditor(); // gallery = basic feature
+  }
+
+  // Premium-only features
+  if (isPrem) {
+    currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
+    const slugEl  = $('inp-custom-slug');
+    if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
+    renderColorPicker();
+    renderQR();
+    renderTemplatePicker();
+    renderCustomButtonEditor();
+  }
 }
 
 // ── PREMIUM: STATS ─────────────────────────────────────────────────────────
 async function loadStats(uid) {
-  const isPrem = checkPremium(currentTokoData);
+  const isPrem = checkPlan(currentTokoData) === 'premium';
   if (!isPrem) return;
 
   try {
