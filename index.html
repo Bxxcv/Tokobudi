@@ -2,11 +2,15 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LINKify - Link Bio</title>
-  <meta name="description" content="Toko online premium — belanja mudah, pesan via WhatsApp">
-  <meta property="og:title" content="LINKify - Toko Online">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title id="page-title">LINKify — Toko Online</title>
+  <meta id="meta-desc" name="description" content="Toko online premium — belanja mudah, pesan via WhatsApp">
+  <meta id="og-title" property="og:title" content="LINKify — Toko Online">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://linkbio.vercel.app/logo-linkify.png">
+  <meta id="og-url" property="og:url" content="https://linkbio.vercel.app/">
+  <meta name="twitter:card" content="summary">
+  <meta name="robots" content="index, follow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -15,120 +19,130 @@
   <link rel="apple-touch-icon" href="logo-linkify.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B35">
+  <style>
+    /* Critical inline — prevent FOUC */
+    body.index-page{background:#0A0A0F;}
+    .page-skeleton{display:flex;flex-direction:column;align-items:center;padding:24px 16px;}
+    .ps-avatar{width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,.07);margin-bottom:12px;animation:psk 1.4s ease-in-out infinite;}
+    .ps-line{height:14px;border-radius:8px;background:rgba(255,255,255,.06);margin-bottom:8px;animation:psk 1.4s ease-in-out infinite;}
+    .ps-btn{height:52px;border-radius:14px;background:rgba(255,255,255,.05);margin-bottom:10px;animation:psk 1.4s ease-in-out infinite;}
+    @keyframes psk{0%,100%{opacity:.7}50%{opacity:.3}}
+  </style>
 </head>
 <body class="index-page">
 <div class="page-wrap">
   <div class="container">
 
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <button type="button" onclick="shareLink()" class="share-btn" aria-label="Bagikan toko">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-          <polyline points="16 6 12 2 8 6"/>
-          <line x1="12" y1="2" x2="12" y2="15"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- HERO -->
-    <div class="hero fade-up">
-      <div class="logo-wrapper">
-        <img id="profileImg" src="https://placehold.co/200x200/111/333?text=+" alt="Logo Toko" class="logo-img" loading="eager" decoding="async">
+    <!-- SKELETON (replaced by JS once data loads) -->
+    <div id="page-skeleton" class="page-skeleton">
+      <div class="ps-avatar"></div>
+      <div class="ps-line" style="width:140px;"></div>
+      <div class="ps-line" style="width:100px;margin-bottom:20px;"></div>
+      <div class="ps-btn" style="width:100%;max-width:420px;"></div>
+      <div class="ps-btn" style="width:100%;max-width:420px;"></div>
+      <div class="ps-line" style="width:80px;margin-top:20px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:420px;margin-top:10px;">
+        <div class="ps-btn" style="height:160px;border-radius:12px;"></div>
+        <div class="ps-btn" style="height:160px;border-radius:12px;"></div>
       </div>
-      <h1 id="username" class="store-name">
-        <span class="skel-text" style="width:140px;height:22px;display:inline-block;"></span>
-      </h1>
-      <div id="verified-badge" class="verified-badge" style="display:none;" aria-label="Terverifikasi Premium">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" width="13" height="13">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-        </svg>
-        Terverifikasi
+    </div>
+
+    <!-- MAIN CONTENT (hidden until loaded) -->
+    <div id="main-content" style="display:none;">
+
+      <!-- TOP BAR -->
+      <div class="top-bar">
+        <button type="button" onclick="shareLink()" class="share-btn" aria-label="Bagikan toko" style="min-width:44px;min-height:44px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
       </div>
-      <p id="bio" class="store-desc"></p>
-    </div>
 
-    <!-- SOCIAL -->
-    <div class="social-section fade-up" id="social-bar" style="display:none;">
-      <div id="social-icons" class="social-icons"></div>
-    </div>
-
-    <!-- PLATFORM BUTTONS -->
-    <div class="platform-section fade-up">
-      <a id="link-wa-main" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn wa-btn" onclick="trackClick('wa')">
-        <div class="icon-box">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
+      <!-- HERO -->
+      <div class="hero fade-up">
+        <div class="logo-wrapper">
+          <img id="profileImg" src="https://placehold.co/200x200/111/333?text=+" alt="Logo Toko" class="logo-img" loading="eager" decoding="async" width="82" height="82">
         </div>
-        <span>Pesan via WhatsApp</span>
-        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-      <a id="link-shopee" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn shopee-btn hidden" onclick="trackClick('shopee')">
-        <div class="icon-box">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg>
+        <h1 id="username" class="store-name"></h1>
+        <div id="verified-badge" class="verified-badge" style="display:none;" aria-label="Toko Terverifikasi Premium">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" width="13" height="13">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          Terverifikasi
         </div>
-        <span>Pesan via Shopee</span>
-        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-      <a id="link-tokped" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn tokped-btn hidden">
-        <div class="icon-box">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-tokped"/></svg>
-        </div>
-        <span>Pesan via Tokopedia</span>
-        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-
-    <!-- CUSTOM BUTTONS (Premium) -->
-    <div id="custom-buttons-section" class="platform-section" style="display:none;">
-      <div class="custom-btn-wrap"></div>
-    </div>
-
-    <!-- GALLERY BUTTON (Premium) -->
-    <div id="gallery-btn-wrap" style="display:none;" class="fade-up">
-      <a id="gallery-btn" href="gallery.html" class="gallery-link-btn">
-        <div class="gallery-btn-previews" id="gallery-previews"></div>
-        <div class="gallery-btn-text">
-          <span class="gallery-btn-label">Gallery Foto</span>
-          <span class="gallery-btn-count" id="gallery-count"></span>
-        </div>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-
-    <!-- CATALOG -->
-    <div class="catalog-section">
-      <div class="section-header fade-up">
-        <span class="section-title">Katalog Produk</span>
+        <p id="bio" class="store-desc"></p>
       </div>
-      <div id="kategori-filter" class="kategori-filter" style="display:none;"></div>
-      <div id="unggulan-section" style="display:none;">
-        <div class="unggulan-label">Produk Unggulan</div>
-        <div id="unggulanList" class="product-grid" style="margin-bottom:20px;"></div>
-        <div class="unggulan-divider"></div>
-        <div class="unggulan-label" style="margin-top:16px;">Semua Produk</div>
+
+      <!-- SOCIAL -->
+      <div class="social-section fade-up" id="social-bar" style="display:none;" role="navigation" aria-label="Media sosial toko">
+        <div id="social-icons" class="social-icons"></div>
       </div>
-      <div id="productList" class="product-grid">
-        <!-- Skeleton -->
-        <div class="skeleton-box">
-          <div class="skeleton" style="aspect-ratio:4/3;border-radius:0;"></div>
-          <div style="padding:12px 12px 14px;">
-            <div class="skeleton" style="height:12px;width:75%;margin-bottom:8px;border-radius:6px;"></div>
-            <div class="skeleton" style="height:16px;width:48%;border-radius:6px;"></div>
+
+      <!-- PLATFORM BUTTONS -->
+      <div class="platform-section fade-up" role="navigation" aria-label="Platform pembelian">
+        <a id="link-wa-main" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn wa-btn" onclick="trackClick('wa')" aria-label="Pesan via WhatsApp" style="min-height:52px;">
+          <div class="icon-box"><svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg></div>
+          <span>Pesan via WhatsApp</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a id="link-shopee" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn shopee-btn hidden" onclick="trackClick('shopee')" aria-label="Lihat di Shopee" style="min-height:52px;">
+          <div class="icon-box"><svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-shopee"/></svg></div>
+          <span>Beli di Shopee</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a id="link-tokped" href="#" target="_blank" rel="noopener noreferrer" class="platform-btn tokped-btn hidden" aria-label="Lihat di Tokopedia" style="min-height:52px;">
+          <div class="icon-box"><svg viewBox="0 0 24 24" width="20" height="20" fill="white" aria-hidden="true"><use href="#ico-tokped"/></svg></div>
+          <span>Beli di Tokopedia</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- CUSTOM BUTTONS (Premium) -->
+      <div id="custom-buttons-section" class="platform-section" style="display:none;" aria-label="Link tambahan">
+        <div class="custom-btn-wrap"></div>
+      </div>
+
+      <!-- GALLERY BUTTON -->
+      <div id="gallery-btn-wrap" style="display:none;" class="fade-up">
+        <a id="gallery-btn" href="gallery.html" class="gallery-link-btn" aria-label="Lihat gallery foto toko">
+          <div class="gallery-btn-previews" id="gallery-previews"></div>
+          <div class="gallery-btn-text">
+            <span class="gallery-btn-label">Gallery Foto</span>
+            <span class="gallery-btn-count" id="gallery-count"></span>
           </div>
-        </div>
-        <div class="skeleton-box">
-          <div class="skeleton" style="aspect-ratio:4/3;border-radius:0;"></div>
-          <div style="padding:12px 12px 14px;">
-            <div class="skeleton" style="height:12px;width:60%;margin-bottom:8px;border-radius:6px;"></div>
-            <div class="skeleton" style="height:16px;width:52%;border-radius:6px;"></div>
-          </div>
-        </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
       </div>
+
+      <!-- CATALOG -->
+      <section class="catalog-section" aria-label="Katalog produk">
+        <div class="section-header fade-up">
+          <span class="section-title">Katalog Produk</span>
+        </div>
+        <nav id="kategori-filter" class="kategori-filter" style="display:none;" aria-label="Filter kategori produk"></nav>
+        <div id="unggulan-section" style="display:none;">
+          <div class="unggulan-label">Produk Unggulan</div>
+          <div id="unggulanList" class="product-grid" style="margin-bottom:20px;"></div>
+          <div class="unggulan-divider"></div>
+          <div class="unggulan-label" style="margin-top:16px;">Semua Produk</div>
+        </div>
+        <div id="productList" class="product-grid"></div>
+      </section>
+
+    </div><!-- /main-content -->
+
+    <!-- ERROR STATE (shown if store not found / blocked) -->
+    <div id="error-state" style="display:none;text-align:center;padding:60px 20px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40" style="opacity:.3;margin-bottom:12px;"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      <p id="error-msg" style="font-size:14px;color:rgba(255,255,255,.4);">Toko tidak ditemukan</p>
     </div>
 
   </div>
 
-  <footer class="footer">
+  <footer class="footer" id="main-footer" style="display:none;">
     <p id="footer-store" class="footer-copy-text">© 2025 My Store</p>
     <div class="footer-brand">
       <img src="logo-linkify.png" alt="LINKify" loading="lazy" decoding="async" width="14" height="14">
@@ -138,60 +152,60 @@
 </div>
 
 <!-- Floating WA -->
-<a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" data-wa="" class="floating-wa" aria-label="Chat WhatsApp" onclick="trackClick('wa')">
+<a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" data-wa="" class="floating-wa" aria-label="Chat WhatsApp" onclick="trackClick('wa')" style="display:none;">
   <svg viewBox="0 0 24 24" width="26" height="26" fill="white" aria-hidden="true"><use href="#ico-wa"/></svg>
 </a>
 
 <!-- SVG Sprite -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
   <defs>
-    <symbol id="ico-wa" viewBox="0 0 24 24">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-    </symbol>
-    <symbol id="ico-shopee" viewBox="0 0 24 24">
-      <path d="M19.793 7.507c0-2.075-.828-3.952-2.168-5.308a.675.675 0 00-.95-.014.664.664 0 00-.013.944 6.506 6.506 0 011.8 4.378 6.501 6.501 0 01-6.504 6.487 6.499 6.499 0 01-6.5-6.487 6.497 6.497 0 011.8-4.378.664.664 0 00-.013-.944.675.675 0 00-.95.014A7.824 7.824 0 004.127 7.507H2.672a1.354 1.354 0 00-1.348 1.214L.024 21.347A1.344 1.344 0 001.37 22.86h21.26a1.344 1.344 0 001.346-1.513l-1.3-11.626a1.354 1.354 0 00-1.348-1.214h-1.597a7.9 7.9 0 00.062-.98zM12 1.14a2.694 2.694 0 110 5.388A2.694 2.694 0 0112 1.14z"/>
-    </symbol>
-    <symbol id="ico-tokped" viewBox="0 0 24 24">
-      <path d="M21 7H3a1 1 0 00-1 1v11a2 2 0 002 2h16a2 2 0 002-2V8a1 1 0 00-1-1zm-9 9a3 3 0 110-6 3 3 0 010 6z"/>
-      <path d="M8 7V5a4 4 0 018 0v2"/>
-    </symbol>
-    <symbol id="ico-instagram" viewBox="0 0 24 24">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/>
-      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
-      <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/>
-    </symbol>
-    <symbol id="ico-tiktok" viewBox="0 0 24 24">
-      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.52V6.76a4.85 4.85 0 01-1.02-.07z"/>
-    </symbol>
-    <symbol id="ico-twitter" viewBox="0 0 24 24">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/>
-    </symbol>
-    <symbol id="ico-facebook" viewBox="0 0 24 24">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-    </symbol>
-    <symbol id="ico-youtube" viewBox="0 0 24 24">
-      <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-    </symbol>
+    <symbol id="ico-wa" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></symbol>
+    <symbol id="ico-shopee" viewBox="0 0 24 24"><path d="M19.793 7.507c0-2.075-.828-3.952-2.168-5.308a.675.675 0 00-.95-.014.664.664 0 00-.013.944 6.506 6.506 0 011.8 4.378 6.501 6.501 0 01-6.504 6.487 6.499 6.499 0 01-6.5-6.487 6.497 6.497 0 011.8-4.378.664.664 0 00-.013-.944.675.675 0 00-.95.014A7.824 7.824 0 004.127 7.507H2.672a1.354 1.354 0 00-1.348 1.214L.024 21.347A1.344 1.344 0 001.37 22.86h21.26a1.344 1.344 0 001.346-1.513l-1.3-11.626a1.354 1.354 0 00-1.348-1.214h-1.597a7.9 7.9 0 00.062-.98zM12 1.14a2.694 2.694 0 110 5.388A2.694 2.694 0 0112 1.14z"/></symbol>
+    <symbol id="ico-tokped" viewBox="0 0 24 24"><path d="M21 7H3a1 1 0 00-1 1v11a2 2 0 002 2h16a2 2 0 002-2V8a1 1 0 00-1-1zm-9 9a3 3 0 110-6 3 3 0 010 6z"/><path d="M8 7V5a4 4 0 018 0v2"/></symbol>
+    <symbol id="ico-instagram" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="ico-tiktok" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.19 8.19 0 004.79 1.52V6.76a4.85 4.85 0 01-1.02-.07z"/></symbol>
+    <symbol id="ico-twitter" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></symbol>
+    <symbol id="ico-facebook" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></symbol>
+    <symbol id="ico-youtube" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></symbol>
   </defs>
 </svg>
 
 <script>
-  window.shareLink = () => {
-    const title = document.getElementById('username')?.innerText || 'Toko';
-    if (navigator.share) {
-      navigator.share({ title, url: window.location.href }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => {
-          const btn = document.querySelector('.share-btn');
-          if (btn) {
-            btn.style.background = 'rgba(16,185,129,0.15)';
-            btn.style.borderColor = 'rgba(16,185,129,0.3)';
-            setTimeout(() => { btn.style.background = ''; btn.style.borderColor = ''; }, 1400);
-          }
-        }).catch(() => {});
-    }
-  };
+// Reveal main content — called by script.js after data loads
+window.__showMainContent = function() {
+  document.getElementById('page-skeleton').style.display = 'none';
+  document.getElementById('main-content').style.display = '';
+  document.getElementById('main-footer').style.display = '';
+  const waBtn = document.getElementById('waBtn');
+  if (waBtn) waBtn.style.display = '';
+};
+window.__showError = function(msg) {
+  document.getElementById('page-skeleton').style.display = 'none';
+  const errEl = document.getElementById('error-state');
+  if (errEl) errEl.style.display = '';
+  const msgEl = document.getElementById('error-msg');
+  if (msgEl && msg) msgEl.textContent = msg;
+};
+window.shareLink = function() {
+  const title = document.getElementById('username')?.innerText || 'Toko';
+  if (navigator.share) {
+    navigator.share({ title, url: window.location.href }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(window.location.href).then(() => {
+      const btn = document.querySelector('.share-btn');
+      if (btn) {
+        btn.style.background = 'rgba(16,185,129,0.15)';
+        setTimeout(() => { btn.style.background = ''; }, 1400);
+      }
+    }).catch(() => {});
+  }
+};
+// Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 </script>
 
 <script type="module">
