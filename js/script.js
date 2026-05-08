@@ -33,11 +33,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderNoStore() {
-  window.__showError && window.__showError('URL tidak valid. Pastikan mengandung ?uid=...');
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px;opacity:0.3">
+        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.6)">Toko tidak ditemukan</div>
+      <div style="font-size:12px;">Pastikan URL mengandung <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;">?uid=...</code></div>
+    </div>`;
 }
 
 function renderBlockedStore() {
-  window.__showError && window.__showError('Toko ini sedang tidak aktif.');
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px;opacity:0.5;color:#EF4444">
+        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      </svg>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:rgba(255,255,255,0.6)">Toko Tidak Tersedia</div>
+      <div style="font-size:12px;">Toko ini sedang tidak aktif.</div>
+    </div>`;
 }
 
 async function bootstrap() {
@@ -201,9 +215,6 @@ async function loadSettings() {
     if (isBasic && Array.isArray(s.gallery) && s.gallery.length) {
       renderGalleryButton(s.gallery, USER_ID);
     }
-
-    // Show main content — hide skeleton
-    window.__showMainContent && window.__showMainContent();
 
     // 12. Observe fade-up elements
     observeAll();
