@@ -3,7 +3,7 @@
  * FIXED: blocked user check, duplicate kategori listener, merged observers
  */
 
-import { db } from '../firebase.js';
+import { db, CONFIG } from '../firebase.js';
 import {
   collection, getDocs, query, orderBy,
   doc, getDoc, setDoc, increment
