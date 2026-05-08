@@ -182,13 +182,13 @@
   </div>
 
 <script type="module">
-import { db } from '../firebase.js';
+import { db } from '/firebase.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { checkPremium, escHtml, hexToRgb } from './utils.js';
+import { checkPremium, escHtml, hexToRgb } from '/js/utils.js';
 
 const params = new URLSearchParams(location.search);
 const uid    = params.get('uid');
-document.getElementById('back-btn').href = uid ? `storefront.html?uid=${uid}` : 'landing.html';
+document.getElementById('back-btn').href = uid ? `index.html?uid=${uid}` : 'landing.html';
 
 // allPhotos = full list, filteredPhotos = currently shown (after kategori filter)
 let allPhotos      = [];
@@ -391,7 +391,7 @@ lb.addEventListener('touchend',   e => {
 </script>
 
 <script type="module">
-  import { checkMaintenance } from './maintenance.js';
+  import { checkMaintenance } from '/js/maintenance.js';
   await checkMaintenance();
 </script>
 </body>

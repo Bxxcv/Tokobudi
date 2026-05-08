@@ -1,4 +1,4 @@
-const CACHE = 'linkify-v2';
+const CACHE = 'linkify-v1';
 const STATIC = [
   '/landing.html', '/login-user.html',
   '/css/landing.css', '/css/index.css', '/css/style.css',
