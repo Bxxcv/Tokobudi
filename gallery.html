@@ -182,9 +182,9 @@
   </div>
 
 <script type="module">
-import { db } from '/firebase.js';
+import { db } from '../firebase.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { checkPremium, escHtml, hexToRgb } from '/js/utils.js';
+import { checkPremium, escHtml, hexToRgb } from './utils.js';
 
 const params = new URLSearchParams(location.search);
 const uid    = params.get('uid');
@@ -391,7 +391,7 @@ lb.addEventListener('touchend',   e => {
 </script>
 
 <script type="module">
-  import { checkMaintenance } from '/js/maintenance.js';
+  import { checkMaintenance } from './maintenance.js';
   await checkMaintenance();
 </script>
 </body>
