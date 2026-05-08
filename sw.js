@@ -1,6 +1,6 @@
-const CACHE = 'linkify-v1';
+const CACHE = 'linkify-v2';
 const STATIC = [
-  '/', '/landing.html', '/login-user.html',
+  '/landing.html', '/login-user.html',
   '/css/landing.css', '/css/index.css', '/css/style.css',
   '/logo-linkify.png', '/manifest.json'
 ];
@@ -22,7 +22,6 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // Never cache Firebase / API calls
   if (url.hostname.includes('firebase') || url.hostname.includes('googleapis') || url.hostname.includes('cloudinary')) return;
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {

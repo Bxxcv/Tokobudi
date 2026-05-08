@@ -188,7 +188,7 @@ import { checkPremium, escHtml, hexToRgb } from './utils.js';
 
 const params = new URLSearchParams(location.search);
 const uid    = params.get('uid');
-document.getElementById('back-btn').href = uid ? `index.html?uid=${uid}` : 'landing.html';
+document.getElementById('back-btn').href = uid ? `storefront.html?uid=${uid}` : 'landing.html';
 
 // allPhotos = full list, filteredPhotos = currently shown (after kategori filter)
 let allPhotos      = [];

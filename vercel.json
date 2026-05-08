@@ -1,12 +1,13 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/", "destination": "/landing.html", "permanent": false }
+    { "source": "/", "destination": "/landing", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/toko/:uid", "destination": "/index.html"      },
-    { "source": "/gallery",   "destination": "/gallery.html"    },
-    { "source": "/login",     "destination": "/login-user.html" }
+    { "source": "/landing",     "destination": "/landing.html"    },
+    { "source": "/toko/:uid",   "destination": "/storefront.html" },
+    { "source": "/gallery",     "destination": "/gallery.html"    },
+    { "source": "/login",       "destination": "/login-user.html" }
   ],
   "headers": [
     {
