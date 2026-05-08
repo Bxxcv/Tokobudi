@@ -640,11 +640,6 @@
     });
   }, { threshold: 0.07, rootMargin: '0px 0px -16px 0px' });
   document.querySelectorAll('.fade-in').forEach(function(el){ io.observe(el); });
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js').catch(function(){});
-    });
-  }
 })();
 </script>
 </body>
