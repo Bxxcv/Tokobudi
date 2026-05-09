@@ -140,6 +140,7 @@ h1.hero-title .accent{
 .phone-mockup{
   position:relative;margin-bottom:48px;
   width:220px;flex-shrink:0;
+  max-width: 100%;
 }
 .phone-frame{
   background:rgba(255,255,255,0.04);
