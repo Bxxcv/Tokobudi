@@ -584,16 +584,13 @@ async function saveMaintenance() {
   const msg   = $('maint-msg-inp')   ? $('maint-msg-inp').value.trim()   : 'Sistem sedang dalam pemeliharaan.';
   const est   = $('maint-est-inp')   ? $('maint-est-inp').value           : '';
   const title = $('maint-title-inp') ? $('maint-title-inp').value.trim()  : 'Sedang Maintenance';
-  const active = $('maint-toggle') ? $('maint-toggle').checked : false;
   const btn   = $('maint-save-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Menyimpan...'; }
   try {
-    const payload = { active, message: msg || 'Sistem sedang dalam pemeliharaan.', title: title || 'Sedang Maintenance', updatedAt: serverTimestamp(), updatedBy: auth.currentUser ? auth.currentUser.email : 'admin' };
+    const payload = { message: msg || 'Sistem sedang dalam pemeliharaan.', title: title || 'Sedang Maintenance', updatedAt: serverTimestamp(), updatedBy: auth.currentUser ? auth.currentUser.email : 'admin' };
     if (est) payload.estimatedDone = new Date(est);
     else payload.estimatedDone = null;
     await setDoc(doc(db, 'config', 'maintenance'), payload, { merge: true });
-    const statusEl = $('maint-status-label');
-    if (statusEl) { statusEl.textContent = active ? 'AKTIF' : 'NONAKTIF'; statusEl.style.color = active ? '#F87171' : '#34D399'; }
     toast('Pengaturan maintenance disimpan!');
   } catch (e) {
     toast('Gagal: ' + e.message, 'err');
@@ -626,9 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof cb === 'function') await cb();
     });
   }
-
-  const maintToggle = $('maint-toggle');
-  if (maintToggle) maintToggle.addEventListener('change', toggleMaintenance);
 });
 
 // ── EXPOSE TO WINDOW ──────────────────────────────────────────────────────────

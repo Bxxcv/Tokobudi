@@ -12,7 +12,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
-  serverTimestamp, getDoc, query, orderBy, setDoc, where, increment
+  serverTimestamp, getDoc, query, orderBy, setDoc, where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
@@ -640,11 +640,16 @@ function updatePremiumUI() {
     }
   }
 
-  $('premium-cta')?.classList.toggle('hidden', isPrem);
-  $('premium-content')?.classList.toggle('hidden', !isPrem);
+  $('premium-cta')?.classList.toggle('hidden', isBasic);
+  // FIX: Show premium-content for both basic and premium (gallery visible to basic)
+  $('premium-content')?.classList.toggle('hidden', !isBasic);
 
   const planInfoEl = $('plan-info-section');
   if (planInfoEl) planInfoEl.classList.toggle('hidden', !isBasic);
+
+  // Show/hide premium-only sections inside premium-content
+  const premOnlySections = document.querySelectorAll('.prem-only');
+  premOnlySections.forEach(el => el.classList.toggle('hidden', !isPrem));
 
   const planEndDate = currentTokoData.planEndDate || currentTokoData.premium?.endDate;
   if (planEndDate) {
@@ -653,6 +658,18 @@ function updatePremiumUI() {
     const exEl  = $('premium-expiry');
     if (exEl) exEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Paket ${plan === 'premium' ? 'Premium' : 'Basic'} aktif sampai <strong>${label}</strong>`;
+  }
+
+  // FIX: Update badge text based on plan
+  const badgeEl = $('premium-badge');
+  if (badgeEl) {
+    if (isPrem) {
+      badgeEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Akun Premium Aktif';
+      badgeEl.style.cssText = 'background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.25);color:#FF6B35;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:8px 16px;border-radius:10px;margin-bottom:20px;';
+    } else if (isBasic) {
+      badgeEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg> Akun Basic Aktif';
+      badgeEl.style.cssText = 'background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#3B82F6;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:8px 16px;border-radius:10px;margin-bottom:20px;';
+    }
   }
 
   if (isBasic) renderGalleryEditor();
@@ -823,45 +840,50 @@ function renderPremiumTemplatePicker() {
     const preview  = getThemePreviewData(template.id);
     const isActive = template.id === currentTemplate;
     return `
-      <button type="button"
-        class="premium-theme-select-btn${isActive ? ' active' : ''}"
-        data-template="${template.id}"
-        aria-pressed="${isActive}"
-        style="--theme-preview-primary:${preview.colors.primary};--theme-preview-secondary:${preview.colors.secondary};">
-        <span class="premium-theme-select-icon">${template.icon}</span>
-        <span class="premium-theme-select-name">${escHtml(template.name)}</span>
-        <span class="premium-theme-select-status">${isActive ? 'Aktif' : 'Pilih Tema'}</span>
-      </button>`;
+      <div class="premium-template-card${isActive ? ' active' : ''}" data-template="${template.id}" role="button" tabindex="0" aria-pressed="${isActive}">
+        <div class="premium-template-preview" style="background: linear-gradient(135deg, ${preview.colors.primary} 0%, ${preview.colors.secondary} 100%);">
+          ${template.icon}
+        </div>
+        <div class="premium-template-content">
+          <div class="premium-template-title">${escHtml(template.name)}</div>
+          <div class="premium-template-category">${escHtml(template.category)}</div>
+          <div class="premium-template-desc">${escHtml(template.description)}</div>
+          <div class="premium-template-features">
+            ${template.features.map(f => `<span class="premium-template-tag">${escHtml(f)}</span>`).join('')}
+          </div>
+        </div>
+      </div>`;
   }).join('');
 
-  wrap.querySelectorAll('.premium-theme-select-btn').forEach(btn => {
+  wrap.querySelectorAll('.premium-template-card').forEach(card => {
     const selectTemplate = async () => {
-      const templateId = btn.dataset.template;
+      const templateId = card.dataset.template;
       const uid = auth.currentUser?.uid;
       if (!uid) return;
+      // FIX: visual loading state on card
+      card.style.opacity = '0.6';
+      card.style.pointerEvents = 'none';
       try {
         await updateDoc(doc(db, 'toko', uid), { 'premium.templateTheme': templateId });
         if (!currentTokoData.premium) currentTokoData.premium = {};
         currentTokoData.premium.templateTheme = templateId;
-        wrap.querySelectorAll('.premium-theme-select-btn').forEach(c => {
+        wrap.querySelectorAll('.premium-template-card').forEach(c => {
           c.classList.remove('active');
-          c.setAttribute('aria-pressed', 'false');
-          const status = c.querySelector('.premium-theme-select-status');
-          if (status) status.textContent = 'Pilih Tema';
+          c.style.opacity = '';
+          c.style.pointerEvents = '';
         });
-        btn.classList.add('active');
-        btn.setAttribute('aria-pressed', 'true');
-        const status = btn.querySelector('.premium-theme-select-status');
-        if (status) status.textContent = 'Aktif';
+        card.classList.add('active');
         clearPublicCache(uid);
-        showToast(`Template "${getTemplate(templateId).name}" diaktifkan!`);
+        showToast(`Template "${getTemplate(templateId).name}" diaktifkan! ✓`, 'success');
       } catch (err) {
         console.error('Template save error:', err);
         showToast('Gagal menyimpan template', 'error');
+        card.style.opacity = '';
+        card.style.pointerEvents = '';
       }
     };
-    btn.addEventListener('click', selectTemplate);
-    btn.addEventListener('keypress', e => {
+    card.addEventListener('click', selectTemplate);
+    card.addEventListener('keypress', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
     });
   });
@@ -1079,100 +1101,3 @@ async function uploadCloudinary(file) {
     return null;
   }
 }
-
-// ── MAINTENANCE ────────────────────────────────────────────────────────────
-Dashboard user tidak mengelola maintenance.
-async function loadMaintenanceSettings() {
-  try {
-    const snap = await getDoc(doc(db, 'config', 'maintenance'));
-    const data = snap.exists() ? snap.data() : {};
-
-    const toggle = document.getElementById('toggle-maintenance');
-    const toggleUI = document.getElementById('maint-toggle-ui');
-    const statusLabel = document.getElementById('maint-status-label');
-
-    const isActive = !!data.active;
-
-    if (toggle) toggle.checked = isActive;
-    updateToggleUI(isActive);
-
-    if (statusLabel) statusLabel.textContent = isActive
-      ? '🔴 Maintenance AKTIF — storefront tidak dapat diakses pengunjung'
-      : '🟢 Normal — storefront dapat diakses pengunjung';
-
-    if (data.title) {
-      const el = document.getElementById('inp-maint-title');
-      if (el) el.value = data.title;
-    }
-    if (data.message) {
-      const el = document.getElementById('inp-maint-msg');
-      if (el) el.value = data.message;
-    }
-    if (data.estimatedDone) {
-      const el = document.getElementById('inp-maint-eta');
-      if (el) {
-        const d = data.estimatedDone?.toDate ? data.estimatedDone.toDate() : new Date(data.estimatedDone);
-        // format to datetime-local: YYYY-MM-DDTHH:mm
-        const pad = n => String(n).padStart(2, '0');
-        el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      }
-    }
-
-    // Toggle event
-    if (toggle && !toggle._maint_bound) {
-      toggle._maint_bound = true;
-      toggle.addEventListener('change', () => updateToggleUI(toggle.checked));
-    }
-  } catch (e) {
-    console.error('Gagal memuat maintenance:', e);
-    showToast('Gagal memuat pengaturan maintenance', 'error');
-  }
-}
-
-function updateToggleUI(active) {
-  const ui = document.getElementById('maint-toggle-ui');
-  const statusLabel = document.getElementById('maint-status-label');
-  if (!ui) return;
-  const knob = ui.querySelector('.maint-knob');
-  if (active) {
-    ui.style.background = '#FF6B35';
-    if (knob) knob.style.left = '23px';
-  } else {
-    ui.style.background = '#ccc';
-    if (knob) knob.style.left = '3px';
-  }
-  if (statusLabel) statusLabel.textContent = active
-    ? '🔴 Maintenance AKTIF — storefront tidak dapat diakses pengunjung'
-    : '🟢 Normal — storefront dapat diakses pengunjung';
-}
-
-document.getElementById('btn-save-maintenance')?.addEventListener('click', async () => {
-  const btn = document.getElementById('btn-save-maintenance');
-  if (!btn || btn.disabled) return;
-  btn.disabled = true;
-
-  const toggle = document.getElementById('toggle-maintenance');
-  const active = toggle?.checked ?? false;
-  const title = document.getElementById('inp-maint-title')?.value.trim() || 'Sedang Maintenance';
-  const message = document.getElementById('inp-maint-msg')?.value.trim() || 'Sistem sedang dalam pemeliharaan.';
-  const etaVal = document.getElementById('inp-maint-eta')?.value;
-
-  try {
-    const payload = { active, title, message, updatedAt: serverTimestamp() };
-    if (etaVal) {
-      payload.estimatedDone = new Date(etaVal);
-    } else {
-      payload.estimatedDone = null;
-    }
-
-    await setDoc(doc(db, 'config', 'maintenance'), payload, { merge: true });
-    showToast(active ? 'Maintenance AKTIF! Storefront ditutup.' : 'Maintenance dinonaktifkan. Storefront normal.');
-    updateToggleUI(active);
-  } catch (e) {
-    console.error(e);
-    showToast('Gagal menyimpan: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false;
-  }
-});
-*/

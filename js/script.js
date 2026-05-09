@@ -420,7 +420,6 @@ function buildProductCard(p) {
   const stokNol   = Number(p.stok) === 0;
   const hasDiskon = p.hargaAsli && Number(p.hargaAsli) > Number(p.harga);
   const pct       = hasDiskon ? Math.round((1 - p.harga / p.hargaAsli) * 100) : 0;
-
   const pesanWa   = encodeURIComponent(
     'Halo, saya mau pesan:\n- Produk: ' + nama + '\n- Harga: Rp ' + rupiah(p.harga)
   );
