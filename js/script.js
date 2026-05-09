@@ -196,7 +196,7 @@ async function loadSettings() {
     if (bioEl) bioEl.textContent = s.bio || '';
 
     const profImg = document.getElementById('profileImg');
-    if (profImg && s.logo) { profImg.src = s.logo; }
+    if (profImg && s.logo) { profImg.src = s.logo; profImg.onerror = () => { profImg.style.display = 'none'; }; }
 
     const fsEl = document.getElementById('footer-store');
     if (fsEl) fsEl.textContent = '© 2025 ' + storeName;
@@ -433,7 +433,7 @@ function buildProductCard(p) {
     <div class="prod-img-wrap">
       <img src="${escHtml(p.img || '')}" alt="${escHtml(nama)}"
            class="product-img" loading="lazy" decoding="async"
-           onerror="this.src='https://placehold.co/400x300/111/333?text=Foto'">
+           onerror="this.onerror=null;this.src='https://placehold.co/400x300/111/333?text=Foto'">
       ${stokNol   ? '<div class="badge-stok">HABIS</div>' : ''}
       ${hasDiskon ? `<div class="badge-diskon">-${pct}%</div>` : ''}
       ${p.unggulan ? '<div class="badge-unggulan">★</div>' : ''}
