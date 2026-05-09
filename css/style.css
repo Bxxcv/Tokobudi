@@ -738,3 +738,67 @@ html, body { height: 100%; background: var(--bg); font-family: 'Inter', sans-ser
 .custom-btn-item input:focus {
   border-color: var(--accent, #FF6B35) !important;
 }
+
+/* ── PERFORMANCE & MOBILE PATCHES ────────────────────────────────────────── */
+
+/* FIX: tap highlight + touch target */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* FIX: minimum touch target 44px for buttons */
+button, .tab-btn, .btn-ed, .btn-del, .color-circle {
+  min-height: 36px;
+}
+
+/* FIX: reduce will-change scope — only apply where genuinely animated */
+.sidebar        { will-change: transform; }
+.modal-bg       { will-change: opacity; }
+.modal-box      { will-change: transform, opacity; }
+
+/* Remove will-change from static elements to save GPU memory */
+.p-card         { will-change: unset; }
+.skel-card      { will-change: unset; }
+
+/* FIX: smooth scrolling on main content */
+.main, .page-wrap {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* FIX: prevent overflow on mobile form inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  max-width: 100%;
+  font-size: 16px; /* prevent iOS zoom on focus */
+}
+
+/* FIX: product grid responsive - better touch targets */
+@media (max-width:480px) {
+  .p-acts {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-ed, .btn-del {
+    flex: 1;
+    min-height: 40px;
+    font-size: 13px;
+  }
+  .page-wrap { padding: 14px 12px 80px; }
+  .f-card    { padding: 14px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+}
+
+/* FIX: sidebar overlay z-index on mobile */
+@media (max-width:768px) {
+  .overlay { z-index: 29; }
+  .sidebar  { z-index: 30; }
+}
+
+/* FIX: modal full-height on small phones */
+@media (max-width:420px) {
+  .modal-box { max-height: 92dvh; overflow-y: auto; }
+}
