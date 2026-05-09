@@ -164,3 +164,12 @@ export function showToast(msg, type = 'info', duration = 3000) {
     }, 300);
   }, duration);
 }
+
+/** Validate image URL — only allow http/https, block data URIs and JS */
+export function safeImgUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!/^https?:\/\//i.test(trimmed)) return '';
+  return trimmed;
+}
+
