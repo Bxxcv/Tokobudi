@@ -17,6 +17,7 @@ import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
   formatDate, TEMPLATE_LIST, showToast
 } from './utils.js';
+import { PREMIUM_TEMPLATES, getTemplate, getAllTemplates, getThemePreviewData } from './templates.js';
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 const CLOUD_NAME   = CONFIG.cloudinary.cloudName;
@@ -31,6 +32,25 @@ let prodBlobUrl = null;
 let logoBlobUrl = null;
 let customBtns  = [];
 let galleryPhotos = [];
+
+// ── PERFORMANCE UTILS ──────────────────────────────────────────────────────
+// Debounce untuk mengurangi update Firestore saat selection berubah
+function debounce(fn, delay) {
+  let timeout;
+  return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+// RequestAnimationFrame untuk smooth rendering
+function smoothRender(callback) {
+  if (window.requestAnimationFrame) {
+    requestAnimationFrame(callback);
+  } else {
+    setTimeout(callback, 16);
+  }
+}
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -617,7 +637,8 @@ function updatePremiumUI() {
     if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
     renderColorPicker();
     renderQR();
-    renderTemplatePicker();
+    renderPremiumTemplatePicker();  // NEW: Premium theme templates
+    renderTemplatePicker();         // Legacy: Background templates
     renderCustomButtonEditor();
   }
 }
@@ -754,6 +775,72 @@ function renderTemplatePicker() {
         renderTemplatePicker();
         showToast('Tema diperbarui!');
       } catch { showToast('Gagal simpan tema', 'error'); }
+    });
+  });
+}
+
+// ── PREMIUM: TEMPLATE THEMES (NEW PREMIUM FEATURE) ──────────────────────
+function renderPremiumTemplatePicker() {
+  const wrap = $('premium-template-options');
+  if (!wrap) return;
+
+  const currentTemplate = currentTokoData?.premium?.templateTheme || 'fashion';
+  const templates = getAllTemplates();
+
+  wrap.innerHTML = templates.map(template => {
+    const preview = getThemePreviewData(template.id);
+    const isActive = template.id === currentTemplate;
+    return `
+      <div class="premium-template-card${isActive ? ' active' : ''}" data-template="${template.id}" role="button" tabindex="0" aria-pressed="${isActive}">
+        <div class="premium-template-preview" style="background: linear-gradient(135deg, ${preview.colors.primary} 0%, ${preview.colors.secondary} 100%);">
+          ${template.icon}
+        </div>
+        <div class="premium-template-content">
+          <div class="premium-template-title">${escHtml(template.name)}</div>
+          <div class="premium-template-category">${escHtml(template.category)}</div>
+          <div class="premium-template-desc">${escHtml(template.description)}</div>
+          <div class="premium-template-features">
+            ${template.features.map(f => `<span class="premium-template-tag">${escHtml(f)}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Event listeners for template selection
+  wrap.querySelectorAll('.premium-template-card').forEach(card => {
+    const selectTemplate = async () => {
+      const templateId = card.dataset.template;
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+
+      try {
+        // Update Firestore
+        await updateDoc(doc(db, 'toko', uid), {
+          'premium.templateTheme': templateId
+        });
+
+        // Update current state
+        if (!currentTokoData.premium) currentTokoData.premium = {};
+        currentTokoData.premium.templateTheme = templateId;
+
+        // Update UI
+        wrap.querySelectorAll('.premium-template-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
+        showToast(`Template "${getTemplate(templateId).name}" diaktifkan!`);
+      } catch (err) {
+        console.error('Template save error:', err);
+        showToast('Gagal menyimpan template', 'error');
+      }
+    };
+
+    card.addEventListener('click', selectTemplate);
+    card.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectTemplate();
+      }
     });
   });
 }
