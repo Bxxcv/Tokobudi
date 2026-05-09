@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LINKify — Dashboard Toko</title>
+  <title>LINKify — Dashboard User</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
         </div>
         <div>
           <div class="sidebar-brand-text">LINKify</div>
-          <div class="sidebar-brand-sub">Dashboard Toko</div>
+          <div class="sidebar-brand-sub">Dashboard User</div>
         </div>
       </div>
 
@@ -57,11 +57,6 @@
         <button type="button" class="tab-btn" data-tab="account">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Akun Saya
-        </button>
-
-        <button type="button" class="tab-btn" data-tab="maintenance">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          Maintenance
         </button>
 
         <div class="sidebar-divider"></div>
@@ -169,13 +164,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warning)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             Premium
           </button>
-          <button type="button" class="qa-btn" onclick="goTab('premium')" title="Ubah tema/template storefront">
+          <button type="button" class="qa-btn" onclick="goTab('premium');setTimeout(()=>document.getElementById('premium-theme-section')?.scrollIntoView({behavior:'smooth',block:'start'}),80)" title="Ubah tema/template storefront">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#8B5CF6"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
             Ubah Tema
-          </button>
-          <button type="button" class="qa-btn" onclick="goTab('maintenance')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#EF4444"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            Maintenance
           </button>
         </div>
 
@@ -354,7 +345,7 @@
           </div>
 
           <!-- Template Premium Themes -->
-          <div class="sec-head"><span class="sec-title">🎨 Template Premium (6 Tema Eksklusif)</span></div>
+          <div class="sec-head" id="premium-theme-section"><span class="sec-title">🎨 Template Premium (6 Tema Eksklusif)</span></div>
           <div class="card" style="margin-bottom:20px;">
             <p style="font-size:12px;color:var(--text-3);margin-bottom:16px;">Pilih satu dari 6 tema eksklusif dengan styling, font, dan warna unik untuk bisnis Anda. Perubahan langsung live di storefront.</p>
             <div class="premium-templates-grid" id="premium-template-options"></div>
@@ -535,53 +526,6 @@
           <p style="font-size:13px;color:var(--text-2);line-height:1.7;">Akun ini terhubung ke toko kamu di LINKify. Jika mengalami masalah login, hubungi admin.</p>
         </div>
       </div>
-
-
-
-      <!-- ════════════════════ MAINTENANCE ════════════════════ -->
-      <div id="tab-maintenance" class="page">
-        <div class="page-title">Mode Maintenance</div>
-        <div class="page-sub">Aktifkan untuk menutup sementara storefront dari pengunjung</div>
-
-        <div class="f-card" style="max-width:520px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-            <div>
-              <div style="font-weight:700;font-size:15px;color:var(--text-1);">Status Maintenance</div>
-              <div id="maint-status-label" style="font-size:12px;color:var(--text-3);margin-top:3px;">Memuat...</div>
-            </div>
-            <label class="maint-toggle-wrap" style="display:inline-flex;align-items:center;cursor:pointer;">
-              <input type="checkbox" id="toggle-maintenance" style="display:none;">
-              <span id="maint-toggle-ui" style="display:inline-block;width:44px;height:24px;background:#ccc;border-radius:999px;position:relative;transition:background 0.2s;"><span style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.2s;display:block;" class="maint-knob"></span></span>
-            </label>
-          </div>
-
-          <div style="height:1px;background:var(--border);margin-bottom:18px;"></div>
-
-          <div class="f-group">
-            <label class="f-label">Judul Halaman Maintenance</label>
-            <input type="text" id="inp-maint-title" class="f-input" placeholder="Sedang Maintenance" maxlength="80">
-          </div>
-
-          <div class="f-group">
-            <label class="f-label">Pesan untuk Pengunjung</label>
-            <textarea id="inp-maint-msg" class="f-area" rows="3" placeholder="Sistem sedang dalam pemeliharaan. Kami akan segera kembali." maxlength="300"></textarea>
-          </div>
-
-          <div class="f-group">
-            <label class="f-label">Estimasi Selesai <span style="font-weight:400;color:var(--text-3);text-transform:none;letter-spacing:0;">(opsional)</span></label>
-            <input type="datetime-local" id="inp-maint-eta" class="f-input">
-          </div>
-
-          <div style="height:1px;background:var(--border);margin:18px 0;"></div>
-          <p style="font-size:12px;color:var(--text-3);margin-bottom:16px;line-height:1.65;">Saat maintenance aktif, pengunjung akan diarahkan ke maintenance.html. Admin yang login tetap dapat mengakses dashboard.</p>
-
-          <button type="button" class="btn btn-primary btn-w" id="btn-save-maintenance">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Simpan Pengaturan Maintenance
-          </button>
-        </div>
-      </div>
-
     </div><!-- end page-wrap -->
   </div><!-- end main -->
 </div><!-- end wrapper -->
