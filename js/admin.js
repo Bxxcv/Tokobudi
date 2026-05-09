@@ -15,7 +15,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
-  formatDate, TEMPLATE_LIST
+  formatDate, TEMPLATE_LIST, showToast
 } from './utils.js';
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
@@ -37,16 +37,39 @@ const $ = id => document.getElementById(id);
 const productsList = $('products-list');
 
 // ── TOAST ──────────────────────────────────────────────────────────────────
-let toastTimer;
-function toast(msg, type = 'ok') {
-  const el = $('toast');
-  el.textContent  = msg;
-  el.style.background = type === 'ok' ? '#111' : type === 'err' ? '#EF4444' : '#D97706';
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+// Using global showToast from utils.js
+
+// ── VALIDATION ─────────────────────────────────────────────────────────────
+function validateProduct(data) {
+  if (!data.nama || typeof data.nama !== 'string' || data.nama.trim().length === 0) {
+    throw new Error('Nama produk tidak boleh kosong');
+  }
+  if (data.nama.length > 100) {
+    throw new Error('Nama produk maksimal 100 karakter');
+  }
+  if (isNaN(data.harga) || data.harga < 0) {
+    throw new Error('Harga harus berupa angka positif');
+  }
+  if (data.harga > 100000000) { // 100 million
+    throw new Error('Harga terlalu tinggi');
+  }
+  if (isNaN(data.stok) || data.stok < 0) {
+    throw new Error('Stok harus berupa angka positif');
+  }
+  if (data.deskripsi && data.deskripsi.length > 500) {
+    throw new Error('Deskripsi maksimal 500 karakter');
+  }
+  if (data.shopee && !/^https?:\/\/.+/.test(data.shopee)) {
+    throw new Error('Link Shopee harus valid (dimulai dengan http/https)');
+  }
+  if (data.wa && !/^https?:\/\/.+/.test(data.wa)) {
+    throw new Error('Link WhatsApp harus valid');
+  }
+  if (!data.img || typeof data.img !== 'string') {
+    throw new Error('Foto produk wajib diupload');
+  }
+  return true;
 }
-window.showToast = toast;
 
 // ── CLOCK ──────────────────────────────────────────────────────────────────
 function tickClock() {
@@ -81,11 +104,11 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
 // ── COPY LINK ──────────────────────────────────────────────────────────────
 $('btn-copy-link').addEventListener('click', () => {
   const uid = auth.currentUser?.uid;
-  if (!uid) return toast('Login dulu!', 'err');
+  if (!uid) return showToast('Login dulu!', 'error');
   const link = `${window.location.origin}${BASE_PATH}/?uid=${uid}`;
   navigator.clipboard.writeText(link)
-    .then(() => toast('Link toko berhasil dicopy!'))
-    .catch(() => toast('Gagal copy link', 'err'));
+    .then(() => showToast('Link toko berhasil dicopy!'))
+    .catch(() => showToast('Gagal copy link', 'error'));
 });
 
 $('btn-preview-store')?.addEventListener('click', () => {
@@ -103,7 +126,7 @@ onAuthStateChanged(auth, async user => {
 
   const tokoSnap = await getDoc(doc(db, 'toko', user.uid));
   if (!tokoSnap.exists()) {
-    toast('Akun ini belum terdaftar sebagai toko! Hubungi admin.', 'err');
+    showToast('Akun ini belum terdaftar sebagai toko! Hubungi admin.', 'error');
     setTimeout(() => signOut(auth), 2000);
     return;
   }
@@ -112,7 +135,7 @@ onAuthStateChanged(auth, async user => {
 
   // SECURITY: block suspended users from accessing dashboard
   if (currentTokoData.status === 'blokir') {
-    toast('Akun Anda telah dinonaktifkan. Hubungi admin.', 'err');
+    showToast('Akun Anda telah dinonaktifkan. Hubungi admin.', 'error');
     setTimeout(() => signOut(auth), 2200);
     return;
   }
@@ -282,6 +305,13 @@ window.filterProducts = function() {
   if (lbl) lbl.textContent = `${filtered.length} dari ${allProductsCache.length} produk`;
 };
 
+// Debounced filter
+let filterTimeout;
+window.debouncedFilter = function() {
+  clearTimeout(filterTimeout);
+  filterTimeout = setTimeout(filterProducts, 300);
+};
+
 // Product list delegation
 productsList.addEventListener('click', async e => {
   const btn = e.target.closest('[data-id]');
@@ -293,7 +323,7 @@ productsList.addEventListener('click', async e => {
   if (btn.classList.contains('btn-ed')) {
     try {
       const snap = await getDoc(produkDoc(uid, id));
-      if (!snap.exists()) { toast('Produk tidak ditemukan', 'err'); return; }
+      if (!snap.exists()) { showToast('Produk tidak ditemukan', 'error'); return; }
       const p = snap.data();
       $('inp-prod-id').value    = id;
       $('inp-prod-name').value  = p.nama       || '';
@@ -317,17 +347,17 @@ productsList.addEventListener('click', async e => {
       }
       $('modal-title').textContent = 'Edit Produk';
       openModal();
-    } catch (err) { toast('Gagal load: ' + err.message, 'err'); }
+    } catch (err) { showToast('Gagal load: ' + err.message, 'error'); }
   }
 
   if (btn.classList.contains('btn-del')) {
     if (!confirm('Yakin hapus produk "' + (allProductsCache.find(p=>p.id===id)?.nama||'ini') + '"?')) return;
     try {
       await deleteDoc(produkDoc(uid, id));
-      toast('Produk dihapus.');
+      showToast('Produk dihapus.');
       await loadProducts(uid);
       await loadDashboardStats(uid);
-    } catch (err) { toast('Gagal hapus: ' + err.message, 'err'); }
+    } catch (err) { showToast('Gagal hapus: ' + err.message, 'error'); }
   }
 });
 
@@ -371,7 +401,7 @@ $('product-form').addEventListener('submit', async e => {
   const file = $('inp-prod-file').files[0];
   let imgUrl = $('inp-prod-img').value;
 
-  if (!file && !imgUrl) { toast('Pilih foto produk!', 'warn'); return; }
+  if (!file && !imgUrl) { showToast('Pilih foto produk!', 'warn'); return; }
 
   const saveBtn = $('btn-save-product');
   saveBtn.disabled = true;
@@ -384,7 +414,7 @@ $('product-form').addEventListener('submit', async e => {
     saveBtn.innerHTML = '<span class="spinner"></span> Menyimpan...';
 
     const stok = Number($('inp-prod-stock').value);
-    const data = {
+    const rawData = {
       nama:       $('inp-prod-name').value.trim(),
       harga:      Number($('inp-prod-price').value),
       stok,
@@ -397,26 +427,33 @@ $('product-form').addEventListener('submit', async e => {
       kategori:   $('inp-prod-kategori').value,
       hargaAsli:  Number($('inp-prod-harga-asli').value) || 0,
       unggulan:   $('inp-prod-unggulan').checked,
-      updatedAt:  serverTimestamp(),
+    };
+
+    // Validate before proceeding
+    validateProduct(rawData);
+
+    const data = {
+      ...rawData,
+      updatedAt: serverTimestamp(),
     };
     if (id === '') delete data.stokAwal; // no stokAwal on new product before Firestore write
 
     if (id) {
       delete data.stokAwal; // don't overwrite stokAwal on edit
       await updateDoc(produkDoc(uid, id), data);
-      toast('Produk diperbarui!');
+      showToast('Produk diperbarui!');
     } else {
       data.createdAt = serverTimestamp();
       data.stokAwal  = stok;
       await addDoc(produkCol(uid), data);
-      toast('Produk ditambahkan!');
+      showToast('Produk ditambahkan!');
     }
 
     closeModal();
     await loadProducts(uid);
     await loadDashboardStats(uid);
   } catch (err) {
-    toast('Error: ' + err.message, 'err');
+    showToast('Error: ' + err.message, 'error');
   } finally {
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Simpan Produk';
@@ -484,8 +521,8 @@ $('btn-save-settings').addEventListener('click', async () => {
       youtube:   $('inp-youtube').value.trim(),
       logo:      logoUrl,
     }, { merge: true });
-    toast('Pengaturan disimpan!');
-  } catch (err) { toast('Gagal: ' + err.message, 'err'); }
+    showToast('Pengaturan disimpan!');
+  } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
   finally {
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Pengaturan`;
@@ -499,8 +536,8 @@ $('btn-save-account').addEventListener('click', async () => {
   const oldPass  = $('inp-old-pass').value;
   const user     = auth.currentUser;
 
-  if (!oldPass) { toast('Masukkan password lama!', 'warn'); return; }
-  if (newEmail === user.email && !newPass) { toast('Tidak ada perubahan.', 'warn'); return; }
+  if (!oldPass) { showToast('Masukkan password lama!', 'warn'); return; }
+  if (newEmail === user.email && !newPass) { showToast('Tidak ada perubahan.', 'warn'); return; }
 
   const btn = $('btn-save-account');
   btn.disabled = true;
@@ -517,11 +554,11 @@ $('btn-save-account').addEventListener('click', async () => {
       // NOTE: authPass is NOT stored in Firestore for security.
       // Admin delete flow uses its own re-auth mechanism.
     }
-    toast('Akun diperbarui! Keluar otomatis...');
+    showToast('Akun diperbarui! Keluar otomatis...');
     setTimeout(() => signOut(auth), 1800);
   } catch (err) {
     const msg = err.code === 'auth/wrong-password' ? 'Password lama salah!' : err.message;
-    toast(msg, 'err');
+    showToast(msg, 'error');
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Perbarui Akun`;
@@ -646,8 +683,8 @@ function renderColorPicker() {
       if (!uid) return;
       try {
         await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
-        toast('Warna aksen diperbarui!');
-      } catch { toast('Gagal simpan warna', 'err'); }
+        showToast('Warna aksen diperbarui!');
+      } catch { showToast('Gagal simpan warna', 'error'); }
     });
   });
 }
@@ -676,7 +713,7 @@ $('btn-download-qr')?.addEventListener('click', async () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(a.href);
-    toast('QR Code didownload!');
+    showToast('QR Code didownload!');
   } catch { window.open($('qr-img').dataset.url, '_blank'); }
 });
 
@@ -715,8 +752,8 @@ function renderTemplatePicker() {
         });
         currentTokoData.premium = { ...currentTokoData.premium, template: tpl, templateBg: tplData?.bg || '', templateAccent: tplData?.accent || '' };
         renderTemplatePicker();
-        toast('Tema diperbarui!');
-      } catch { toast('Gagal simpan tema', 'err'); }
+        showToast('Tema diperbarui!');
+      } catch { showToast('Gagal simpan tema', 'error'); }
     });
   });
 }
@@ -776,7 +813,7 @@ window.cycleColor = function(idx) {
 };
 
 $('btn-add-custom-btn')?.addEventListener('click', () => {
-  if (customBtns.length >= 10) { toast('Maksimal 10 tombol kustom.', 'warn'); return; }
+  if (customBtns.length >= 10) { showToast('Maksimal 10 tombol kustom.', 'warn'); return; }
   customBtns.push({ label: '', url: '', color: BTN_COLORS[customBtns.length % BTN_COLORS.length], desc: '' });
   renderCustomBtnList();
   const inputs = $('custom-btn-list').querySelectorAll('input[data-field="label"]');
@@ -791,9 +828,9 @@ $('btn-save-custom-btns')?.addEventListener('click', async () => {
   btn.disabled = true;
   try {
     await updateDoc(doc(db, 'toko', uid), { customButtons: cleaned });
-    toast(`${cleaned.length} tombol kustom disimpan!`);
+    showToast(`${cleaned.length} tombol kustom disimpan!`);
     currentTokoData.customButtons = cleaned;
-  } catch (e) { toast('Gagal simpan: ' + e.message, 'err'); }
+  } catch (e) { showToast('Gagal simpan: ' + e.message, 'error'); }
   finally { btn.disabled = false; }
 });
 
@@ -866,7 +903,7 @@ window.removeGalleryPhoto = function(idx) {
 };
 
 $('btn-add-gallery')?.addEventListener('click', () => {
-  if (galleryPhotos.length >= 12) { toast('Maksimal 12 foto gallery.', 'warn'); return; }
+  if (galleryPhotos.length >= 12) { showToast('Maksimal 12 foto gallery.', 'warn'); return; }
   $('inp-gallery-file').click();
 });
 
@@ -875,7 +912,7 @@ $('inp-gallery-file')?.addEventListener('change', async () => {
   if (!files.length) return;
   const remaining = 12 - galleryPhotos.length;
   const toUpload  = files.slice(0, remaining);
-  if (files.length > remaining) toast(`Hanya ${remaining} foto lagi yang bisa ditambah (maks. 12).`, 'warn');
+  if (files.length > remaining) showToast(`Hanya ${remaining} foto lagi yang bisa ditambah (maks. 12).`, 'warn');
 
   const statusEl = $('gallery-upload-status');
   const addBtn   = $('btn-add-gallery');
@@ -907,10 +944,10 @@ $('btn-save-gallery')?.addEventListener('click', async () => {
     });
     const clean = galleryPhotos.filter(p => p.url);
     await updateDoc(doc(db, 'toko', uid), { gallery: clean });
-    toast(`Gallery (${clean.length} foto) disimpan!`);
+    showToast(`Gallery (${clean.length} foto) disimpan!`);
     currentTokoData.gallery = [...clean];
     if ($('gallery-upload-status')) $('gallery-upload-status').textContent = '';
-  } catch (e) { toast('Gagal simpan gallery: ' + e.message, 'err'); }
+  } catch (e) { showToast('Gagal simpan gallery: ' + e.message, 'error'); }
   finally { btn.disabled = false; }
 });
 
@@ -925,7 +962,7 @@ async function uploadCloudinary(file) {
     if (data.secure_url) return data.secure_url;
     throw new Error(data.error?.message || 'Upload gagal');
   } catch (err) {
-    toast('Upload gagal: ' + err.message, 'err');
+    showToast('Upload gagal: ' + err.message, 'error');
     return null;
   }
 }
