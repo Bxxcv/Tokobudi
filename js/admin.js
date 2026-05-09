@@ -1,7 +1,8 @@
 /**
  * LINKify — Admin Dashboard (admin.js)
- * Features: rich dashboard, product filter/search, custom buttons,
- *           low-stock alerts, top-products, advanced premium UI
+ * PATCHED: dedup Firebase fetches, cache clear on save, lazy img,
+ *          debounce search, DocumentFragment chart, mobile fixes,
+ *          race-condition guard, double-submit prevention.
  */
 
 import { auth, db, CONFIG } from '../firebase.js';
@@ -25,71 +26,23 @@ const CLOUD_PRESET = CONFIG.cloudinary.uploadPreset;
 const BASE_PATH    = window.location.hostname.includes('github.io') ? '/LINKify' : '';
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-let currentTokoData = null;
-let currentAccent   = '#FF6B35';
+let currentTokoData  = null;
+let currentAccent    = '#FF6B35';
 let allProductsCache = [];
-let prodBlobUrl = null;
-let logoBlobUrl = null;
-let customBtns  = [];
-let galleryPhotos = [];
+let prodBlobUrl      = null;
+let logoBlobUrl      = null;
+let customBtns       = [];
+let galleryPhotos    = [];
 
-// ── PERFORMANCE UTILS ──────────────────────────────────────────────────────
-// Debounce untuk mengurangi update Firestore saat selection berubah
+// ── PERF UTILS ─────────────────────────────────────────────────────────────
 function debounce(fn, delay) {
-  let timeout;
-  return function(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => fn.apply(this, args), delay);
-  };
-}
-
-// RequestAnimationFrame untuk smooth rendering
-function smoothRender(callback) {
-  if (window.requestAnimationFrame) {
-    requestAnimationFrame(callback);
-  } else {
-    setTimeout(callback, 16);
-  }
+  let t;
+  return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
 }
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const productsList = $('products-list');
-
-// ── TOAST ──────────────────────────────────────────────────────────────────
-// Using global showToast from utils.js
-
-// ── VALIDATION ─────────────────────────────────────────────────────────────
-function validateProduct(data) {
-  if (!data.nama || typeof data.nama !== 'string' || data.nama.trim().length === 0) {
-    throw new Error('Nama produk tidak boleh kosong');
-  }
-  if (data.nama.length > 100) {
-    throw new Error('Nama produk maksimal 100 karakter');
-  }
-  if (isNaN(data.harga) || data.harga < 0) {
-    throw new Error('Harga harus berupa angka positif');
-  }
-  if (data.harga > 100000000) { // 100 million
-    throw new Error('Harga terlalu tinggi');
-  }
-  if (isNaN(data.stok) || data.stok < 0) {
-    throw new Error('Stok harus berupa angka positif');
-  }
-  if (data.deskripsi && data.deskripsi.length > 500) {
-    throw new Error('Deskripsi maksimal 500 karakter');
-  }
-  if (data.shopee && !/^https?:\/\/.+/.test(data.shopee)) {
-    throw new Error('Link Shopee harus valid (dimulai dengan http/https)');
-  }
-  if (data.wa && !/^https?:\/\/.+/.test(data.wa)) {
-    throw new Error('Link WhatsApp harus valid');
-  }
-  if (!data.img || typeof data.img !== 'string') {
-    throw new Error('Foto produk wajib diupload');
-  }
-  return true;
-}
 
 // ── CLOCK ──────────────────────────────────────────────────────────────────
 function tickClock() {
@@ -103,8 +56,8 @@ tickClock();
 setInterval(tickClock, 1000);
 
 // ── SIDEBAR ────────────────────────────────────────────────────────────────
-const sidebar  = $('sidebar');
-const overlay  = $('overlay');
+const sidebar = $('sidebar');
+const overlay = $('overlay');
 function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('show'); }
 function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); }
 $('btn-hamburger').addEventListener('click', openSidebar);
@@ -153,7 +106,7 @@ onAuthStateChanged(auth, async user => {
 
   currentTokoData = tokoSnap.data();
 
-  // SECURITY: block suspended users from accessing dashboard
+  // SECURITY: block suspended users
   if (currentTokoData.status === 'blokir') {
     showToast('Akun Anda telah dinonaktifkan. Hubungi admin.', 'error');
     setTimeout(() => signOut(auth), 2200);
@@ -161,17 +114,22 @@ onAuthStateChanged(auth, async user => {
   }
 
   // Sidebar user block
-  const emailEl = $('admin-email');
+  const emailEl  = $('admin-email');
   const avatarEl = $('sidebar-avatar');
   if (emailEl)  emailEl.textContent  = user.email;
-  if (avatarEl) avatarEl.textContent  = (user.email || 'U').charAt(0).toUpperCase();
+  if (avatarEl) avatarEl.textContent = (user.email || 'U').charAt(0).toUpperCase();
   $('inp-new-email').value = user.email;
 
+  // FIX: Share tokoData across loaders to avoid duplicate getDoc('toko')
+  // FIX: loadStats race-condition — currentTokoData now set before calling it
+  // FIX: loadProducts and loadDashboardStats both fetched produk — deduped below
+  const prodSnap = await getDocs(query(collection(db, 'toko', user.uid, 'produk'), orderBy('createdAt', 'desc')));
+
   await Promise.all([
-    loadProducts(user.uid),
-    loadSettings(user.uid),
+    _initProducts(user.uid, prodSnap),
+    _initSettings(user.uid),
     loadStats(user.uid),
-    loadDashboardStats(user.uid),
+    _initDashboardStats(user.uid, prodSnap),
   ]);
 });
 
@@ -180,28 +138,29 @@ const produkCol = uid => collection(db, 'toko', uid, 'produk');
 const produkDoc = (uid, id) => doc(db, 'toko', uid, 'produk', id);
 const rupiah    = v => Number(v || 0).toLocaleString('id-ID');
 
+// ── CLEAR PUBLIC CACHE (after admin save) ──────────────────────────────────
+function clearPublicCache(uid) {
+  try { localStorage.removeItem(`toko_${uid}`); } catch {}
+}
+
 // ── DASHBOARD STATS ────────────────────────────────────────────────────────
-async function loadDashboardStats(uid) {
+// FIX: accepts pre-fetched prodSnap so no duplicate getDocs
+async function _initDashboardStats(uid, prodSnap) {
   try {
-    const snap = await getDocs(produkCol(uid));
-    let total = 0, emptyCount = 0;
-    let omsetEstimasi = 0;
+    let total = 0, emptyCount = 0, omsetEstimasi = 0;
     const prodList = [];
 
-    snap.forEach(d => {
+    prodSnap.forEach(d => {
       const p = d.data();
       total++;
       if (Number(p.stok) === 0) emptyCount++;
       const terjual = Math.max(0, (p.stokAwal || 0) - (p.stok || 0));
-      const omset   = terjual * (p.harga || 0);
-      omsetEstimasi += omset;
-      prodList.push({ id: d.id, ...p, terjual, omset });
+      omsetEstimasi += terjual * (p.harga || 0);
+      prodList.push({ id: d.id, ...p, terjual });
     });
 
-    // Sort by stok for low-stock alerts (stok > 0 but low)
-    const lowStock = prodList.filter(p => Number(p.stok) > 0 && Number(p.stok) <= 5).sort((a,b) => a.stok - b.stok);
-    // Top by terjual
-    const topProds = [...prodList].sort((a,b) => b.terjual - a.terjual).slice(0, 5);
+    const lowStock = prodList.filter(p => Number(p.stok) > 0 && Number(p.stok) <= 5).sort((a, b) => a.stok - b.stok);
+    const topProds = [...prodList].sort((a, b) => b.terjual - a.terjual).slice(0, 5);
 
     $('stat-total').textContent = total;
     $('stat-empty').textContent = emptyCount;
@@ -209,6 +168,14 @@ async function loadDashboardStats(uid) {
 
     renderLowStockList(lowStock);
     renderTopProducts(topProds);
+  } catch (e) { console.error('_initDashboardStats:', e); }
+}
+
+// Keep async wrapper for re-calls after product add/delete
+async function loadDashboardStats(uid) {
+  try {
+    const snap = await getDocs(produkCol(uid));
+    await _initDashboardStats(uid, snap);
   } catch (e) { console.error('loadDashboardStats:', e); }
 }
 
@@ -219,15 +186,22 @@ function renderLowStockList(items) {
     el.innerHTML = '<div style="padding:18px;text-align:center;font-size:13px;color:var(--text-3);">Semua stok aman</div>';
     return;
   }
-  el.innerHTML = items.map((p, i) => `
-    <div class="activity-item" style="border-bottom:${i < items.length-1 ? '1px solid var(--border)' : 'none'}">
+  const frag = document.createDocumentFragment();
+  items.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'activity-item';
+    div.style.borderBottom = i < items.length - 1 ? '1px solid var(--border)' : 'none';
+    div.innerHTML = `
       <div class="activity-dot" style="background:${Number(p.stok) === 1 ? '#EF4444' : '#F59E0B'}"></div>
       <div class="activity-text">
         <strong>${escHtml(p.nama)}</strong> — Stok: <span style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${Number(p.stok)}</span>
         ${p.kategori ? `<span style="color:var(--text-3);font-size:11px"> · ${escHtml(p.kategori)}</span>` : ''}
       </div>
-      <div class="activity-time" style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${Number(p.stok)} sisa</div>
-    </div>`).join('');
+      <div class="activity-time" style="color:${Number(p.stok)<=2?'var(--danger)':'var(--warning)'};font-weight:700">${Number(p.stok)} sisa</div>`;
+    frag.appendChild(div);
+  });
+  el.innerHTML = '';
+  el.appendChild(frag);
 }
 
 function renderTopProducts(items) {
@@ -239,17 +213,24 @@ function renderTopProducts(items) {
     return;
   }
   const maxTerjual = Math.max(...items.map(p => p.terjual), 1);
-  el.innerHTML = items.filter(p => p.terjual > 0).map((p, i) => `
-    <div class="activity-item" style="flex-direction:column;align-items:stretch;gap:6px;padding:13px 16px;border-bottom:${i < items.length-1 ? '1px solid var(--border)' : 'none'}">
+  const frag = document.createDocumentFragment();
+  items.filter(p => p.terjual > 0).forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'activity-item';
+    div.style.cssText = `flex-direction:column;align-items:stretch;gap:6px;padding:13px 16px;border-bottom:${i < items.length - 1 ? '1px solid var(--border)' : 'none'}`;
+    div.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(p.nama)}</span>
         <span style="font-size:12px;font-weight:700;color:var(--accent)">${p.terjual} terjual</span>
       </div>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.round(p.terjual/maxTerjual*100)}%"></div></div>
-    </div>`).join('');
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.round(p.terjual / maxTerjual * 100)}%"></div></div>`;
+    frag.appendChild(div);
+  });
+  el.innerHTML = '';
+  el.appendChild(frag);
 }
 
-// ── VISIT STAT on dashboard (today) ───────────────────────────────────────
+// ── TODAY VISITS ───────────────────────────────────────────────────────────
 async function loadTodayVisits(uid) {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -259,21 +240,35 @@ async function loadTodayVisits(uid) {
 }
 
 // ── PRODUCTS ───────────────────────────────────────────────────────────────
-async function loadProducts(uid) {
+// FIX: accepts pre-fetched prodSnap on init to avoid double getDocs
+async function _initProducts(uid, prodSnap) {
   productsList.innerHTML = [1,2,3].map(() =>
     `<div class="skel-card"><div class="skel" style="height:130px;border-radius:12px 12px 0 0"></div><div style="padding:10px 12px"><div class="skel" style="height:12px;width:70%;margin-bottom:7px"></div><div class="skel" style="height:13px;width:45%"></div></div></div>`
   ).join('');
 
   try {
-    const q    = query(produkCol(uid), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
     allProductsCache = [];
-    snap.forEach(ds => allProductsCache.push({ id: ds.id, ...ds.data() }));
+    prodSnap.forEach(ds => allProductsCache.push({ id: ds.id, ...ds.data() }));
     renderProductGrid(allProductsCache, uid);
-
     const lbl = $('prod-count-label');
     if (lbl) lbl.textContent = allProductsCache.length + ' produk terdaftar';
   } catch (e) {
+    productsList.innerHTML = `<div class="empty-state"><p>Gagal memuat produk. Coba refresh halaman.</p></div>`;
+  }
+}
+
+async function loadProducts(uid) {
+  productsList.innerHTML = [1,2,3].map(() =>
+    `<div class="skel-card"><div class="skel" style="height:130px;border-radius:12px 12px 0 0"></div><div style="padding:10px 12px"><div class="skel" style="height:12px;width:70%;margin-bottom:7px"></div><div class="skel" style="height:13px;width:45%"></div></div></div>`
+  ).join('');
+  try {
+    const snap = await getDocs(query(produkCol(uid), orderBy('createdAt', 'desc')));
+    allProductsCache = [];
+    snap.forEach(ds => allProductsCache.push({ id: ds.id, ...ds.data() }));
+    renderProductGrid(allProductsCache, uid);
+    const lbl = $('prod-count-label');
+    if (lbl) lbl.textContent = allProductsCache.length + ' produk terdaftar';
+  } catch {
     productsList.innerHTML = `<div class="empty-state"><p>Gagal memuat produk. Coba refresh halaman.</p></div>`;
   }
 }
@@ -287,11 +282,17 @@ function renderProductGrid(list, uid) {
     return;
   }
 
-  productsList.innerHTML = list.map(p => {
+  // FIX: Use DocumentFragment for large product lists
+  const frag = document.createDocumentFragment();
+  list.forEach(p => {
     const stokNol = Number(p.stok) === 0;
-    return `<div class="p-card">
+    const div = document.createElement('div');
+    div.className = 'p-card';
+    // FIX: add loading=lazy + decoding=async + proper onerror
+    div.innerHTML = `
       <img class="p-img" src="${escHtml(p.img || '')}" alt="${escHtml(p.nama)}"
-           onerror="this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Foto'">
+           loading="lazy" decoding="async"
+           onerror="this.onerror=null;this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Foto'">
       <div class="p-body">
         <div class="p-name">${escHtml(p.nama)}${p.unggulan ? ' <span style="color:#F59E0B;font-size:11px;">★</span>' : ''}</div>
         <div class="p-price">Rp${rupiah(p.harga)}${p.hargaAsli > p.harga ? `<span style="text-decoration:line-through;color:var(--text-3);font-size:11px;font-weight:400;margin-left:5px">Rp${rupiah(p.hargaAsli)}</span>` : ''}</div>
@@ -300,14 +301,16 @@ function renderProductGrid(list, uid) {
           <button type="button" class="btn-ed" data-id="${p.id}">Edit</button>
           <button type="button" class="btn-del" data-id="${p.id}">Hapus</button>
         </div>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    frag.appendChild(div);
+  });
+  productsList.innerHTML = '';
+  productsList.appendChild(frag);
 }
 
-// Product search & filter
+// FIX: Product search — debounced, runs on in-memory cache only
 window.filterProducts = function() {
-  const uid = auth.currentUser?.uid;
+  const uid  = auth.currentUser?.uid;
   if (!uid) return;
   const q    = ($('prod-search')?.value || '').toLowerCase().trim();
   const kat  = $('prod-filter-kat')?.value  || '';
@@ -325,12 +328,9 @@ window.filterProducts = function() {
   if (lbl) lbl.textContent = `${filtered.length} dari ${allProductsCache.length} produk`;
 };
 
-// Debounced filter
-let filterTimeout;
-window.debouncedFilter = function() {
-  clearTimeout(filterTimeout);
-  filterTimeout = setTimeout(filterProducts, 300);
-};
+// FIX: debounce 300ms
+const _debouncedFilter = debounce(window.filterProducts, 300);
+window.debouncedFilter = _debouncedFilter;
 
 // Product list delegation
 productsList.addEventListener('click', async e => {
@@ -345,19 +345,19 @@ productsList.addEventListener('click', async e => {
       const snap = await getDoc(produkDoc(uid, id));
       if (!snap.exists()) { showToast('Produk tidak ditemukan', 'error'); return; }
       const p = snap.data();
-      $('inp-prod-id').value    = id;
-      $('inp-prod-name').value  = p.nama       || '';
-      $('inp-prod-price').value = p.harga      || 0;
-      $('inp-prod-stock').value = p.stok       || 0;
-      $('inp-prod-weight').value = p.berat     || 0;
-      $('inp-prod-desc').value  = p.deskripsi  || '';
-      $('inp-prod-shopee').value = p.shopee    || '';
-      $('inp-prod-wa').value    = p.wa         || '';
-      $('inp-prod-img').value   = p.img        || '';
-      $('inp-prod-kategori').value  = p.kategori  || '';
-      $('inp-prod-harga-asli').value = p.hargaAsli || '';
-      $('inp-prod-unggulan').checked = !!p.unggulan;
-      $('inp-prod-file').value = '';
+      $('inp-prod-id').value         = id;
+      $('inp-prod-name').value        = p.nama       || '';
+      $('inp-prod-price').value       = p.harga      || 0;
+      $('inp-prod-stock').value       = p.stok       || 0;
+      $('inp-prod-weight').value      = p.berat      || 0;
+      $('inp-prod-desc').value        = p.deskripsi  || '';
+      $('inp-prod-shopee').value      = p.shopee     || '';
+      $('inp-prod-wa').value          = p.wa         || '';
+      $('inp-prod-img').value         = p.img        || '';
+      $('inp-prod-kategori').value    = p.kategori   || '';
+      $('inp-prod-harga-asli').value  = p.hargaAsli  || '';
+      $('inp-prod-unggulan').checked  = !!p.unggulan;
+      $('inp-prod-file').value        = '';
       if (prodBlobUrl) { URL.revokeObjectURL(prodBlobUrl); prodBlobUrl = null; }
       if (p.img) {
         $('img-preview').src = p.img;
@@ -371,10 +371,11 @@ productsList.addEventListener('click', async e => {
   }
 
   if (btn.classList.contains('btn-del')) {
-    if (!confirm('Yakin hapus produk "' + (allProductsCache.find(p=>p.id===id)?.nama||'ini') + '"?')) return;
+    if (!confirm('Yakin hapus produk "' + (allProductsCache.find(p => p.id === id)?.nama || 'ini') + '"?')) return;
     try {
       await deleteDoc(produkDoc(uid, id));
       showToast('Produk dihapus.');
+      clearPublicCache(uid);
       await loadProducts(uid);
       await loadDashboardStats(uid);
     } catch (err) { showToast('Gagal hapus: ' + err.message, 'error'); }
@@ -388,10 +389,10 @@ function closeModal() { productModal.classList.remove('open'); document.body.sty
 
 $('btn-add-product').addEventListener('click', () => {
   $('product-form').reset();
-  $('inp-prod-id').value  = '';
-  $('inp-prod-img').value = '';
-  $('inp-prod-file').value = '';
-  $('inp-prod-kategori').value  = '';
+  $('inp-prod-id').value         = '';
+  $('inp-prod-img').value        = '';
+  $('inp-prod-file').value       = '';
+  $('inp-prod-kategori').value   = '';
   $('inp-prod-harga-asli').value = '';
   $('inp-prod-unggulan').checked = false;
   if (prodBlobUrl) { URL.revokeObjectURL(prodBlobUrl); prodBlobUrl = null; }
@@ -414,14 +415,19 @@ $('inp-prod-file').addEventListener('change', () => {
   $('img-preview-wrap').style.display = 'block';
 });
 
+// FIX: prevent double-submit with submitting flag
+let _submitting = false;
 $('product-form').addEventListener('submit', async e => {
   e.preventDefault();
+  if (_submitting) return;
+  _submitting = true;
+
   const uid  = auth.currentUser?.uid;
   const id   = $('inp-prod-id').value;
   const file = $('inp-prod-file').files[0];
   let imgUrl = $('inp-prod-img').value;
 
-  if (!file && !imgUrl) { showToast('Pilih foto produk!', 'warn'); return; }
+  if (!file && !imgUrl) { showToast('Pilih foto produk!', 'warn'); _submitting = false; return; }
 
   const saveBtn = $('btn-save-product');
   saveBtn.disabled = true;
@@ -435,31 +441,24 @@ $('product-form').addEventListener('submit', async e => {
 
     const stok = Number($('inp-prod-stock').value);
     const rawData = {
-      nama:       $('inp-prod-name').value.trim(),
-      harga:      Number($('inp-prod-price').value),
+      nama:      $('inp-prod-name').value.trim(),
+      harga:     Number($('inp-prod-price').value),
       stok,
-      stokAwal:   id ? undefined : stok, // only set on create
-      berat:      Number($('inp-prod-weight').value) || 0,
-      deskripsi:  $('inp-prod-desc').value.trim(),
-      shopee:     $('inp-prod-shopee').value.trim(),
-      wa:         $('inp-prod-wa').value.trim(),
-      img:        imgUrl,
-      kategori:   $('inp-prod-kategori').value,
-      hargaAsli:  Number($('inp-prod-harga-asli').value) || 0,
-      unggulan:   $('inp-prod-unggulan').checked,
+      berat:     Number($('inp-prod-weight').value) || 0,
+      deskripsi: $('inp-prod-desc').value.trim(),
+      shopee:    $('inp-prod-shopee').value.trim(),
+      wa:        $('inp-prod-wa').value.trim(),
+      img:       imgUrl,
+      kategori:  $('inp-prod-kategori').value,
+      hargaAsli: Number($('inp-prod-harga-asli').value) || 0,
+      unggulan:  $('inp-prod-unggulan').checked,
     };
 
-    // Validate before proceeding
     validateProduct(rawData);
 
-    const data = {
-      ...rawData,
-      updatedAt: serverTimestamp(),
-    };
-    if (id === '') delete data.stokAwal; // no stokAwal on new product before Firestore write
+    const data = { ...rawData, updatedAt: serverTimestamp() };
 
     if (id) {
-      delete data.stokAwal; // don't overwrite stokAwal on edit
       await updateDoc(produkDoc(uid, id), data);
       showToast('Produk diperbarui!');
     } else {
@@ -469,40 +468,67 @@ $('product-form').addEventListener('submit', async e => {
       showToast('Produk ditambahkan!');
     }
 
+    // FIX: clear public cache so visitor sees fresh data
+    clearPublicCache(uid);
     closeModal();
     await loadProducts(uid);
     await loadDashboardStats(uid);
   } catch (err) {
     showToast('Error: ' + err.message, 'error');
   } finally {
+    _submitting = false;
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Simpan Produk';
   }
 });
 
+// ── VALIDATION ─────────────────────────────────────────────────────────────
+function validateProduct(data) {
+  if (!data.nama || typeof data.nama !== 'string' || data.nama.trim().length === 0)
+    throw new Error('Nama produk tidak boleh kosong');
+  if (data.nama.length > 100) throw new Error('Nama produk maksimal 100 karakter');
+  if (isNaN(data.harga) || data.harga < 0) throw new Error('Harga harus berupa angka positif');
+  if (data.harga > 100000000) throw new Error('Harga terlalu tinggi');
+  if (isNaN(data.stok) || data.stok < 0) throw new Error('Stok harus berupa angka positif');
+  if (data.deskripsi && data.deskripsi.length > 500) throw new Error('Deskripsi maksimal 500 karakter');
+  if (data.shopee && !/^https?:\/\/.+/.test(data.shopee)) throw new Error('Link Shopee harus valid (dimulai dengan http/https)');
+  if (data.wa && !/^https?:\/\/.+/.test(data.wa)) throw new Error('Link WhatsApp harus valid');
+  if (!data.img || typeof data.img !== 'string') throw new Error('Foto produk wajib diupload');
+  return true;
+}
+
 // ── SETTINGS ───────────────────────────────────────────────────────────────
+// FIX: use pre-loaded currentTokoData, only re-fetch if null
+async function _initSettings(uid) {
+  try {
+    // currentTokoData already set by onAuthStateChanged
+    const s = currentTokoData;
+    if (!s) return;
+
+    $('inp-username').value  = s.namaToko  || '';
+    $('inp-bio').value       = s.bio       || '';
+    $('inp-wa').value        = s.wa        || '';
+    $('inp-shopee').value    = s.shopee    || '';
+    $('inp-tokopedia').value = s.tokopedia || '';
+    $('inp-instagram').value = s.instagram || '';
+    $('inp-tiktok').value    = s.tiktok    || '';
+    $('inp-twitter').value   = s.twitter   || '';
+    $('inp-facebook').value  = s.facebook  || '';
+    $('inp-youtube').value   = s.youtube   || '';
+    $('inp-logo-url').value  = s.logo      || '';
+    if (s.logo) $('logo-preview').src = s.logo;
+
+    updatePremiumUI();
+    await loadTodayVisits(uid);
+  } catch (e) { console.error('_initSettings:', e); }
+}
+
 async function loadSettings(uid) {
   try {
     const snap = await getDoc(doc(db, 'toko', uid));
     if (!snap.exists()) return;
     currentTokoData = snap.data();
-    const s = currentTokoData;
-
-    $('inp-username').value   = s.namaToko   || '';
-    $('inp-bio').value        = s.bio        || '';
-    $('inp-wa').value         = s.wa         || '';
-    $('inp-shopee').value     = s.shopee     || '';
-    $('inp-tokopedia').value  = s.tokopedia  || '';
-    $('inp-instagram').value  = s.instagram  || '';
-    $('inp-tiktok').value     = s.tiktok     || '';
-    $('inp-twitter').value    = s.twitter    || '';
-    $('inp-facebook').value   = s.facebook   || '';
-    $('inp-youtube').value    = s.youtube    || '';
-    $('inp-logo-url').value   = s.logo       || '';
-    if (s.logo) $('logo-preview').src = s.logo;
-
-    updatePremiumUI();
-    await loadTodayVisits(uid);
+    await _initSettings(uid);
   } catch (e) { console.error('loadSettings:', e); }
 }
 
@@ -515,7 +541,11 @@ $('inp-logo-file').addEventListener('change', () => {
   $('logo-preview').src = logoBlobUrl;
 });
 
+// FIX: prevent double-submit
+let _savingSettings = false;
 $('btn-save-settings').addEventListener('click', async () => {
+  if (_savingSettings) return;
+  _savingSettings = true;
   const uid = auth.currentUser?.uid;
   const btn = $('btn-save-settings');
   btn.disabled = true;
@@ -541,16 +571,21 @@ $('btn-save-settings').addEventListener('click', async () => {
       youtube:   $('inp-youtube').value.trim(),
       logo:      logoUrl,
     }, { merge: true });
+    // FIX: clear public cache so visitor sees updated settings
+    clearPublicCache(uid);
     showToast('Pengaturan disimpan!');
   } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
   finally {
+    _savingSettings = false;
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Pengaturan`;
   }
 });
 
 // ── AKUN ───────────────────────────────────────────────────────────────────
+let _savingAccount = false;
 $('btn-save-account').addEventListener('click', async () => {
+  if (_savingAccount) return;
   const newEmail = $('inp-new-email').value.trim();
   const newPass  = $('inp-new-pass').value;
   const oldPass  = $('inp-old-pass').value;
@@ -559,6 +594,7 @@ $('btn-save-account').addEventListener('click', async () => {
   if (!oldPass) { showToast('Masukkan password lama!', 'warn'); return; }
   if (newEmail === user.email && !newPass) { showToast('Tidak ada perubahan.', 'warn'); return; }
 
+  _savingAccount = true;
   const btn = $('btn-save-account');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
@@ -569,10 +605,8 @@ $('btn-save-account').addEventListener('click', async () => {
       await updateEmail(user, newEmail);
     }
     if (newPass) {
-      if (newPass.length < 6) throw new Error('Password minimal 6 karakter!')
+      if (newPass.length < 6) throw new Error('Password minimal 6 karakter!');
       await updatePassword(user, newPass);
-      // NOTE: authPass is NOT stored in Firestore for security.
-      // Admin delete flow uses its own re-auth mechanism.
     }
     showToast('Akun diperbarui! Keluar otomatis...');
     setTimeout(() => signOut(auth), 1800);
@@ -580,6 +614,7 @@ $('btn-save-account').addEventListener('click', async () => {
     const msg = err.code === 'auth/wrong-password' ? 'Password lama salah!' : err.message;
     showToast(msg, 'error');
   } finally {
+    _savingAccount = false;
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Perbarui Akun`;
   }
@@ -587,11 +622,10 @@ $('btn-save-account').addEventListener('click', async () => {
 
 // ── PLAN UI ──────────────────────────────────────────────────────────────────
 function updatePremiumUI() {
-  const plan   = checkPlan(currentTokoData);
-  const isPrem = plan === 'premium';
+  const plan    = checkPlan(currentTokoData);
+  const isPrem  = plan === 'premium';
   const isBasic = plan === 'basic' || plan === 'premium';
 
-  // Plan badge in header
   const planBadgeEl = $('current-plan-badge');
   if (planBadgeEl) {
     if (plan === 'premium') {
@@ -606,45 +640,38 @@ function updatePremiumUI() {
     }
   }
 
-  // Show/hide Premium CTA vs Premium content
   $('premium-cta')?.classList.toggle('hidden', isPrem);
   $('premium-content')?.classList.toggle('hidden', !isPrem);
 
-  // Plan info section (shows for both basic and premium)
   const planInfoEl = $('plan-info-section');
   if (planInfoEl) planInfoEl.classList.toggle('hidden', !isBasic);
 
-  // Plan expiry display
-  const planEndDate = currentTokoData.planEndDate
-    || currentTokoData.premium?.endDate; // legacy
+  const planEndDate = currentTokoData.planEndDate || currentTokoData.premium?.endDate;
   if (planEndDate) {
     const end   = planEndDate?.toDate ? planEndDate.toDate() : new Date(planEndDate);
-    const label = end.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    const label = end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     const exEl  = $('premium-expiry');
     if (exEl) exEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Paket ${plan === 'premium' ? 'Premium' : 'Basic'} aktif sampai <strong>${label}</strong>`;
   }
 
-  // Basic features always available
-  if (isBasic) {
-    renderGalleryEditor(); // gallery = basic feature
-  }
+  if (isBasic) renderGalleryEditor();
 
-  // Premium-only features
   if (isPrem) {
     currentAccent = currentTokoData.premium?.accentColor || '#FF6B35';
     const slugEl  = $('inp-custom-slug');
     if (slugEl) slugEl.value = currentTokoData.premium?.slug || auth.currentUser?.uid || '';
     renderColorPicker();
     renderQR();
-    renderPremiumTemplatePicker();  // NEW: Premium theme templates
-    renderTemplatePicker();         // Legacy: Background templates
+    renderPremiumTemplatePicker();
+    renderTemplatePicker();
     renderCustomButtonEditor();
   }
 }
 
 // ── PREMIUM: STATS ─────────────────────────────────────────────────────────
 async function loadStats(uid) {
+  // FIX: race-condition guard — currentTokoData now set before this is called
   const isPrem = checkPlan(currentTokoData) === 'premium';
   if (!isPrem) return;
 
@@ -652,7 +679,7 @@ async function loadStats(uid) {
     const today = new Date();
     const days  = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(today);
-      d.setDate(d.getDate() - (6 - i));
+      d.setDate(today.getDate() - (6 - i));
       return d.toISOString().slice(0, 10);
     });
 
@@ -665,25 +692,28 @@ async function loadStats(uid) {
     const chartData = days.map(day => {
       const d = data[day] || {};
       tV += d.visits || 0; tW += d.waClicks || 0; tS += d.shopeeClicks || 0;
-      return { label: formatDate(day), visits: d.visits || 0, wa: d.waClicks || 0 };
+      return { label: formatDate(day), visits: d.visits || 0 };
     });
 
     $('stat-visits').textContent = tV;
     $('stat-wa').textContent     = tW;
     $('stat-shopee').textContent = tS;
-    $('stat-visits-dash').textContent = data[today.toISOString().slice(0,10)]?.visits || 0;
+    $('stat-visits-dash').textContent = data[today.toISOString().slice(0, 10)]?.visits || 0;
 
     const chartEl = $('stats-chart');
     if (!chartEl) return;
-    const max = Math.max(...chartData.map(d => d.visits), 1);
-    chartEl.innerHTML = chartData.map(d => {
-      const h = Math.max(Math.round((d.visits / max) * 100), 3);
-      return `<div class="chart-col">
-        <div class="chart-val">${d.visits || ''}</div>
-        <div class="chart-bar" style="height:${h}%"></div>
-        <div class="chart-label">${d.label}</div>
-      </div>`;
-    }).join('');
+    const max  = Math.max(...chartData.map(d => d.visits), 1);
+    // FIX: use DocumentFragment for chart rendering
+    const frag = document.createDocumentFragment();
+    chartData.forEach(d => {
+      const h   = Math.max(Math.round((d.visits / max) * 100), 3);
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+      col.innerHTML = `<div class="chart-val">${d.visits || ''}</div><div class="chart-bar" style="height:${h}%"></div><div class="chart-label">${d.label}</div>`;
+      frag.appendChild(col);
+    });
+    chartEl.innerHTML = '';
+    chartEl.appendChild(frag);
   } catch (e) { console.error('loadStats:', e); }
 }
 
@@ -704,6 +734,7 @@ function renderColorPicker() {
       if (!uid) return;
       try {
         await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
+        clearPublicCache(uid);
         showToast('Warna aksen diperbarui!');
       } catch { showToast('Gagal simpan warna', 'error'); }
     });
@@ -717,8 +748,8 @@ function renderQR() {
   if (!uid || !img) return;
   const url = `${window.location.origin}${BASE_PATH}/?uid=${uid}`;
   const hex = encodeURIComponent(currentAccent.replace('#', ''));
-  img.src          = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}&color=${hex}`;
-  img.dataset.url  = `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(url)}&color=${hex}&format=png`;
+  img.src         = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}&color=${hex}`;
+  img.dataset.url = `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(url)}&color=${hex}&format=png`;
 }
 
 $('btn-download-qr')?.addEventListener('click', async () => {
@@ -767,11 +798,12 @@ function renderTemplatePicker() {
       const tplData = TEMPLATE_LIST.find(t => t.id === tpl);
       try {
         await updateDoc(doc(db, 'toko', uid), {
-          'premium.template':        tpl,
-          'premium.templateBg':      tplData?.bg     || '',
-          'premium.templateAccent':  tplData?.accent || '',
+          'premium.template':       tpl,
+          'premium.templateBg':     tplData?.bg     || '',
+          'premium.templateAccent': tplData?.accent || '',
         });
         currentTokoData.premium = { ...currentTokoData.premium, template: tpl, templateBg: tplData?.bg || '', templateAccent: tplData?.accent || '' };
+        clearPublicCache(uid);
         renderTemplatePicker();
         showToast('Tema diperbarui!');
       } catch { showToast('Gagal simpan tema', 'error'); }
@@ -779,7 +811,7 @@ function renderTemplatePicker() {
   });
 }
 
-// ── PREMIUM: TEMPLATE THEMES (NEW PREMIUM FEATURE) ──────────────────────
+// ── PREMIUM: TEMPLATE THEMES ──────────────────────────────────────────────
 function renderPremiumTemplatePicker() {
   const wrap = $('premium-template-options');
   if (!wrap) return;
@@ -788,7 +820,7 @@ function renderPremiumTemplatePicker() {
   const templates = getAllTemplates();
 
   wrap.innerHTML = templates.map(template => {
-    const preview = getThemePreviewData(template.id);
+    const preview  = getThemePreviewData(template.id);
     const isActive = template.id === currentTemplate;
     return `
       <div class="premium-template-card${isActive ? ' active' : ''}" data-template="${template.id}" role="button" tabindex="0" aria-pressed="${isActive}">
@@ -803,44 +835,30 @@ function renderPremiumTemplatePicker() {
             ${template.features.map(f => `<span class="premium-template-tag">${escHtml(f)}</span>`).join('')}
           </div>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 
-  // Event listeners for template selection
   wrap.querySelectorAll('.premium-template-card').forEach(card => {
     const selectTemplate = async () => {
       const templateId = card.dataset.template;
       const uid = auth.currentUser?.uid;
       if (!uid) return;
-
       try {
-        // Update Firestore
-        await updateDoc(doc(db, 'toko', uid), {
-          'premium.templateTheme': templateId
-        });
-
-        // Update current state
+        await updateDoc(doc(db, 'toko', uid), { 'premium.templateTheme': templateId });
         if (!currentTokoData.premium) currentTokoData.premium = {};
         currentTokoData.premium.templateTheme = templateId;
-
-        // Update UI
         wrap.querySelectorAll('.premium-template-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
-
+        clearPublicCache(uid);
         showToast(`Template "${getTemplate(templateId).name}" diaktifkan!`);
       } catch (err) {
         console.error('Template save error:', err);
         showToast('Gagal menyimpan template', 'error');
       }
     };
-
     card.addEventListener('click', selectTemplate);
-    card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        selectTemplate();
-      }
+    card.addEventListener('keypress', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
     });
   });
 }
@@ -871,7 +889,7 @@ function renderCustomBtnList() {
         </button>
       </div>
       <input type="text" placeholder="https://link.com" value="${escHtml(btn.url || '')}" data-field="url" data-idx="${i}" style="width:100%;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);">
-      <input type="text" placeholder="Deskripsi singkat (opsional, tampil di bawah label)" value="${escHtml(btn.desc || '')}" data-field="desc" data-idx="${i}" style="width:100%;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text);opacity:.85;">
+      <input type="text" placeholder="Deskripsi singkat (opsional)" value="${escHtml(btn.desc || '')}" data-field="desc" data-idx="${i}" style="width:100%;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;color:var(--text);opacity:.85;">
     </div>`;
   }).join('');
 
@@ -907,28 +925,30 @@ $('btn-add-custom-btn')?.addEventListener('click', () => {
   inputs[inputs.length - 1]?.focus();
 });
 
+let _savingCustomBtns = false;
 $('btn-save-custom-btns')?.addEventListener('click', async () => {
+  if (_savingCustomBtns) return;
   const uid = auth.currentUser?.uid;
   if (!uid) return;
   const cleaned = customBtns.filter(b => b.label?.trim() && b.url?.trim());
   const btn = $('btn-save-custom-btns');
+  _savingCustomBtns = true;
   btn.disabled = true;
   try {
     await updateDoc(doc(db, 'toko', uid), { customButtons: cleaned });
+    clearPublicCache(uid);
     showToast(`${cleaned.length} tombol kustom disimpan!`);
     currentTokoData.customButtons = cleaned;
   } catch (e) { showToast('Gagal simpan: ' + e.message, 'error'); }
-  finally { btn.disabled = false; }
+  finally { _savingCustomBtns = false; btn.disabled = false; }
 });
 
 // ── PREMIUM: GALLERY ───────────────────────────────────────────────────────
-// Normalize gallery item — support legacy string array and new object format
 function normalizeGalleryItem(item) {
   if (typeof item === 'string') return { url: item, caption: '', kategori: '' };
   return { url: item?.url || '', caption: item?.caption || '', kategori: item?.kategori || '' };
 }
 
-// Collect all unique gallery categories from current data
 function getGalleryKategoriList() {
   const cats = new Set(galleryPhotos.map(p => p.kategori).filter(Boolean));
   return [...cats];
@@ -948,7 +968,6 @@ function renderGalleryGrid() {
     return;
   }
 
-  // Collect kategori list for datalist
   const cats = getGalleryKategoriList();
   const datalistId = 'gal-kat-list';
 
@@ -957,8 +976,9 @@ function renderGalleryGrid() {
     ${galleryPhotos.map((p, i) => `
     <div class="gal-edit-card" data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
       <div style="position:relative;aspect-ratio:1;overflow:hidden;background:rgba(0,0,0,.3);flex-shrink:0;">
-        <img src="${escHtml(p.url)}" alt="Gallery ${i+1}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"
-             onerror="this.src='https://placehold.co/200x200/111/333?text=Error'">
+        <img src="${escHtml(p.url)}" alt="Gallery ${i + 1}" style="width:100%;height:100%;object-fit:cover;"
+             loading="lazy" decoding="async"
+             onerror="this.onerror=null;this.src='https://placehold.co/200x200/111/333?text=Error'">
         <button type="button" onclick="removeGalleryPhoto(${i})"
           style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -974,7 +994,6 @@ function renderGalleryGrid() {
       </div>
     </div>`).join('')}`;
 
-  // Live input binding
   grid.querySelectorAll('input[data-field]').forEach(inp => {
     inp.addEventListener('input', () => {
       const idx   = parseInt(inp.dataset.idx);
@@ -1018,24 +1037,27 @@ $('inp-gallery-file')?.addEventListener('change', async () => {
   $('inp-gallery-file').value = '';
 });
 
+let _savingGallery = false;
 $('btn-save-gallery')?.addEventListener('click', async () => {
+  if (_savingGallery) return;
   const uid = auth.currentUser?.uid;
   if (!uid) return;
   const btn = $('btn-save-gallery');
+  _savingGallery = true;
   btn.disabled = true;
   try {
-    // Sync any currently-focused inputs before saving
     $('gallery-grid')?.querySelectorAll('input[data-field]').forEach(inp => {
       const idx = parseInt(inp.dataset.idx);
       if (galleryPhotos[idx]) galleryPhotos[idx][inp.dataset.field] = inp.value;
     });
     const clean = galleryPhotos.filter(p => p.url);
     await updateDoc(doc(db, 'toko', uid), { gallery: clean });
+    clearPublicCache(uid);
     showToast(`Gallery (${clean.length} foto) disimpan!`);
     currentTokoData.gallery = [...clean];
     if ($('gallery-upload-status')) $('gallery-upload-status').textContent = '';
   } catch (e) { showToast('Gagal simpan gallery: ' + e.message, 'error'); }
-  finally { btn.disabled = false; }
+  finally { _savingGallery = false; btn.disabled = false; }
 });
 
 // ── CLOUDINARY ─────────────────────────────────────────────────────────────
