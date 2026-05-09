@@ -417,9 +417,76 @@ html, body { height: 100%; background: var(--bg); font-family: 'Inter', sans-ser
 /* Premium Templates Grid */
 .premium-templates-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
   margin-bottom: 16px;
+}
+
+.premium-theme-select-btn {
+  min-height: 86px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-preview-primary) 16%, transparent), color-mix(in srgb, var(--theme-preview-secondary) 12%, transparent)),
+    var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-areas:
+    "icon name"
+    "icon status";
+  align-items: center;
+  gap: 2px 10px;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.17s, box-shadow 0.17s, transform 0.17s, background 0.17s;
+}
+
+.premium-theme-select-btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.premium-theme-select-btn.active {
+  border-color: var(--accent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--theme-preview-primary) 24%, transparent), color-mix(in srgb, var(--theme-preview-secondary) 18%, transparent)),
+    rgba(255, 107, 53, 0.04);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.16);
+}
+
+.premium-theme-select-icon {
+  grid-area: icon;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--theme-preview-primary), var(--theme-preview-secondary));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.premium-theme-select-name {
+  grid-area: name;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.premium-theme-select-status {
+  grid-area: status;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+.premium-theme-select-btn.active .premium-theme-select-status {
+  color: var(--accent);
 }
 
 .premium-template-card {
