@@ -504,6 +504,27 @@ html, body { height: 100%; background: var(--bg); font-family: 'Inter', sans-ser
   color: var(--accent);
 }
 
+.premium-template-action {
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--text);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.15s;
+}
+
+.premium-template-action:hover { filter: brightness(1.12); }
+.premium-template-action:active { transform: scale(0.98); }
+.premium-template-card.active .premium-template-action {
+  background: var(--accent);
+}
+
 .tpl-card {
   border:2px solid var(--border); border-radius:var(--radius-lg);
   padding:8px; cursor:pointer;
