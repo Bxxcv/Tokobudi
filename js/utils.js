@@ -132,3 +132,35 @@ export const PLAN_FEATURES = {
     locked: []
   }
 };
+
+/** Centralized toast notification */
+export function showToast(msg, type = 'info', duration = 3000) {
+  // Create toast element if not exists
+  let toastEl = document.getElementById('global-toast');
+  if (!toastEl) {
+    toastEl = document.createElement('div');
+    toastEl.id = 'global-toast';
+    toastEl.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      background: #333; color: white; padding: 12px 16px;
+      border-radius: 8px; font-size: 14px; max-width: 300px;
+      opacity: 0; transform: translateY(-10px);
+      transition: all 0.3s ease; pointer-events: none;
+    `;
+    document.body.appendChild(toastEl);
+  }
+
+  toastEl.textContent = msg;
+  toastEl.style.background = type === 'success' || type === 'ok' ? '#10B981' : type === 'error' || type === 'err' ? '#EF4444' : type === 'warn' ? '#F59E0B' : '#333';
+  toastEl.style.opacity = '1';
+  toastEl.style.transform = 'translateY(0)';
+  toastEl.style.pointerEvents = 'auto';
+
+  setTimeout(() => {
+    toastEl.style.opacity = '0';
+    toastEl.style.transform = 'translateY(-10px)';
+    setTimeout(() => {
+      if (toastEl.parentNode) toastEl.parentNode.removeChild(toastEl);
+    }, 300);
+  }, duration);
+}
