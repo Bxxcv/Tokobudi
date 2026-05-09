@@ -71,6 +71,8 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.classList.add('active-tab');
     $('tab-' + btn.dataset.tab)?.classList.add('show');
     closeSidebar();
+    // Load maintenance settings when tab is opened
+    if (btn.dataset.tab === 'maintenance') loadMaintenanceSettings();
   });
 });
 
@@ -1075,3 +1077,98 @@ async function uploadCloudinary(file) {
     return null;
   }
 }
+
+// ── MAINTENANCE ────────────────────────────────────────────────────────────
+async function loadMaintenanceSettings() {
+  try {
+    const snap = await getDoc(doc(db, 'config', 'maintenance'));
+    const data = snap.exists() ? snap.data() : {};
+
+    const toggle = document.getElementById('toggle-maintenance');
+    const toggleUI = document.getElementById('maint-toggle-ui');
+    const statusLabel = document.getElementById('maint-status-label');
+
+    const isActive = !!data.active;
+
+    if (toggle) toggle.checked = isActive;
+    updateToggleUI(isActive);
+
+    if (statusLabel) statusLabel.textContent = isActive
+      ? '🔴 Maintenance AKTIF — storefront tidak dapat diakses pengunjung'
+      : '🟢 Normal — storefront dapat diakses pengunjung';
+
+    if (data.title) {
+      const el = document.getElementById('inp-maint-title');
+      if (el) el.value = data.title;
+    }
+    if (data.message) {
+      const el = document.getElementById('inp-maint-msg');
+      if (el) el.value = data.message;
+    }
+    if (data.estimatedDone) {
+      const el = document.getElementById('inp-maint-eta');
+      if (el) {
+        const d = data.estimatedDone?.toDate ? data.estimatedDone.toDate() : new Date(data.estimatedDone);
+        // format to datetime-local: YYYY-MM-DDTHH:mm
+        const pad = n => String(n).padStart(2, '0');
+        el.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+    }
+
+    // Toggle event
+    if (toggle && !toggle._maint_bound) {
+      toggle._maint_bound = true;
+      toggle.addEventListener('change', () => updateToggleUI(toggle.checked));
+    }
+  } catch (e) {
+    console.error('Gagal memuat maintenance:', e);
+    showToast('Gagal memuat pengaturan maintenance', 'error');
+  }
+}
+
+function updateToggleUI(active) {
+  const ui = document.getElementById('maint-toggle-ui');
+  const statusLabel = document.getElementById('maint-status-label');
+  if (!ui) return;
+  const knob = ui.querySelector('.maint-knob');
+  if (active) {
+    ui.style.background = '#FF6B35';
+    if (knob) knob.style.left = '23px';
+  } else {
+    ui.style.background = '#ccc';
+    if (knob) knob.style.left = '3px';
+  }
+  if (statusLabel) statusLabel.textContent = active
+    ? '🔴 Maintenance AKTIF — storefront tidak dapat diakses pengunjung'
+    : '🟢 Normal — storefront dapat diakses pengunjung';
+}
+
+document.getElementById('btn-save-maintenance')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-save-maintenance');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+
+  const toggle = document.getElementById('toggle-maintenance');
+  const active = toggle?.checked ?? false;
+  const title = document.getElementById('inp-maint-title')?.value.trim() || 'Sedang Maintenance';
+  const message = document.getElementById('inp-maint-msg')?.value.trim() || 'Sistem sedang dalam pemeliharaan.';
+  const etaVal = document.getElementById('inp-maint-eta')?.value;
+
+  try {
+    const payload = { active, title, message, updatedAt: serverTimestamp() };
+    if (etaVal) {
+      payload.estimatedDone = new Date(etaVal);
+    } else {
+      payload.estimatedDone = null;
+    }
+
+    await setDoc(doc(db, 'config', 'maintenance'), payload, { merge: true });
+    showToast(active ? 'Maintenance AKTIF! Storefront ditutup.' : 'Maintenance dinonaktifkan. Storefront normal.');
+    updateToggleUI(active);
+  } catch (e) {
+    console.error(e);
+    showToast('Gagal menyimpan: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+});
