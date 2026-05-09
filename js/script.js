@@ -126,12 +126,26 @@ window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClick
 // ── LOAD SETTINGS ─────────────────────────────────────────────────────────────
 async function loadSettings() {
   try {
-    const snap = await getDoc(doc(db, 'toko', USER_ID));
-    if (!snap.exists()) {
-      document.getElementById('username').textContent = 'Toko tidak ditemukan';
-      return;
+    // Check cache first (5 minutes)
+    const cacheKey = `toko_${USER_ID}`;
+    const cached = localStorage.getItem(cacheKey);
+    let s;
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.timestamp < 5 * 60 * 1000) { // 5 minutes
+        s = parsed.data;
+      }
     }
-    const s = snap.data();
+    if (!s) {
+      const snap = await getDoc(doc(db, 'toko', USER_ID));
+      if (!snap.exists()) {
+        document.getElementById('username').textContent = 'Toko tidak ditemukan';
+        return;
+      }
+      s = snap.data();
+      // Cache it
+      localStorage.setItem(cacheKey, JSON.stringify({ data: s, timestamp: Date.now() }));
+    }
 
     // SECURITY: check blocked status
     if (s.status === 'blokir') {
@@ -169,6 +183,8 @@ async function loadSettings() {
     document.getElementById('username').textContent = storeName;
     document.title = storeName + ' — LINKify';
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', storeName + ' — Toko Online');
+    document.querySelector('meta[name="description"]')?.setAttribute('content', 
+      `${s.bio || 'Toko online premium'}. Belanja ${storeName} via WhatsApp, Shopee, Tokopedia. Buka di LINKify.`);
 
     const bioEl = document.getElementById('bio');
     if (bioEl) bioEl.textContent = s.bio || '';
