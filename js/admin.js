@@ -71,8 +71,6 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.classList.add('active-tab');
     $('tab-' + btn.dataset.tab)?.classList.add('show');
     closeSidebar();
-    // Load maintenance settings when tab is opened
-    if (btn.dataset.tab === 'maintenance') loadMaintenanceSettings();
   });
 });
 
@@ -836,6 +834,7 @@ function renderPremiumTemplatePicker() {
           <div class="premium-template-features">
             ${template.features.map(f => `<span class="premium-template-tag">${escHtml(f)}</span>`).join('')}
           </div>
+          <button type="button" class="premium-template-action">${isActive ? 'Tema Aktif' : 'Gunakan Tema'}</button>
         </div>
       </div>`;
   }).join('');
@@ -849,8 +848,14 @@ function renderPremiumTemplatePicker() {
         await updateDoc(doc(db, 'toko', uid), { 'premium.templateTheme': templateId });
         if (!currentTokoData.premium) currentTokoData.premium = {};
         currentTokoData.premium.templateTheme = templateId;
-        wrap.querySelectorAll('.premium-template-card').forEach(c => c.classList.remove('active'));
+        wrap.querySelectorAll('.premium-template-card').forEach(c => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        wrap.querySelectorAll('.premium-template-action').forEach(b => { b.textContent = 'Gunakan Tema'; });
         card.classList.add('active');
+        card.setAttribute('aria-pressed', 'true');
+        card.querySelector('.premium-template-action').textContent = 'Tema Aktif';
         clearPublicCache(uid);
         showToast(`Template "${getTemplate(templateId).name}" diaktifkan!`);
       } catch (err) {
@@ -1079,6 +1084,7 @@ async function uploadCloudinary(file) {
 }
 
 // ── MAINTENANCE ────────────────────────────────────────────────────────────
+/* Dashboard user tidak mengelola maintenance.
 async function loadMaintenanceSettings() {
   try {
     const snap = await getDoc(doc(db, 'config', 'maintenance'));
@@ -1172,3 +1178,4 @@ document.getElementById('btn-save-maintenance')?.addEventListener('click', async
     btn.disabled = false;
   }
 });
+*/
