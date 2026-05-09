@@ -421,46 +421,6 @@ function buildProductCard(p) {
   const hasDiskon = p.hargaAsli && Number(p.hargaAsli) > Number(p.harga);
   const pct       = hasDiskon ? Math.round((1 - p.harga / p.hargaAsli) * 100) : 0;
 
-// ── THEME TOGGLE (Global Functions) ────────────────────────────────────────
-window.openThemeModal = function() {
-  const modal = document.getElementById('theme-modal');
-  if (!modal) return;
-  modal.style.display = 'flex';
-};
-
-window.closeThemeModal = function() {
-  const modal = document.getElementById('theme-modal');
-  if (modal) modal.style.display = 'none';
-};
-
-window.switchTheme = function(themeId) {
-  try {
-    // Theme IDs: 'default', 'forest', 'ocean', 'aurora', 'desert', 'sakura'
-    // Store in localStorage for persistence
-    localStorage.setItem('theme_selected', themeId);
-    // Apply template using existing function
-    if (typeof applyTemplate === 'function') {
-      applyTemplate(themeId);
-    }
-    closeThemeModal();
-  } catch (e) {
-    console.error('Theme switch error:', e);
-  }
-};
-
-// Theme button event listener
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('theme-toggle-btn')?.addEventListener('click', window.openThemeModal);
-  });
-} else {
-  document.getElementById('theme-toggle-btn')?.addEventListener('click', window.openThemeModal);
-}
-
-// Close modal on overlay click
-document.addEventListener('click', (e) => {
-  if (e.target.id === 'theme-modal') closeThemeModal();
-});
   const pesanWa   = encodeURIComponent(
     'Halo, saya mau pesan:\n- Produk: ' + nama + '\n- Harga: Rp ' + rupiah(p.harga)
   );
