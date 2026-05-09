@@ -533,3 +533,53 @@ footer{border-top:1px solid var(--border);padding:40px 24px 32px;}
   .phone-mockup{width:190px;}
   .cta-trust{gap:12px;font-size:12px;}
 }
+
+/* ── PERFORMANCE & MOBILE PATCHES ────────────────────────────────────────── */
+
+/* FIX: tap highlight removal */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* FIX: prevent font scaling causing overflow */
+@media (max-width:400px) {
+  body { font-size: 14px; }
+  input, textarea, select { font-size: 16px; } /* prevent iOS zoom */
+}
+
+/* FIX: smooth scroll & overscroll contain */
+html {
+  overscroll-behavior: none;
+}
+
+/* FIX: reduce will-change to actually animated elements only */
+.floating-wa { will-change: transform; }
+.platform-btn { will-change: unset; }
+.product-card { will-change: unset; }
+
+/* FIX: touch target minimum */
+.kat-btn {
+  min-height: 36px;
+  min-width: 64px;
+}
+
+/* FIX: image aspect ratio placeholder to prevent layout shift */
+.prod-img-wrap {
+  aspect-ratio: 4/3;
+  background: rgba(255,255,255,0.04);
+}
+
+/* FIX: gallery previews overflow */
+.gallery-btn-previews img {
+  object-fit: cover;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* FIX: kategori filter scroll on small screens */
+.kategori-filter {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
