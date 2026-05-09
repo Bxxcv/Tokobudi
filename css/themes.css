@@ -1,0 +1,554 @@
+/* ============================================================
+   LINKify — Premium Templates Styling (themes.css)
+   Contains optimized styles for all 6 premium templates
+   Performance: CSS variables, minimal repaints, GPU acceleration
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Lato:wght@400;700&family=Space+Mono:wght@400;700&family=Roboto:wght@400;500;700&family=Raleway:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════
+   ROOT TEMPLATE VARIABLES (akan di-override per template)
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+  /* Color Palette */
+  --template-primary: #1a1a1a;
+  --template-secondary: #d4af37;
+  --template-accent: #f5f5f5;
+  --template-bg: #fafafa;
+  --template-text: #1a1a1a;
+  --template-text-light: #666666;
+  --template-border: #e0e0e0;
+
+  /* Typography */
+  --template-heading-font: "Playfair Display", serif;
+  --template-body-font: "Inter", sans-serif;
+
+  /* Design System */
+  --template-card-radius: 2px;
+  --template-hero-height: 480px;
+  --template-shadow-type: subtle;
+  --template-transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --template-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 1: FASHION & CLOTHING
+   ══════════════════════════════════════════════════════════════════ */
+body.template-fashion {
+  --template-primary: #1a1a1a;
+  --template-secondary: #d4af37;
+  --template-accent: #f5f5f5;
+  --template-bg: #fafafa;
+  --template-text: #1a1a1a;
+  --template-text-light: #666666;
+  --template-border: #e0e0e0;
+  --template-heading-font: "Playfair Display", serif;
+  --template-body-font: "Inter", sans-serif;
+  --template-card-radius: 2px;
+  --template-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Fashion: Hero Section */
+.template-fashion .hero {
+  background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+  border-bottom: 2px solid var(--template-secondary);
+  padding: 60px 20px;
+}
+
+.template-fashion .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(24px, 6vw, 42px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--template-primary);
+}
+
+.template-fashion .logo-img {
+  border: 3px solid var(--template-secondary);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+}
+
+.template-fashion .product-card {
+  border: 1px solid var(--template-border);
+  border-radius: var(--template-card-radius);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+}
+
+.template-fashion .product-card:hover {
+  border-color: var(--template-secondary);
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.2);
+  transform: translateY(-2px);
+}
+
+.template-fashion .btn-primary {
+  background: var(--template-primary);
+  color: var(--template-accent);
+  font-family: var(--template-heading-font);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 2px solid var(--template-primary);
+}
+
+.template-fashion .btn-primary:hover {
+  background: transparent;
+  color: var(--template-primary);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 2: KULINER & UMKM MAKANAN
+   ══════════════════════════════════════════════════════════════════ */
+body.template-kuliner {
+  --template-primary: #d2691e;
+  --template-secondary: #ff8c42;
+  --template-accent: #fff4e6;
+  --template-bg: #fffaf5;
+  --template-text: #2d2416;
+  --template-text-light: #7d6b5b;
+  --template-border: #f5e6d3;
+  --template-heading-font: "Fredoka", sans-serif;
+  --template-body-font: "Poppins", sans-serif;
+  --template-card-radius: 16px;
+  --template-shadow: 0 4px 12px rgba(210, 105, 30, 0.15);
+  background-color: var(--template-bg);
+}
+
+.template-kuliner .hero {
+  background: linear-gradient(135deg, #fffaf5 0%, #fff0e6 100%);
+  border-bottom: 4px solid var(--template-secondary);
+  padding: 40px 20px;
+  border-radius: 0 0 20px 20px;
+}
+
+.template-kuliner .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(26px, 7vw, 44px);
+  font-weight: 700;
+  color: var(--template-primary);
+}
+
+.template-kuliner .logo-img {
+  border: 4px solid var(--template-secondary);
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgba(255, 140, 66, 0.2);
+  animation: float-up 3s ease-in-out infinite;
+}
+
+@keyframes float-up {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.template-kuliner .product-card {
+  background: #fff;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(210, 105, 30, 0.1);
+  transition: all 0.3s ease;
+}
+
+.template-kuliner .product-card:hover {
+  box-shadow: 0 12px 28px rgba(255, 140, 66, 0.25);
+  transform: translateY(-4px);
+}
+
+.template-kuliner .btn-primary {
+  background: linear-gradient(135deg, var(--template-primary) 0%, var(--template-secondary) 100%);
+  color: white;
+  border-radius: 12px;
+  font-family: var(--template-heading-font);
+  font-weight: 600;
+  border: none;
+}
+
+.template-kuliner .btn-primary:hover {
+  box-shadow: 0 6px 16px rgba(255, 140, 66, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 3: KECANTIKAN & SKINCARE
+   ══════════════════════════════════════════════════════════════════ */
+body.template-kecantikan {
+  --template-primary: #c084b8;
+  --template-secondary: #f0a8d8;
+  --template-accent: #fdf8ff;
+  --template-bg: #fdf5fb;
+  --template-text: #3a2f4a;
+  --template-text-light: #8b7a99;
+  --template-border: #f0e6f6;
+  --template-heading-font: "Montserrat", sans-serif;
+  --template-body-font: "Lato", sans-serif;
+  --template-card-radius: 20px;
+  --template-shadow: 0 8px 24px rgba(192, 132, 184, 0.12);
+  background-color: var(--template-bg);
+}
+
+.template-kecantikan .hero {
+  background: linear-gradient(135deg, #fdf5fb 0%, #fde9f7 100%);
+  border-bottom: 3px solid var(--template-secondary);
+  padding: 50px 20px;
+  border-radius: 0 0 24px 24px;
+}
+
+.template-kecantikan .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(26px, 7vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--template-primary);
+}
+
+.template-kecantikan .logo-img {
+  border: 3px solid var(--template-secondary);
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(240, 168, 216, 0.3), 0 8px 24px rgba(192, 132, 184, 0.15);
+}
+
+.template-kecantikan .product-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(240, 168, 216, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(192, 132, 184, 0.12);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.template-kecantikan .product-card:hover {
+  box-shadow: 0 16px 40px rgba(240, 168, 216, 0.25);
+  transform: translateY(-8px);
+  background: white;
+}
+
+.template-kecantikan .btn-primary {
+  background: linear-gradient(135deg, #c084b8 0%, #f0a8d8 100%);
+  color: white;
+  border-radius: 12px;
+  font-family: var(--template-heading-font);
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 4px 12px rgba(240, 168, 216, 0.3);
+}
+
+.template-kecantikan .btn-primary:hover {
+  box-shadow: 0 8px 24px rgba(240, 168, 216, 0.5);
+  transform: scale(1.02) translateY(-2px);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 4: ELEKTRONIK & GADGET (Dark Tech)
+   ══════════════════════════════════════════════════════════════════ */
+body.template-elektronik {
+  --template-primary: #1a1f3a;
+  --template-secondary: #00d4ff;
+  --template-accent: #0f1423;
+  --template-bg: #0a0e1a;
+  --template-text: #e5e9f2;
+  --template-text-light: #a8b2c1;
+  --template-border: #1e2749;
+  --template-heading-font: "Space Mono", monospace;
+  --template-body-font: "Roboto", sans-serif;
+  --template-card-radius: 12px;
+  --template-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+  background-color: var(--template-bg);
+  color: var(--template-text);
+}
+
+.template-elektronik .hero {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0f1423 100%);
+  border-bottom: 2px solid var(--template-secondary);
+  padding: 60px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.template-elektronik .hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(0, 212, 255, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.template-elektronik .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(24px, 6vw, 42px);
+  font-weight: 700;
+  color: var(--template-text);
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+.template-elektronik .logo-img {
+  border: 2px solid var(--template-secondary);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.25);
+  position: relative;
+  z-index: 1;
+}
+
+.template-elektronik .product-card {
+  background: rgba(26, 31, 58, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
+  transition: all 0.2s linear;
+}
+
+.template-elektronik .product-card:hover {
+  border-color: rgba(0, 212, 255, 0.6);
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.3), inset 0 0 15px rgba(0, 212, 255, 0.05);
+  transform: translateY(-2px);
+  background: rgba(26, 31, 58, 0.8);
+}
+
+.template-elektronik .btn-primary {
+  background: transparent;
+  border: 2px solid var(--template-secondary);
+  color: var(--template-secondary);
+  font-family: var(--template-heading-font);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.template-elektronik .btn-primary:hover {
+  background: var(--template-secondary);
+  color: var(--template-primary);
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.6);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 5: KREATOR & FREELANCER
+   ══════════════════════════════════════════════════════════════════ */
+body.template-kreator {
+  --template-primary: #6c5ce7;
+  --template-secondary: #fd79a8;
+  --template-accent: #fff8f3;
+  --template-bg: #faf9f6;
+  --template-text: #2d3436;
+  --template-text-light: #636e72;
+  --template-border: #e9ecef;
+  --template-heading-font: "Poppins", sans-serif;
+  --template-body-font: "Inter", sans-serif;
+  --template-card-radius: 16px;
+  --template-shadow: 0 8px 20px rgba(108, 92, 231, 0.12);
+  background-color: var(--template-bg);
+}
+
+.template-kreator .hero {
+  background: linear-gradient(135deg, #faf9f6 0%, #f0e6ff 50%, #ffe6f0 100%);
+  border-bottom: 3px solid var(--template-secondary);
+  padding: 45px 20px;
+}
+
+.template-kreator .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(26px, 7vw, 44px);
+  font-weight: 700;
+  background: linear-gradient(135deg, #6c5ce7 0%, #fd79a8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.template-kreator .logo-img {
+  border: 4px solid var(--template-primary);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.2);
+}
+
+.template-kreator .product-card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.template-kreator .product-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, transparent 30%, rgba(108, 92, 231, 0.1) 50%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.template-kreator .product-card:hover {
+  box-shadow: 0 12px 32px rgba(108, 92, 231, 0.2);
+  transform: translateY(-6px);
+}
+
+.template-kreator .btn-primary {
+  background: linear-gradient(135deg, #6c5ce7 0%, #fd79a8 100%);
+  color: white;
+  border-radius: 12px;
+  font-family: var(--template-heading-font);
+  font-weight: 600;
+  border: none;
+}
+
+.template-kreator .btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.3);
+  transform: translateY(-2px);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA 6: RESELLER & DROPSHIPPER
+   ══════════════════════════════════════════════════════════════════ */
+body.template-reseller {
+  --template-primary: #00a651;
+  --template-secondary: #ffa500;
+  --template-accent: #f0f9ff;
+  --template-bg: #f8f9fa;
+  --template-text: #1b1b1b;
+  --template-text-light: #5a5a5a;
+  --template-border: #dfe4eb;
+  --template-heading-font: "Raleway", sans-serif;
+  --template-body-font: "Open Sans", sans-serif;
+  --template-card-radius: 8px;
+  --template-shadow: 0 2px 8px rgba(0, 166, 81, 0.08);
+  background-color: var(--template-bg);
+}
+
+.template-reseller .hero {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f9ff 100%);
+  border-bottom: 4px solid var(--template-primary);
+  padding: 40px 20px;
+}
+
+.template-reseller .store-name {
+  font-family: var(--template-heading-font);
+  font-size: clamp(26px, 7vw, 44px);
+  font-weight: 700;
+  color: var(--template-primary);
+}
+
+.template-reseller .logo-img {
+  border: 3px solid var(--template-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 166, 81, 0.15);
+}
+
+.template-reseller .product-card {
+  background: white;
+  border: 1px solid var(--template-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 166, 81, 0.08);
+  transition: all 0.25s ease;
+}
+
+.template-reseller .product-card:hover {
+  border-color: var(--template-secondary);
+  box-shadow: 0 8px 16px rgba(0, 166, 81, 0.12);
+  transform: translateY(-2px);
+}
+
+.template-reseller .btn-primary {
+  background: var(--template-primary);
+  color: white;
+  border-radius: 6px;
+  font-family: var(--template-heading-font);
+  font-weight: 600;
+  border: none;
+}
+
+.template-reseller .btn-primary:hover {
+  background: linear-gradient(135deg, #00a651 0%, #ffa500 100%);
+  box-shadow: 0 4px 12px rgba(0, 166, 81, 0.3);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UNIVERSAL TEMPLATE STYLES (Applied to all templates)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Products Grid Optimization */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* Template-aware Product Cards */
+.product-card {
+  border-radius: var(--template-card-radius);
+  box-shadow: var(--template-shadow);
+  transition: var(--template-transition);
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography for all templates */
+.hero h1,
+.store-name {
+  font-family: var(--template-heading-font);
+  color: var(--template-text);
+}
+
+.store-desc {
+  font-family: var(--template-body-font);
+  color: var(--template-text-light);
+}
+
+/* Buttons consistency */
+.btn-primary,
+.btn-default,
+.share-btn {
+  font-family: var(--template-body-font);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--template-transition);
+  border-radius: var(--template-card-radius);
+}
+
+/* Fix untuk Performance */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Prevent layout shift on template change */
+html {
+  scroll-behavior: smooth;
+}
+
+body[class*="template-"] {
+  color-scheme: light;
+  font-feature-settings: "kern" 1;
+}
+
+body.template-elektronik {
+  color-scheme: dark;
+}
