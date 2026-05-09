@@ -823,39 +823,36 @@ function renderPremiumTemplatePicker() {
     const preview  = getThemePreviewData(template.id);
     const isActive = template.id === currentTemplate;
     return `
-      <div class="premium-template-card${isActive ? ' active' : ''}" data-template="${template.id}" role="button" tabindex="0" aria-pressed="${isActive}">
-        <div class="premium-template-preview" style="background: linear-gradient(135deg, ${preview.colors.primary} 0%, ${preview.colors.secondary} 100%);">
-          ${template.icon}
-        </div>
-        <div class="premium-template-content">
-          <div class="premium-template-title">${escHtml(template.name)}</div>
-          <div class="premium-template-category">${escHtml(template.category)}</div>
-          <div class="premium-template-desc">${escHtml(template.description)}</div>
-          <div class="premium-template-features">
-            ${template.features.map(f => `<span class="premium-template-tag">${escHtml(f)}</span>`).join('')}
-          </div>
-          <button type="button" class="premium-template-action">${isActive ? 'Tema Aktif' : 'Gunakan Tema'}</button>
-        </div>
-      </div>`;
+      <button type="button"
+        class="premium-theme-select-btn${isActive ? ' active' : ''}"
+        data-template="${template.id}"
+        aria-pressed="${isActive}"
+        style="--theme-preview-primary:${preview.colors.primary};--theme-preview-secondary:${preview.colors.secondary};">
+        <span class="premium-theme-select-icon">${template.icon}</span>
+        <span class="premium-theme-select-name">${escHtml(template.name)}</span>
+        <span class="premium-theme-select-status">${isActive ? 'Aktif' : 'Pilih Tema'}</span>
+      </button>`;
   }).join('');
 
-  wrap.querySelectorAll('.premium-template-card').forEach(card => {
+  wrap.querySelectorAll('.premium-theme-select-btn').forEach(btn => {
     const selectTemplate = async () => {
-      const templateId = card.dataset.template;
+      const templateId = btn.dataset.template;
       const uid = auth.currentUser?.uid;
       if (!uid) return;
       try {
         await updateDoc(doc(db, 'toko', uid), { 'premium.templateTheme': templateId });
         if (!currentTokoData.premium) currentTokoData.premium = {};
         currentTokoData.premium.templateTheme = templateId;
-        wrap.querySelectorAll('.premium-template-card').forEach(c => {
+        wrap.querySelectorAll('.premium-theme-select-btn').forEach(c => {
           c.classList.remove('active');
           c.setAttribute('aria-pressed', 'false');
+          const status = c.querySelector('.premium-theme-select-status');
+          if (status) status.textContent = 'Pilih Tema';
         });
-        wrap.querySelectorAll('.premium-template-action').forEach(b => { b.textContent = 'Gunakan Tema'; });
-        card.classList.add('active');
-        card.setAttribute('aria-pressed', 'true');
-        card.querySelector('.premium-template-action').textContent = 'Tema Aktif';
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        const status = btn.querySelector('.premium-theme-select-status');
+        if (status) status.textContent = 'Aktif';
         clearPublicCache(uid);
         showToast(`Template "${getTemplate(templateId).name}" diaktifkan!`);
       } catch (err) {
@@ -863,8 +860,8 @@ function renderPremiumTemplatePicker() {
         showToast('Gagal menyimpan template', 'error');
       }
     };
-    card.addEventListener('click', selectTemplate);
-    card.addEventListener('keypress', e => {
+    btn.addEventListener('click', selectTemplate);
+    btn.addEventListener('keypress', e => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
     });
   });
@@ -1084,7 +1081,7 @@ async function uploadCloudinary(file) {
 }
 
 // ── MAINTENANCE ────────────────────────────────────────────────────────────
-/* Dashboard user tidak mengelola maintenance.
+Dashboard user tidak mengelola maintenance.
 async function loadMaintenanceSettings() {
   try {
     const snap = await getDoc(doc(db, 'config', 'maintenance'));
