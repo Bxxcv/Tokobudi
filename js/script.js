@@ -9,6 +9,7 @@ import {
   doc, getDoc, setDoc, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { escHtml, rupiah, checkPlan, hexToRgb, safeUrl } from './utils.js';
+import { applyTemplate as applyThemeTemplate } from './templates.js';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 const urlParams    = new URLSearchParams(window.location.search);
@@ -157,24 +158,29 @@ async function loadSettings() {
     const isBasic = plan === 'basic' || plan === 'premium';
     const isPrem  = plan === 'premium';
 
-    // 1. Theme (Premium only)
+    // 1. Premium Theme (NEW: Exclusive templates for Premium users)
+    if (isPrem && s.premium?.templateTheme) {
+      applyThemeTemplate(s.premium.templateTheme);
+    }
+
+    // 2. Background Theme (Legacy: background images)
     const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
     const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
     const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
     applyTemplate(tpl, tplBg);
 
-    // 2. Accent color (Premium only)
+    // 3. Accent color (Premium only)
     const accent = (isPrem && s.premium?.accentColor)
       ? s.premium.accentColor
       : (tplAcc || '#FF6B35');
     document.documentElement.style.setProperty('--idx-accent',     accent);
     document.documentElement.style.setProperty('--idx-accent-rgb', hexToRgb(accent));
 
-    // 3. Verified badge (Premium only)
+    // 4. Verified badge (Premium only)
     const badge = document.getElementById('verified-badge');
     if (badge) badge.style.display = isPrem ? 'inline-flex' : 'none';
 
-    // 4. Footer branding — hide if Premium
+    // 5. Footer branding — hide if Premium
     const footerBrand = document.querySelector('.footer-brand');
     if (footerBrand) footerBrand.style.display = isPrem ? 'none' : '';
 
