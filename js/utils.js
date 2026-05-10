@@ -165,11 +165,10 @@ export function showToast(msg, type = 'info', duration = 3000) {
   }, duration);
 }
 
-/** Validate image URL — only allow http/https, block data URIs and JS */
+/** Validasi image URL — hanya http/https, tolak data URI dan JS */
 export function safeImgUrl(url) {
   if (!url || typeof url !== 'string') return '';
-  const trimmed = url.trim();
-  if (!/^https?:\/\//i.test(trimmed)) return '';
-  return trimmed;
+  const t = url.trim();
+  if (!/^https?:\/\//i.test(t)) return '';
+  return t;
 }
-

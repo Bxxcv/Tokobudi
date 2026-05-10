@@ -366,14 +366,14 @@
 </style>
 
 <script>
-// Maintenance toggle — visual + save to Firestore
+// Maintenance toggle visual behavior
 document.addEventListener('change', function(e) {
   if (e.target.id !== 'maint-toggle') return;
   const track = document.querySelector('.maint-track');
   const thumb = document.querySelector('.maint-thumb');
   if (track) track.style.background = e.target.checked ? '#EF4444' : '#2C313A';
   if (thumb) thumb.style.transform  = e.target.checked ? 'translateX(20px)' : 'translateX(0)';
-  // FIX: actually call toggleMaintenance to save to Firestore
+  // FIX: save ke Firestore saat toggle berubah
   if (typeof window.toggleMaintenance === 'function') window.toggleMaintenance();
 });
 </script>
