@@ -13,7 +13,9 @@ import { applyTemplate as applyThemeTemplate } from './templates.js';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 const urlParams    = new URLSearchParams(window.location.search);
-const USER_ID      = urlParams.get('uid');
+const _rawUID      = urlParams.get('uid') || '';
+// SECURITY: validate UID format — Firebase UIDs are 28-char alphanumeric
+const USER_ID      = /^[a-zA-Z0-9]{10,128}$/.test(_rawUID) ? _rawUID : null;
 let allProducts    = [];
 let activeKategori = 'Semua';
 let waUtama        = 'https://wa.me/';
@@ -132,10 +134,13 @@ async function loadSettings() {
     const cached = localStorage.getItem(cacheKey);
     let s;
     if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Date.now() - parsed.timestamp < 5 * 60 * 1000) { // 5 minutes
-        s = parsed.data;
-      }
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed?.timestamp && parsed?.data &&
+            Date.now() - parsed.timestamp < 5 * 60 * 1000) {
+          s = parsed.data;
+        }
+      } catch { localStorage.removeItem(cacheKey); } // discard corrupt cache
     }
     if (!s) {
       const snap = await getDoc(doc(db, 'toko', USER_ID));
@@ -325,9 +330,14 @@ function renderGalleryButton(photos, uid) {
 
   if (prev) {
     prev.innerHTML = '';
-    photos.slice(0, 3).forEach(url => {
+    photos.slice(0, 3).forEach(item => {
+      const url = typeof item === 'string' ? item : (item?.url || '');
+      if (!url || !/^https?:\/\//.test(url)) return; // skip invalid URLs
       const img = document.createElement('img');
-      img.src = url; img.alt = ''; img.loading = 'lazy';
+      img.src     = url;
+      img.alt     = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
       img.onerror = () => { img.style.display = 'none'; };
       prev.appendChild(img);
     });

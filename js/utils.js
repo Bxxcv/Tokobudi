@@ -7,8 +7,13 @@ export function escHtml(str) {
 
 export function safeUrl(url) {
   if (!url || typeof url !== 'string') return '#';
-  if (/^(javascript|data|vbscript|file):/i.test(url.trim())) return '#';
-  return url.trim();
+  const t = url.trim();
+  // Block JS/data URIs, protocol-relative (//evil.com), and empty
+  if (!t) return '#';
+  if (/^(javascript|data|vbscript|file):/i.test(t)) return '#';
+  if (t.startsWith('//')) return '#';          // protocol-relative bypass
+  if (!/^https?:\/\//i.test(t) && !t.startsWith('tel:') && !t.startsWith('mailto:') && !t.startsWith('#')) return '#';
+  return t;
 }
 
 export function rupiah(val) {

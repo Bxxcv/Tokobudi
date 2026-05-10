@@ -494,6 +494,7 @@ function validateProduct(data) {
   if (data.shopee && !/^https?:\/\/.+/.test(data.shopee)) throw new Error('Link Shopee harus valid (dimulai dengan http/https)');
   if (data.wa && !/^https?:\/\/.+/.test(data.wa)) throw new Error('Link WhatsApp harus valid');
   if (!data.img || typeof data.img !== 'string') throw new Error('Foto produk wajib diupload');
+  if (!/^https?:\/\//i.test(data.img)) throw new Error('URL foto tidak valid');
   return true;
 }
 
@@ -977,7 +978,7 @@ async function handleBgUpload(file) {
     setBgPreview(url, 'upload', 'Foto Upload');
     if (status) status.innerHTML = '<span style="color:#10B981;">✓ Upload berhasil! Klik Simpan Background.</span>';
   } catch (e) {
-    if (status) status.innerHTML = `<span style="color:var(--danger);">✗ ${e.message}</span>`;
+    if (status) { status.textContent = '✗ ' + (e.message || 'Upload gagal'); status.style.color = 'var(--danger)'; }
   } finally {
     if (zone) zone.style.opacity = '';
   }
