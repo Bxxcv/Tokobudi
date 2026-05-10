@@ -681,7 +681,7 @@ function updatePremiumUI() {
     renderColorPicker();
     renderQR();
     renderPremiumTemplatePicker();
-    renderTemplatePicker();
+    initBackgroundStudio();   // FIX: replaced renderTemplatePicker with full studio
     renderCustomButtonEditor();
   }
 }
@@ -786,47 +786,225 @@ $('btn-download-qr')?.addEventListener('click', async () => {
   } catch { window.open($('qr-img').dataset.url, '_blank'); }
 });
 
-// ── PREMIUM: TEMPLATE ──────────────────────────────────────────────────────
-function renderTemplatePicker() {
+// ── BACKGROUND STUDIO ──────────────────────────────────────────────────────
+// State: bg yang sedang di-preview (belum tersimpan)
+let _pendingBgUrl  = null;  // URL yang akan disimpan
+let _pendingBgType = null;  // 'preset'|'upload'|'gallery'|'none'
+let _savingBg      = false;
+
+function initBackgroundStudio() {
+  // Tabs
+  document.querySelectorAll('.bg-tab[data-bgtab]').forEach(tab => {
+    tab.addEventListener('click', () => switchBgTab(tab.dataset.bgtab));
+  });
+
+  // Upload zone
+  const zone    = $('bg-upload-zone');
+  const fileInp = $('inp-bg-file');
+  if (zone && fileInp) {
+    zone.addEventListener('click', () => fileInp.click());
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--accent)'; zone.style.background = 'rgba(255,107,53,0.05)'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; zone.style.background = ''; });
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.style.borderColor = ''; zone.style.background = '';
+      const file = e.dataTransfer.files[0];
+      if (file) handleBgUpload(file);
+    });
+    fileInp.addEventListener('change', () => {
+      const file = fileInp.files[0];
+      if (file) handleBgUpload(file);
+      fileInp.value = '';
+    });
+  }
+
+  // Remove bg
+  $('btn-remove-bg')?.addEventListener('click', () => {
+    setBgPreview('', 'none', 'Polos (tanpa background)');
+  });
+
+  // Save
+  $('btn-save-bg')?.addEventListener('click', saveBgSelection);
+
+  // Preset cards
+  renderPresetCards();
+
+  // Init current bg from data
+  const curBg = currentTokoData?.premium?.templateBg || '';
+  updateLivePreview(curBg);
+  updateBgSelectedInfo(curBg ? 'Background terpasang' : 'Belum ada background', false);
+}
+
+function switchBgTab(tabId) {
+  // Update tab buttons
+  document.querySelectorAll('.bg-tab').forEach(t => {
+    const active = t.dataset.bgtab === tabId;
+    t.style.color       = active ? 'var(--text)' : 'var(--text-3)';
+    t.style.borderBottom = active ? '2px solid var(--accent)' : '2px solid transparent';
+    t.classList.toggle('active', active);
+  });
+  // Show/hide panels
+  document.querySelectorAll('.bg-tab-panel').forEach(p => p.style.display = 'none');
+  const panel = $('bgtab-' + tabId);
+  if (panel) panel.style.display = '';
+
+  // Load gallery photos when gallery tab opened
+  if (tabId === 'gallery') renderBgGalleryPicker();
+}
+
+function renderPresetCards() {
   const wrap = $('template-options');
   if (!wrap) return;
-  const cur = currentTokoData?.premium?.template || 'default';
-  wrap.innerHTML = TEMPLATE_LIST.map(t => `
-    <div class="tpl-card${t.id === cur ? ' active' : ''}" data-tpl="${t.id}">
-      <div class="tpl-preview" style="background:${t.bg ? `url('${t.bg}') center/cover no-repeat` : t.preview};">
-        <div class="tpl-overlay"></div>
-        <div class="tpl-mock">
-          <div class="tpl-mock-avatar"></div>
-          <div class="tpl-mock-line" style="background:${t.accent};opacity:0.9;width:55%;"></div>
-          <div class="tpl-mock-line" style="width:38%;"></div>
-          <div class="tpl-mock-btn" style="background:${t.accent};"></div>
+  const cur = currentTokoData?.premium?.templateBg || '';
+
+  wrap.innerHTML = TEMPLATE_LIST.map(t => {
+    const isActive = t.bg ? t.bg === cur : (!cur && t.id === 'default');
+    return `<div class="tpl-card${isActive ? ' active' : ''}" data-bg="${escHtml(t.bg)}" data-label="${escHtml(t.label)}"
+      style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid ${isActive ? 'var(--accent)' : 'var(--border)'};transition:all 0.18s;">
+      <div class="tpl-preview" style="background:${t.bg ? `url('${encodeURI(t.bg)}') center/cover no-repeat` : t.preview};border-radius:0;height:72px;margin:0;position:relative;">
+        <div class="tpl-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
+          <div style="width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.3);border:1.5px solid rgba(255,255,255,0.6);"></div>
+          <div style="height:3px;width:36px;background:${t.accent};border-radius:3px;opacity:0.9;"></div>
+          <div style="height:3px;width:24px;background:rgba(255,255,255,0.25);border-radius:3px;"></div>
         </div>
+        ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;">AKTIF</div>' : ''}
       </div>
-      <div class="tpl-dot" style="background:${t.accent};"></div>
-      <div class="tpl-label">${t.label}</div>
-      <div class="tpl-desc">${t.desc}</div>
-      ${t.id === cur ? '<div class="tpl-active-badge">Aktif</div>' : ''}
-    </div>`).join('');
+      <div style="padding:6px 8px 8px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.2;">${escHtml(t.label)}</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${escHtml(t.desc)}</div>
+      </div>
+    </div>`;
+  }).join('');
 
   wrap.querySelectorAll('.tpl-card').forEach(card => {
-    card.addEventListener('click', async () => {
-      const tpl     = card.dataset.tpl;
-      const uid     = auth.currentUser?.uid;
-      const tplData = TEMPLATE_LIST.find(t => t.id === tpl);
-      try {
-        await updateDoc(doc(db, 'toko', uid), {
-          'premium.template':       tpl,
-          'premium.templateBg':     tplData?.bg     || '',
-          'premium.templateAccent': tplData?.accent || '',
-        });
-        currentTokoData.premium = { ...currentTokoData.premium, template: tpl, templateBg: tplData?.bg || '', templateAccent: tplData?.accent || '' };
-        clearPublicCache(uid);
-        renderTemplatePicker();
-        showToast('Tema diperbarui!');
-      } catch { showToast('Gagal simpan tema', 'error'); }
+    card.addEventListener('click', () => {
+      const bg    = card.dataset.bg;
+      const label = card.dataset.label;
+      setBgPreview(bg, 'preset', label);
+      // Update active state visually
+      wrap.querySelectorAll('.tpl-card').forEach(c => {
+        c.style.borderColor = 'var(--border)';
+        c.querySelector('[style*="AKTIF"]')?.remove();
+      });
+      card.style.borderColor = 'var(--accent)';
     });
   });
 }
+
+function renderBgGalleryPicker() {
+  const wrap = $('bg-from-gallery');
+  if (!wrap) return;
+  const photos = (currentTokoData?.gallery || []).filter(p => {
+    const url = typeof p === 'string' ? p : p?.url;
+    return url && url.startsWith('http');
+  });
+
+  if (!photos.length) {
+    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;font-size:12px;color:var(--text-3);">Belum ada foto di Gallery.<br>Tambahkan dulu di bagian Gallery Foto di bawah.</div>';
+    return;
+  }
+
+  const curBg = currentTokoData?.premium?.templateBg || '';
+  wrap.innerHTML = photos.map((p, i) => {
+    const url    = typeof p === 'string' ? p : p.url;
+    const isActive = url === curBg;
+    return `<div class="gal-bg-pick" data-url="${escHtml(url)}" data-idx="${i}"
+      style="aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid ${isActive ? 'var(--accent)' : 'transparent'};transition:all 0.18s;position:relative;">
+      <img src="${escHtml(url)}" alt="Gallery ${i+1}" loading="lazy" decoding="async"
+        style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;"
+        onerror="this.onerror=null;this.src='https://placehold.co/200x200/111/333?text=Error'">
+      ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;">AKTIF</div>' : ''}
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.gal-bg-pick').forEach(card => {
+    card.addEventListener('click', () => {
+      const url = card.dataset.url;
+      setBgPreview(url, 'gallery', 'Dari Gallery');
+      wrap.querySelectorAll('.gal-bg-pick').forEach(c => {
+        c.style.borderColor = 'transparent';
+        c.querySelector('[style*="AKTIF"]')?.remove();
+      });
+      card.style.borderColor = 'var(--accent)';
+    });
+  });
+}
+
+async function handleBgUpload(file) {
+  if (file.size > 5 * 1024 * 1024) { showToast('Ukuran foto maks 5MB', 'warn'); return; }
+  const status = $('bg-upload-status');
+  const zone   = $('bg-upload-zone');
+  if (status) status.innerHTML = '<span style="color:var(--accent);">⏳ Mengupload foto...</span>';
+  if (zone)   zone.style.opacity = '0.6';
+  try {
+    const url = await uploadCloudinary(file);
+    if (!url) throw new Error('Upload gagal');
+    setBgPreview(url, 'upload', 'Foto Upload');
+    if (status) status.innerHTML = '<span style="color:#10B981;">✓ Upload berhasil! Klik Simpan Background.</span>';
+  } catch (e) {
+    if (status) status.innerHTML = `<span style="color:var(--danger);">✗ ${e.message}</span>`;
+  } finally {
+    if (zone) zone.style.opacity = '';
+  }
+}
+
+function setBgPreview(url, type, label) {
+  _pendingBgUrl  = url;
+  _pendingBgType = type;
+  updateLivePreview(url);
+  updateBgSelectedInfo(label, true);
+}
+
+function updateLivePreview(url) {
+  const img = $('bg-preview-img');
+  if (!img) return;
+  if (url) {
+    img.style.backgroundImage = `url('${encodeURI(url)}')`;
+    img.style.opacity = '1';
+  } else {
+    img.style.backgroundImage = 'none';
+    img.style.opacity = '0';
+  }
+}
+
+function updateBgSelectedInfo(label, canSave) {
+  const info = $('bg-selected-info');
+  const btn  = $('btn-save-bg');
+  if (info) info.textContent = label ? `Dipilih: ${label}` : 'Belum ada pilihan';
+  if (btn)  btn.disabled = !canSave;
+}
+
+let _savingBgNow = false;
+async function saveBgSelection() {
+  if (_savingBgNow) return;
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  _savingBgNow = true;
+  const btn = $('btn-save-bg');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+  try {
+    const bgUrl = _pendingBgType === 'none' ? '' : (_pendingBgUrl || '');
+    await updateDoc(doc(db, 'toko', uid), { 'premium.templateBg': bgUrl });
+    if (!currentTokoData.premium) currentTokoData.premium = {};
+    currentTokoData.premium.templateBg = bgUrl;
+    clearPublicCache(uid);
+    _pendingBgUrl  = null;
+    _pendingBgType = null;
+    updateBgSelectedInfo(bgUrl ? 'Background disimpan ✓' : 'Background dihapus ✓', false);
+    renderPresetCards();
+    showToast(bgUrl ? 'Background berhasil disimpan!' : 'Background dihapus!');
+  } catch (e) {
+    showToast('Gagal simpan: ' + e.message, 'error');
+  } finally {
+    _savingBgNow = false;
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Simpan Background';
+  }
+}
+
+// Legacy: keep renderTemplatePicker as alias so other code doesn't break
+function renderTemplatePicker() { renderPresetCards(); }
 
 // ── PREMIUM: TEMPLATE THEMES ──────────────────────────────────────────────
 function renderPremiumTemplatePicker() {

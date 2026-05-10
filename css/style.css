@@ -757,3 +757,24 @@ input[type="text"],input[type="email"],input[type="password"],input[type="number
 @media (max-width:768px) { .overlay { z-index:29; } .sidebar { z-index:30; } }
 @media (max-width:420px) { .modal-box { max-height:92dvh; overflow-y:auto; } }
 .prem-only { display:block; }
+
+/* ── BACKGROUND STUDIO ───────────────────────────────────────────── */
+.bg-tab-panel { display: none; }
+.bg-tab-panel:not([style*="display:none"]):not([style*="display: none"]) { display: block; }
+
+.bg-tab:hover { color: var(--text) !important; }
+.bg-tab.active { color: var(--text) !important; }
+
+#bg-upload-zone:hover {
+  border-color: var(--accent) !important;
+  background: rgba(255,107,53,0.04) !important;
+}
+
+.gal-bg-pick:hover img { transform: scale(1.06); }
+.gal-bg-pick:hover { border-color: rgba(255,255,255,0.3) !important; }
+
+.tpl-card:hover .tpl-preview img { transform: scale(1.04); }
+
+#bg-live-preview {
+  contain: layout paint;
+}

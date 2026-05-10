@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260510">
+  <link rel="stylesheet" href="css/style.css?v=20260511">
   <link rel="icon" type="image/png" sizes="32x32" href="logo-linkify.png">
   <link rel="apple-touch-icon" href="logo-linkify.png">
 </head>
@@ -239,51 +239,83 @@
 
         <!-- NON PREMIUM: CTA -->
         <div id="premium-cta">
-          <div class="premium-banner" style="max-width:520px;">
-            <div class="premium-banner-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <!-- Hero Banner -->
+          <div style="background:linear-gradient(135deg,#1a0a00 0%,#2d1200 50%,#1a0500 100%);border-radius:16px;overflow:hidden;margin-bottom:16px;position:relative;">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(255,107,53,0.18) 0%,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,107,53,0.08);border-radius:50%;pointer-events:none;"></div>
+            <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;background:rgba(255,107,53,0.05);border-radius:50%;pointer-events:none;"></div>
+            <div style="padding:22px 20px 20px;position:relative;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                <div style="width:38px;height:38px;background:linear-gradient(135deg,#FF6B35,#FF9A6C);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(255,107,53,0.4);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:16px;font-weight:800;color:#fff;line-height:1.2;">Upgrade ke Premium</div>
+                  <div style="font-size:11.5px;color:rgba(255,255,255,0.5);">Jadikan toko kamu lebih profesional</div>
+                </div>
+              </div>
+
+              <!-- Feature list -->
+              <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:18px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🖼️</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">Background Studio</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">Upload foto sendiri atau pilih dari gallery sebagai latar hero</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🎨</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">6 Template Eksklusif</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">Fashion, Kuliner, Kecantikan, Elektronik, Kreator, Reseller</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📊</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">Statistik & Grafik</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">Pantau pengunjung, klik WA & Shopee setiap hari</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🔗</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">Tombol Link Kustom</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">GoFood, GrabFood, TikTok Shop, atau platform apapun</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🖼️</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">Gallery Foto (12 foto)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">Tampilkan suasana toko, menu, atau produk unggulan</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:28px;height:28px;background:rgba(255,107,53,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">📱</div>
+                  <div>
+                    <div style="font-size:12.5px;font-weight:700;color:#fff;">QR Code Toko</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.45);">Cetak dan pasang di toko fisik untuk scan langsung</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Price -->
+              <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,107,53,0.2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+                <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+                  <span style="font-size:22px;font-weight:900;color:#FF6B35;">Rp 80.000</span>
+                  <span style="font-size:13px;color:rgba(255,255,255,0.4);font-weight:500;">/bulan</span>
+                  <span style="margin-left:auto;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10B981;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;">Hemat 24%</span>
+                </div>
+                <div style="font-size:11.5px;color:rgba(255,255,255,0.35);margin-top:4px;">atau Rp 800.000/tahun</div>
+              </div>
+
+              <a href="https://wa.me/628?" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:linear-gradient(135deg,#FF6B35,#FF8C42);border-radius:12px;color:#fff;font-weight:700;font-size:14px;text-decoration:none;transition:filter 0.2s,transform 0.2s;box-shadow:0 4px 16px rgba(255,107,53,0.4);" onmouseover="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'" onmouseout="this.style.filter='';this.style.transform=''">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                Hubungi Admin untuk Upgrade
+              </a>
             </div>
-            <h2>Upgrade ke Premium</h2>
-            <div class="premium-features-list">
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Statistik pengunjung & klik real-time
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Pilih 6 tema foto eksklusif
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Warna aksen toko kustom
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Gallery foto toko (maks. 12 foto)
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Badge Terverifikasi di storefront
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Download QR Code toko (print-ready)
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Tombol link kustom (unlimited)
-              </div>
-              <div class="premium-feature-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Hapus branding LINKify
-              </div>
-            </div>
-            <div class="premium-price">Rp 99.000<span>/bulan</span></div>
-            <div class="premium-price-note">atau Rp 899.000/tahun — hemat 24%</div>
-            <a href="https://wa.me/628?" target="_blank" rel="noopener" class="btn btn-success btn-w" style="background:#25D366;border-radius:12px;font-size:14px;padding:13px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-              Hubungi Admin untuk Upgrade
-            </a>
           </div>
         </div>
 
@@ -357,11 +389,84 @@
             <div style="height:1px;background:var(--border);margin:18px 0;"></div>
           </div>
 
-          <!-- Template Background (Legacy) -->
-          <div class="sec-head"><span class="sec-title">Background Foto Storefront</span></div>
-          <div class="card" style="margin-bottom:20px;">
-            <p style="font-size:12px;color:var(--text-3);margin-bottom:14px;">Pilih background foto untuk hero section toko kamu. Kombinasikan dengan template di atas.</p>
-            <div class="template-grid" id="template-options"></div>
+          <!-- Background Studio -->
+          <div class="sec-head">
+            <span class="sec-title">🖼️ Background Studio</span>
+          </div>
+          <div class="card" style="margin-bottom:20px;padding:0;overflow:hidden;">
+
+            <!-- Preview Live -->
+            <div id="bg-live-preview" style="position:relative;width:100%;height:180px;background:#0d0d1a;overflow:hidden;border-radius:var(--radius-lg) var(--radius-lg) 0 0;transition:all 0.4s ease;">
+              <div id="bg-preview-img" style="position:absolute;inset:0;background-size:cover;background-position:center;transition:all 0.4s ease;"></div>
+              <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.2),rgba(0,0,0,0.6));"></div>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;">
+                <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);backdrop-filter:blur(4px);"></div>
+                <div style="height:10px;width:120px;background:rgba(255,255,255,0.25);border-radius:6px;"></div>
+                <div style="height:7px;width:80px;background:rgba(255,255,255,0.15);border-radius:6px;"></div>
+                <div style="height:32px;width:140px;background:rgba(255,107,53,0.7);border-radius:8px;margin-top:4px;backdrop-filter:blur(4px);"></div>
+              </div>
+              <div id="bg-preview-label" style="position:absolute;bottom:10px;right:12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.4);padding:3px 9px;border-radius:99px;backdrop-filter:blur(4px);">Preview</div>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display:flex;border-bottom:1px solid var(--border);">
+              <button type="button" class="bg-tab active" data-bgtab="preset" style="flex:1;padding:11px 8px;font-size:12px;font-weight:700;background:none;border:none;color:var(--text);cursor:pointer;border-bottom:2px solid var(--accent);transition:all 0.18s;">
+                🌄 Preset Foto
+              </button>
+              <button type="button" class="bg-tab" data-bgtab="upload" style="flex:1;padding:11px 8px;font-size:12px;font-weight:700;background:none;border:none;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;">
+                📁 Upload Foto
+              </button>
+              <button type="button" class="bg-tab" data-bgtab="gallery" style="flex:1;padding:11px 8px;font-size:12px;font-weight:700;background:none;border:none;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;">
+                🖼️ Dari Gallery
+              </button>
+              <button type="button" class="bg-tab" data-bgtab="none" style="flex:1;padding:11px 8px;font-size:12px;font-weight:700;background:none;border:none;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;">
+                ✕ Polos
+              </button>
+            </div>
+
+            <!-- Tab: Preset -->
+            <div id="bgtab-preset" class="bg-tab-panel" style="padding:14px;">
+              <p style="font-size:11.5px;color:var(--text-3);margin-bottom:12px;">Pilih foto latar siap pakai. Klik untuk preview, lalu klik Simpan.</p>
+              <div class="template-grid" id="template-options"></div>
+            </div>
+
+            <!-- Tab: Upload -->
+            <div id="bgtab-upload" class="bg-tab-panel" style="padding:14px;display:none;">
+              <p style="font-size:11.5px;color:var(--text-3);margin-bottom:12px;">Upload foto dari perangkat. Disarankan resolusi minimal 1200×800px.</p>
+              <div id="bg-upload-zone" style="border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;background:rgba(255,255,255,0.02);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="36" height="36" style="color:var(--text-3);margin-bottom:10px;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;">Klik atau seret foto ke sini</div>
+                <div style="font-size:11.5px;color:var(--text-3);">JPG, PNG, WebP · Maks 5MB</div>
+              </div>
+              <input type="file" id="inp-bg-file" accept="image/*" style="display:none;">
+              <div id="bg-upload-status" style="font-size:12px;color:var(--text-3);margin-top:10px;min-height:16px;text-align:center;"></div>
+            </div>
+
+            <!-- Tab: Dari Gallery -->
+            <div id="bgtab-gallery" class="bg-tab-panel" style="padding:14px;display:none;">
+              <p style="font-size:11.5px;color:var(--text-3);margin-bottom:12px;">Pilih salah satu foto dari Gallery Toko kamu sebagai background.</p>
+              <div id="bg-from-gallery" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                <div style="grid-column:1/-1;text-align:center;padding:20px;font-size:12px;color:var(--text-3);">Belum ada foto di gallery. Tambahkan dulu di bagian Gallery Foto.</div>
+              </div>
+            </div>
+
+            <!-- Tab: Polos -->
+            <div id="bgtab-none" class="bg-tab-panel" style="padding:14px;display:none;">
+              <p style="font-size:11.5px;color:var(--text-3);margin-bottom:14px;">Hapus background foto dan gunakan warna solid dari tema yang dipilih.</p>
+              <button type="button" id="btn-remove-bg" class="btn btn-outline btn-w" style="font-size:13px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                Hapus Background / Gunakan Polos
+              </button>
+            </div>
+
+            <!-- Save Bar -->
+            <div style="padding:12px 14px;background:rgba(255,255,255,0.02);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div id="bg-selected-info" style="flex:1;font-size:12px;color:var(--text-3);min-width:120px;">Belum ada background dipilih</div>
+              <button type="button" id="btn-save-bg" class="btn btn-primary" style="font-size:13px;" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                Simpan Background
+              </button>
+            </div>
           </div>
 
           <!-- Custom Buttons -->
@@ -642,6 +747,6 @@
   };
   window.filterProducts = function() {};
 </script>
-<script type="module" src="js/admin.js?v=20260510"></script>
+<script type="module" src="js/admin.js?v=20260511"></script>
 </body>
 </html>
