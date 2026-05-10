@@ -476,7 +476,7 @@ body.template-reseller {
    ══════════════════════════════════════════════════════════════════ */
 
 /* Products Grid Optimization */
-.products-grid {
+.product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
@@ -484,14 +484,14 @@ body.template-reseller {
 }
 
 @media (max-width: 768px) {
-  .products-grid {
+  .product-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .products-grid {
+  .product-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
