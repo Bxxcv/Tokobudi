@@ -158,16 +158,19 @@ async function loadSettings() {
     const isBasic = plan === 'basic' || plan === 'premium';
     const isPrem  = plan === 'premium';
 
-    // 1. Premium Theme (NEW: Exclusive templates for Premium users)
-    if (isPrem && s.premium?.templateTheme) {
-      applyThemeTemplate(s.premium.templateTheme);
-    }
+    // ── TEMPLATE SYSTEM (unified, no conflict) ──────────────────
+    // Remove any stale template classes first
+    document.body.className = document.body.className
+      .replace(/\btemplate-\S+/g, '').trim();
 
-    // 2. Background Theme (Legacy: background images)
-    const tpl    = isPrem ? (s.premium?.template || 'default') : 'default';
-    const tplBg  = isPrem ? (s.premium?.templateBg || '')      : '';
-    const tplAcc = isPrem ? (s.premium?.templateAccent || '')  : '';
-    applyTemplate(tpl, tplBg);
+    // Apply premium theme class (fashion/kuliner/kecantikan/etc)
+    const themeId = isPrem ? (s.premium?.templateTheme || '') : '';
+    if (themeId) applyThemeTemplate(themeId);
+
+    // Apply background image (independent of theme class)
+    const tplBg  = isPrem ? (s.premium?.templateBg || '') : '';
+    const tplAcc = isPrem ? (s.premium?.templateAccent || '') : '';
+    applyBgLayer(tplBg);
 
     // 3. Accent color (Premium only)
     const accent = (isPrem && s.premium?.accentColor)
@@ -457,23 +460,25 @@ function buildProductCard(p) {
   </div>`;
 }
 
-// ── TEMPLATE ──────────────────────────────────────────────────────────────────
-function applyTemplate(tpl, bgUrl) {
-  document.body.dataset.template = tpl;
+// ── BACKGROUND LAYER (background image only, no class conflict) ──────────────
+function applyBgLayer(bgUrl) {
   let bgEl = document.getElementById('tpl-bg-layer');
   if (!bgEl) {
     bgEl = document.createElement('div');
-    bgEl.id = 'tpl-bg-layer'; bgEl.setAttribute('aria-hidden', 'true');
+    bgEl.id = 'tpl-bg-layer';
+    bgEl.setAttribute('aria-hidden', 'true');
+    bgEl.style.cssText = 'position:fixed;inset:0;z-index:-1;pointer-events:none;background-size:cover;background-position:center;transition:opacity 0.4s;';
     document.body.prepend(bgEl);
   }
   if (bgUrl) {
-    bgEl.style.backgroundImage    = `url('${bgUrl}')`;
-    bgEl.style.backgroundSize     = 'cover';
-    bgEl.style.backgroundPosition = 'center top';
-    bgEl.style.backgroundAttachment = 'scroll';
+    bgEl.style.backgroundImage = `url('${encodeURI(bgUrl)}')`;
+    bgEl.style.opacity = '1';
     bgEl.classList.add('active');
   } else {
     bgEl.style.backgroundImage = 'none';
+    bgEl.style.opacity = '0';
     bgEl.classList.remove('active');
   }
 }
+// Legacy alias
+function applyTemplate(tpl, bgUrl) { applyBgLayer(bgUrl); }

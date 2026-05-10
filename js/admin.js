@@ -735,6 +735,7 @@ async function loadStats(uid) {
 }
 
 // ── PREMIUM: COLOR PICKER ──────────────────────────────────────────────────
+let _colorPickerInited = false;
 function renderColorPicker() {
   const wrap = $('color-options');
   if (!wrap) return;
@@ -742,20 +743,23 @@ function renderColorPicker() {
     `<button type="button" class="color-circle${c.hex === currentAccent ? ' active' : ''}" data-color="${c.hex}" style="background:${c.hex}" title="${c.label}" aria-label="Warna ${c.label}"></button>`
   ).join('');
   wrap.querySelectorAll('.color-circle').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const color = btn.dataset.color;
-      wrap.querySelectorAll('.color-circle').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentAccent = color;
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      try {
-        await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
-        clearPublicCache(uid);
-        showToast('Warna aksen diperbarui!');
-      } catch { showToast('Gagal simpan warna', 'error'); }
-    });
+    if (!_colorPickerInited) {
+      btn.addEventListener('click', async () => {
+        const color = btn.dataset.color;
+        wrap.querySelectorAll('.color-circle').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentAccent = color;
+        const uid = auth.currentUser?.uid;
+        if (!uid) return;
+        try {
+          await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
+          clearPublicCache(uid);
+          showToast('Warna aksen diperbarui!');
+        } catch { showToast('Gagal simpan warna', 'error'); }
+      });
+    }
   });
+  _colorPickerInited = true;
 }
 
 // ── PREMIUM: QR CODE ───────────────────────────────────────────────────────
@@ -787,147 +791,178 @@ $('btn-download-qr')?.addEventListener('click', async () => {
 });
 
 // ── BACKGROUND STUDIO ──────────────────────────────────────────────────────
-// State: bg yang sedang di-preview (belum tersimpan)
-let _pendingBgUrl  = null;  // URL yang akan disimpan
-let _pendingBgType = null;  // 'preset'|'upload'|'gallery'|'none'
-let _savingBg      = false;
+// FIX: guard to prevent duplicate listener registration on re-render
+let _bgStudioInited = false;
+let _pendingBgUrl   = null;
+let _pendingBgType  = null;
+let _savingBgNow    = false;
 
 function initBackgroundStudio() {
-  // Tabs
-  document.querySelectorAll('.bg-tab[data-bgtab]').forEach(tab => {
-    tab.addEventListener('click', () => switchBgTab(tab.dataset.bgtab));
-  });
+  // FIX: only attach listeners once, re-render visuals only
+  if (!_bgStudioInited) {
+    _bgStudioInited = true;
 
-  // Upload zone
-  const zone    = $('bg-upload-zone');
-  const fileInp = $('inp-bg-file');
-  if (zone && fileInp) {
-    zone.addEventListener('click', () => fileInp.click());
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--accent)'; zone.style.background = 'rgba(255,107,53,0.05)'; });
-    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; zone.style.background = ''; });
-    zone.addEventListener('drop', e => {
-      e.preventDefault(); zone.style.borderColor = ''; zone.style.background = '';
-      const file = e.dataTransfer.files[0];
-      if (file) handleBgUpload(file);
+    // Tab clicks — single delegation on parent
+    const tabBar = document.querySelector('[data-bgtab]')?.parentElement;
+    if (tabBar) {
+      tabBar.addEventListener('click', e => {
+        const tab = e.target.closest('[data-bgtab]');
+        if (tab) switchBgTab(tab.dataset.bgtab);
+      });
+    }
+
+    // Upload zone
+    const zone    = $('bg-upload-zone');
+    const fileInp = $('inp-bg-file');
+    if (zone && fileInp) {
+      zone.addEventListener('click', () => fileInp.click());
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--accent)';
+        zone.style.background  = 'rgba(255,107,53,0.05)';
+      });
+      zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = '';
+        zone.style.background  = '';
+      });
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        zone.style.background  = '';
+        const file = e.dataTransfer.files[0];
+        if (file) handleBgUpload(file);
+      });
+      fileInp.addEventListener('change', () => {
+        const file = fileInp.files[0];
+        if (file) handleBgUpload(file);
+        fileInp.value = '';
+      });
+    }
+
+    // Remove bg button
+    $('btn-remove-bg')?.addEventListener('click', () => {
+      setBgPreview('', 'none', 'Polos (tanpa background)');
     });
-    fileInp.addEventListener('change', () => {
-      const file = fileInp.files[0];
-      if (file) handleBgUpload(file);
-      fileInp.value = '';
-    });
+
+    // Save button
+    $('btn-save-bg')?.addEventListener('click', saveBgSelection);
   }
 
-  // Remove bg
-  $('btn-remove-bg')?.addEventListener('click', () => {
-    setBgPreview('', 'none', 'Polos (tanpa background)');
-  });
-
-  // Save
-  $('btn-save-bg')?.addEventListener('click', saveBgSelection);
-
-  // Preset cards
+  // Always re-render visuals (preset cards, preview state)
   renderPresetCards();
-
-  // Init current bg from data
   const curBg = currentTokoData?.premium?.templateBg || '';
   updateLivePreview(curBg);
-  updateBgSelectedInfo(curBg ? 'Background terpasang' : 'Belum ada background', false);
+  if (curBg) {
+    updateBgSelectedInfo('Background terpasang', false);
+  } else {
+    updateBgSelectedInfo('Belum ada background', false);
+  }
+
+  // Reset pending state on re-init
+  _pendingBgUrl  = null;
+  _pendingBgType = null;
 }
 
+// FIX: use explicit display values, not empty string
 function switchBgTab(tabId) {
-  // Update tab buttons
-  document.querySelectorAll('.bg-tab').forEach(t => {
+  document.querySelectorAll('.bg-tab[data-bgtab]').forEach(t => {
     const active = t.dataset.bgtab === tabId;
-    t.style.color       = active ? 'var(--text)' : 'var(--text-3)';
+    t.style.color        = active ? 'var(--text)' : 'var(--text-3)';
     t.style.borderBottom = active ? '2px solid var(--accent)' : '2px solid transparent';
     t.classList.toggle('active', active);
   });
-  // Show/hide panels
-  document.querySelectorAll('.bg-tab-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.bg-tab-panel').forEach(p => {
+    p.style.display = 'none';
+  });
   const panel = $('bgtab-' + tabId);
-  if (panel) panel.style.display = '';
+  if (panel) panel.style.display = 'block';
 
-  // Load gallery photos when gallery tab opened
   if (tabId === 'gallery') renderBgGalleryPicker();
 }
 
 function renderPresetCards() {
   const wrap = $('template-options');
   if (!wrap) return;
-  const cur = currentTokoData?.premium?.templateBg || '';
+  const curBg = currentTokoData?.premium?.templateBg || '';
 
-  wrap.innerHTML = TEMPLATE_LIST.map(t => {
-    const isActive = t.bg ? t.bg === cur : (!cur && t.id === 'default');
-    return `<div class="tpl-card${isActive ? ' active' : ''}" data-bg="${escHtml(t.bg)}" data-label="${escHtml(t.label)}"
-      style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid ${isActive ? 'var(--accent)' : 'var(--border)'};transition:all 0.18s;">
-      <div class="tpl-preview" style="background:${t.bg ? `url('${encodeURI(t.bg)}') center/cover no-repeat` : t.preview};border-radius:0;height:72px;margin:0;position:relative;">
-        <div class="tpl-overlay" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
+  const frag = document.createDocumentFragment();
+  TEMPLATE_LIST.forEach(t => {
+    const isActive = t.bg ? (t.bg === curBg) : (!curBg && t.id === 'default');
+    const card = document.createElement('div');
+    card.className = 'tpl-card' + (isActive ? ' active' : '');
+    card.dataset.bg    = t.bg || '';
+    card.dataset.label = t.label;
+    card.style.cssText = `cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid ${isActive ? 'var(--accent)' : 'var(--border)'};transition:border-color 0.18s,transform 0.18s;`;
+    card.innerHTML = `
+      <div style="position:relative;height:72px;overflow:hidden;background:${t.bg ? 'transparent' : t.preview};">
+        ${t.bg ? `<img src="${encodeURI(t.bg)}" alt="${escHtml(t.label)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">` : ''}
+        <div style="position:absolute;inset:0;background:rgba(0,0,0,0.38);"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">
           <div style="width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.3);border:1.5px solid rgba(255,255,255,0.6);"></div>
           <div style="height:3px;width:36px;background:${t.accent};border-radius:3px;opacity:0.9;"></div>
           <div style="height:3px;width:24px;background:rgba(255,255,255,0.25);border-radius:3px;"></div>
         </div>
-        ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;">AKTIF</div>' : ''}
+        ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;letter-spacing:0.5px;">AKTIF</div>' : ''}
       </div>
       <div style="padding:6px 8px 8px;">
         <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.2;">${escHtml(t.label)}</div>
         <div style="font-size:10px;color:var(--text-3);margin-top:1px;">${escHtml(t.desc)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  wrap.querySelectorAll('.tpl-card').forEach(card => {
+      </div>`;
     card.addEventListener('click', () => {
-      const bg    = card.dataset.bg;
-      const label = card.dataset.label;
-      setBgPreview(bg, 'preset', label);
-      // Update active state visually
+      setBgPreview(t.bg || '', 'preset', t.label);
       wrap.querySelectorAll('.tpl-card').forEach(c => {
         c.style.borderColor = 'var(--border)';
-        c.querySelector('[style*="AKTIF"]')?.remove();
+        c.classList.remove('active');
       });
       card.style.borderColor = 'var(--accent)';
+      card.classList.add('active');
     });
+    frag.appendChild(card);
   });
+  wrap.innerHTML = '';
+  wrap.appendChild(frag);
 }
 
 function renderBgGalleryPicker() {
   const wrap = $('bg-from-gallery');
   if (!wrap) return;
-  const photos = (currentTokoData?.gallery || []).filter(p => {
-    const url = typeof p === 'string' ? p : p?.url;
-    return url && url.startsWith('http');
-  });
+  const gallery = currentTokoData?.gallery || [];
+  const photos  = gallery
+    .map(p => (typeof p === 'string' ? { url: p } : p))
+    .filter(p => p?.url && /^https?:\/\//.test(p.url));
 
   if (!photos.length) {
-    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;font-size:12px;color:var(--text-3);">Belum ada foto di Gallery.<br>Tambahkan dulu di bagian Gallery Foto di bawah.</div>';
+    wrap.innerHTML = '<div style="grid-column:1/-1;padding:24px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto di Gallery.<br>Tambahkan dulu di bagian Gallery Foto di bawah.</div>';
     return;
   }
 
   const curBg = currentTokoData?.premium?.templateBg || '';
-  wrap.innerHTML = photos.map((p, i) => {
-    const url    = typeof p === 'string' ? p : p.url;
+  const frag  = document.createDocumentFragment();
+  photos.forEach((p, i) => {
+    const url      = p.url;
     const isActive = url === curBg;
-    return `<div class="gal-bg-pick" data-url="${escHtml(url)}" data-idx="${i}"
-      style="aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid ${isActive ? 'var(--accent)' : 'transparent'};transition:all 0.18s;position:relative;">
+    const card = document.createElement('div');
+    card.className    = 'gal-bg-pick';
+    card.dataset.url  = url;
+    card.style.cssText = `aspect-ratio:1;border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid ${isActive ? 'var(--accent)' : 'transparent'};transition:border-color 0.18s;position:relative;`;
+    card.innerHTML = `
       <img src="${escHtml(url)}" alt="Gallery ${i+1}" loading="lazy" decoding="async"
         style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;"
         onerror="this.onerror=null;this.src='https://placehold.co/200x200/111/333?text=Error'">
-      ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;">AKTIF</div>' : ''}
-    </div>`;
-  }).join('');
-
-  wrap.querySelectorAll('.gal-bg-pick').forEach(card => {
+      ${isActive ? '<div style="position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:99px;">AKTIF</div>' : ''}`;
     card.addEventListener('click', () => {
-      const url = card.dataset.url;
       setBgPreview(url, 'gallery', 'Dari Gallery');
       wrap.querySelectorAll('.gal-bg-pick').forEach(c => {
         c.style.borderColor = 'transparent';
-        c.querySelector('[style*="AKTIF"]')?.remove();
+        c.classList.remove('active');
       });
       card.style.borderColor = 'var(--accent)';
+      card.classList.add('active');
     });
+    frag.appendChild(card);
   });
+  wrap.innerHTML = '';
+  wrap.appendChild(frag);
 }
 
 async function handleBgUpload(file) {
@@ -960,10 +995,10 @@ function updateLivePreview(url) {
   if (!img) return;
   if (url) {
     img.style.backgroundImage = `url('${encodeURI(url)}')`;
-    img.style.opacity = '1';
+    img.style.opacity         = '1';
   } else {
     img.style.backgroundImage = 'none';
-    img.style.opacity = '0';
+    img.style.opacity         = '0';
   }
 }
 
@@ -974,15 +1009,13 @@ function updateBgSelectedInfo(label, canSave) {
   if (btn)  btn.disabled = !canSave;
 }
 
-let _savingBgNow = false;
 async function saveBgSelection() {
   if (_savingBgNow) return;
   const uid = auth.currentUser?.uid;
   if (!uid) return;
   _savingBgNow = true;
   const btn = $('btn-save-bg');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Menyimpan...'; }
   try {
     const bgUrl = _pendingBgType === 'none' ? '' : (_pendingBgUrl || '');
     await updateDoc(doc(db, 'toko', uid), { 'premium.templateBg': bgUrl });
@@ -991,22 +1024,29 @@ async function saveBgSelection() {
     clearPublicCache(uid);
     _pendingBgUrl  = null;
     _pendingBgType = null;
-    updateBgSelectedInfo(bgUrl ? 'Background disimpan ✓' : 'Background dihapus ✓', false);
+    updateBgSelectedInfo(bgUrl ? '✓ Background disimpan' : '✓ Background dihapus', false);
     renderPresetCards();
+    updateLivePreview(bgUrl);
     showToast(bgUrl ? 'Background berhasil disimpan!' : 'Background dihapus!');
   } catch (e) {
     showToast('Gagal simpan: ' + e.message, 'error');
   } finally {
     _savingBgNow = false;
-    btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Simpan Background';
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> Simpan Background';
+    }
   }
 }
 
-// Legacy: keep renderTemplatePicker as alias so other code doesn't break
+// alias for legacy calls
 function renderTemplatePicker() { renderPresetCards(); }
 
+
+
 // ── PREMIUM: TEMPLATE THEMES ──────────────────────────────────────────────
+// FIX: guard against duplicate listeners
+let _premTplInited = false;
 function renderPremiumTemplatePicker() {
   const wrap = $('premium-template-options');
   if (!wrap) return;
@@ -1060,11 +1100,14 @@ function renderPremiumTemplatePicker() {
         card.style.pointerEvents = '';
       }
     };
-    card.addEventListener('click', selectTemplate);
-    card.addEventListener('keypress', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
-    });
+    if (!_premTplInited) {
+      card.addEventListener('click', selectTemplate);
+      card.addEventListener('keypress', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
+      });
+    }
   });
+  _premTplInited = true;
 }
 
 // ── PREMIUM: CUSTOM BUTTONS ────────────────────────────────────────────────
