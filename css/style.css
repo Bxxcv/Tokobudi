@@ -759,8 +759,7 @@ input[type="text"],input[type="email"],input[type="password"],input[type="number
 .prem-only { display:block; }
 
 /* ── BACKGROUND STUDIO ───────────────────────────────────────────── */
-.bg-tab-panel { display: none; }
-.bg-tab-panel:not([style*="display:none"]):not([style*="display: none"]) { display: block; }
+/* bg-tab-panel visibility controlled by JS only — no CSS override */
 
 .bg-tab:hover { color: var(--text) !important; }
 .bg-tab.active { color: var(--text) !important; }

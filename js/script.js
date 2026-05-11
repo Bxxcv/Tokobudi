@@ -168,9 +168,12 @@ async function loadSettings() {
     document.body.className = document.body.className
       .replace(/\btemplate-\S+/g, '').trim();
 
-    // Apply premium theme class (fashion/kuliner/kecantikan/etc)
+    // Apply premium theme class — only if valid known template
+    const VALID_THEMES = ['fashion','kuliner','kecantikan','elektronik','kreator','reseller'];
     const themeId = isPrem ? (s.premium?.templateTheme || '') : '';
-    if (themeId) applyThemeTemplate(themeId);
+    if (themeId && VALID_THEMES.includes(themeId)) {
+      applyThemeTemplate(themeId);
+    }
 
     // Apply background image (independent of theme class)
     const tplBg  = isPrem ? (s.premium?.templateBg || '') : '';

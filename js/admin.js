@@ -736,31 +736,33 @@ async function loadStats(uid) {
 }
 
 // ── PREMIUM: COLOR PICKER ──────────────────────────────────────────────────
-let _colorPickerInited = false;
+let _colorPickerDelegated = false;
 function renderColorPicker() {
   const wrap = $('color-options');
   if (!wrap) return;
-  wrap.innerHTML = ACCENT_COLORS.map(c =>
-    `<button type="button" class="color-circle${c.hex === currentAccent ? ' active' : ''}" data-color="${c.hex}" style="background:${c.hex}" title="${c.label}" aria-label="Warna ${c.label}"></button>`
+  // Re-render HTML (safe — static data only)
+  wrap.innerHTML = ACCENT_COLORS.map(clr =>
+    `<button type="button" class="color-circle${clr.hex === currentAccent ? ' active' : ''}" data-color="${clr.hex}" style="background:${clr.hex}" title="${clr.label}" aria-label="Warna ${clr.label}"></button>`
   ).join('');
-  wrap.querySelectorAll('.color-circle').forEach(btn => {
-    if (!_colorPickerInited) {
-      btn.addEventListener('click', async () => {
-        const color = btn.dataset.color;
-        wrap.querySelectorAll('.color-circle').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentAccent = color;
-        const uid = auth.currentUser?.uid;
-        if (!uid) return;
-        try {
-          await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
-          clearPublicCache(uid);
-          showToast('Warna aksen diperbarui!');
-        } catch { showToast('Gagal simpan warna', 'error'); }
-      });
-    }
-  });
-  _colorPickerInited = true;
+  // Delegate on static container — attach ONCE
+  if (!_colorPickerDelegated) {
+    _colorPickerDelegated = true;
+    wrap.addEventListener('click', async e => {
+      const btn   = e.target.closest('.color-circle');
+      if (!btn) return;
+      const color = btn.dataset.color;
+      wrap.querySelectorAll('.color-circle').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentAccent = color;
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      try {
+        await updateDoc(doc(db, 'toko', uid), { 'premium.accentColor': color });
+        clearPublicCache(uid);
+        showToast('Warna aksen diperbarui!');
+      } catch { showToast('Gagal simpan warna', 'error'); }
+    });
+  }
 }
 
 // ── PREMIUM: QR CODE ───────────────────────────────────────────────────────
@@ -853,11 +855,10 @@ function initBackgroundStudio() {
   renderPresetCards();
   const curBg = currentTokoData?.premium?.templateBg || '';
   updateLivePreview(curBg);
-  if (curBg) {
-    updateBgSelectedInfo('Background terpasang', false);
-  } else {
-    updateBgSelectedInfo('Belum ada background', false);
-  }
+  updateBgSelectedInfo(curBg ? 'Background terpasang' : 'Belum ada background', false);
+
+  // Always show preset tab on init (explicit, not relying on HTML/CSS state)
+  switchBgTab('preset');
 
   // Reset pending state on re-init
   _pendingBgUrl  = null;
@@ -1046,8 +1047,6 @@ function renderTemplatePicker() { renderPresetCards(); }
 
 
 // ── PREMIUM: TEMPLATE THEMES ──────────────────────────────────────────────
-// FIX: guard against duplicate listeners
-let _premTplInited = false;
 function renderPremiumTemplatePicker() {
   const wrap = $('premium-template-options');
   if (!wrap) return;
@@ -1074,41 +1073,36 @@ function renderPremiumTemplatePicker() {
       </div>`;
   }).join('');
 
-  wrap.querySelectorAll('.premium-template-card').forEach(card => {
-    const selectTemplate = async () => {
+  // Event delegation — attached ONCE on static container, survives re-render
+  if (!_premTplDelegated) {
+    _premTplDelegated = true;
+    wrap.addEventListener('click', async e => {
+      const card = e.target.closest('.premium-template-card');
+      if (!card) return;
       const templateId = card.dataset.template;
       const uid = auth.currentUser?.uid;
       if (!uid) return;
-      // FIX: visual loading state on card
       card.style.opacity = '0.6';
       card.style.pointerEvents = 'none';
       try {
         await updateDoc(doc(db, 'toko', uid), { 'premium.templateTheme': templateId });
         if (!currentTokoData.premium) currentTokoData.premium = {};
         currentTokoData.premium.templateTheme = templateId;
-        wrap.querySelectorAll('.premium-template-card').forEach(c => {
-          c.classList.remove('active');
-          c.style.opacity = '';
-          c.style.pointerEvents = '';
+        wrap.querySelectorAll('.premium-template-card').forEach(el => {
+          el.classList.remove('active');
+          el.style.opacity = '';
+          el.style.pointerEvents = '';
         });
         card.classList.add('active');
         clearPublicCache(uid);
-        showToast(`Template "${getTemplate(templateId).name}" diaktifkan! ✓`, 'success');
+        showToast('Template diaktifkan! ✓', 'success');
       } catch (err) {
-        console.error('Template save error:', err);
         showToast('Gagal menyimpan template', 'error');
         card.style.opacity = '';
         card.style.pointerEvents = '';
       }
-    };
-    if (!_premTplInited) {
-      card.addEventListener('click', selectTemplate);
-      card.addEventListener('keypress', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectTemplate(); }
-      });
-    }
-  });
-  _premTplInited = true;
+    });
+  }
 }
 
 // ── PREMIUM: CUSTOM BUTTONS ────────────────────────────────────────────────
