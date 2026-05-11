@@ -184,10 +184,12 @@
 <script type="module">
 import { db } from '/firebase.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { checkPremium, escHtml, hexToRgb } from './js/utils.js';
+import { checkPlan, escHtml, hexToRgb } from './js/utils.js';
 
 const params = new URLSearchParams(location.search);
-const uid    = params.get('uid');
+const _rawUid = params.get('uid') || '';
+// SECURITY: validate UID format
+const uid = /^[a-zA-Z0-9]{10,128}$/.test(_rawUid) ? _rawUid : null;
 document.getElementById('back-btn').href = uid ? `index.html?uid=${uid}` : 'landing.html';
 
 // allPhotos = full list, filteredPhotos = currently shown (after kategori filter)
@@ -282,14 +284,17 @@ function buildKatFilter(photos) {
 
 if (!uid) {
   hideSkeleton();
-  document.getElementById('gallery-full-grid').innerHTML =
-    `<div class="g-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span>URL tidak valid</span></div>`;
+  const grid = document.getElementById('gallery-full-grid');
+  const empty = document.createElement('div');
+  empty.className = 'g-empty';
+  empty.textContent = 'URL tidak valid atau UID tidak ditemukan.';
+  grid.appendChild(empty);
 } else {
   try {
     const snap = await getDoc(doc(db, 'toko', uid));
     if (!snap.exists()) throw new Error('Toko tidak ditemukan.');
     const s      = snap.data();
-    const isPrem = checkPremium(s);
+    const isPrem = checkPlan(s) === 'premium';
 
     // Accent color
     const accent = (isPrem && s.premium?.accentColor) ? s.premium.accentColor : '#FF6B35';

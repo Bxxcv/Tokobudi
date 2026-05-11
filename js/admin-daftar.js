@@ -134,6 +134,11 @@ async function daftarkanUser() {
   if (!namaToko || !namaPemilik || !emailUser || !passUser) {
     return toast('Semua field wajib diisi!', 'warn');
   }
+  // SECURITY: validate input lengths
+  if (namaToko.length > 100) return toast('Nama toko maksimal 100 karakter.', 'warn');
+  if (namaPemilik.length > 80) return toast('Nama pemilik maksimal 80 karakter.', 'warn');
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailUser)) return toast('Format email tidak valid.', 'warn');
   if (passUser.length < 6) return toast('Password minimal 6 karakter!', 'warn');
 
   btn.disabled  = true;
@@ -284,7 +289,11 @@ function buildRow(u, no, now, q) {
   const isPrem  = plan === 'premium';
   const isBasic = plan === 'basic';
   const omset   = (u.omset || 0).toLocaleString('id-ID');
-  const viewUrl = window.location.origin + BASE_PATH + '/?uid=' + u.uid;
+  // SECURITY: validate UID is safe (alphanumeric only) before embedding in HTML attributes
+  const safeUid   = /^[a-zA-Z0-9]{10,128}$/.test(u.uid) ? u.uid : '';
+  const safeEmail = escHtml(u.email || '');
+  const safeNama  = escHtml(u.namaToko || '');
+  const viewUrl   = window.location.origin + BASE_PATH + '/?uid=' + safeUid;
 
   const statusBadge = u.status === 'aktif'
     ? '<span class="badge badge-aktif">Aktif</span>'
@@ -296,13 +305,14 @@ function buildRow(u, no, now, q) {
       ? '<span class="badge badge-basic">Basic</span>'
       : '<span class="badge badge-gratis">Gratis</span>';
 
-  const blockBtn = u.status === 'aktif'
-    ? `<button class="act-btn act-block" onclick="blokirUser('${u.uid}','blokir')">Blokir</button>`
-    : `<button class="act-btn act-unblock" onclick="blokirUser('${u.uid}','aktif')">Aktifkan</button>`;
-
-  const planBtn = (isPrem || isBasic)
-    ? `<button class="act-btn act-unprem" onclick="nonaktifPlan('${u.uid}')">Nonaktif</button>`
-    : `<button class="act-btn act-prem" onclick="openPlanModal('${u.uid}')">Atur Paket</button>`;
+  // SECURITY: use data-* attributes for delegated events — no inline onclick string injection
+  const blockLabel  = u.status === 'aktif' ? 'Blokir' : 'Aktifkan';
+  const blockClass  = u.status === 'aktif' ? 'act-block' : 'act-unblock';
+  const blockStatus = u.status === 'aktif' ? 'blokir' : 'aktif';
+  const blockBtn = `<button class="act-btn ${blockClass}" data-action="block" data-uid="${safeUid}" data-status="${blockStatus}">${blockLabel}</button>`;
+  const planBtn  = (isPrem || isBasic)
+    ? `<button class="act-btn act-unprem" data-action="nonaktifplan" data-uid="${safeUid}">Nonaktif</button>`
+    : `<button class="act-btn act-prem"   data-action="openplan"     data-uid="${safeUid}">Atur Paket</button>`;
 
   return '<tr>'
     + '<td style="color:#4B5563;font-size:12px;">' + no + '</td>'
@@ -313,10 +323,10 @@ function buildRow(u, no, now, q) {
     + '<td>' + statusBadge + '</td>'
     + '<td>' + planBadge + '</td>'
     + '<td><div class="act-wrap">'
-    + '<a href="' + viewUrl + '" target="_blank" rel="noopener" class="act-btn act-view">Lihat</a>'
-    + '<button class="act-btn act-reset" onclick="resetPassword(\'' + escHtml(u.email) + '\')">Reset</button>'
+    + (safeUid ? `<a href="${viewUrl}" target="_blank" rel="noopener" class="act-btn act-view">Lihat</a>` : '')
+    + `<button class="act-btn act-reset" data-action="reset" data-email="${safeEmail}">Reset</button>`
     + blockBtn + planBtn
-    + '<button class="act-btn act-delete" onclick="hapusUser(\'' + u.uid + '\',\'' + escHtml(u.namaToko) + '\')">Hapus</button>'
+    + `<button class="act-btn act-delete" data-action="hapus" data-uid="${safeUid}" data-nama="${safeNama}">Hapus</button>`
     + '</div></td></tr>';
 }
 
@@ -621,6 +631,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const cb = confirmCallback;
       closeConfirm();
       if (typeof cb === 'function') await cb();
+    });
+  }
+
+  // SECURITY: delegated table action handler — replaces inline onclick on all action buttons
+  const tbody = $('tabelUser');
+  if (tbody) {
+    tbody.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      const uid    = btn.dataset.uid   || '';
+      const email  = btn.dataset.email || '';
+      const nama   = btn.dataset.nama  || '';
+      const status = btn.dataset.status || '';
+
+      // Validate uid format before passing to action functions
+      if ((action === 'block' || action === 'nonaktifplan' || action === 'openplan' || action === 'hapus') &&
+          !/^[a-zA-Z0-9]{10,128}$/.test(uid)) {
+        toast('UID tidak valid.', 'err');
+        return;
+      }
+
+      if (action === 'reset')       resetPassword(email);
+      if (action === 'block')       blokirUser(uid, status);
+      if (action === 'nonaktifplan') nonaktifPlan(uid);
+      if (action === 'openplan')    openPlanModal(uid);
+      if (action === 'hapus')       hapusUser(uid, nama);
     });
   }
 });

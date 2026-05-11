@@ -16,7 +16,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
-  formatDate, TEMPLATE_LIST, showToast
+  formatDate, TEMPLATE_LIST, showToast, validateImageFile, sanitizeText, safeUrl
 } from './utils.js';
 import { PREMIUM_TEMPLATES, getTemplate, getAllTemplates, getThemePreviewData } from './templates.js';
 
@@ -409,6 +409,9 @@ $('upload-zone').addEventListener('click', () => $('inp-prod-file').click());
 $('inp-prod-file').addEventListener('change', () => {
   const file = $('inp-prod-file').files[0];
   if (!file) return;
+  // SECURITY: validate MIME type + size before creating blob URL
+  const check = validateImageFile(file);
+  if (!check.ok) { showToast(check.reason, 'warn'); $('inp-prod-file').value = ''; return; }
   if (prodBlobUrl) URL.revokeObjectURL(prodBlobUrl);
   prodBlobUrl = URL.createObjectURL(file);
   $('img-preview').src = prodBlobUrl;
@@ -540,6 +543,9 @@ $('btn-logo-pick').addEventListener('click', () => $('inp-logo-file').click());
 $('inp-logo-file').addEventListener('change', () => {
   const file = $('inp-logo-file').files[0];
   if (!file) return;
+  // SECURITY: validate before blob preview
+  const check = validateImageFile(file);
+  if (!check.ok) { showToast(check.reason, 'warn'); $('inp-logo-file').value = ''; return; }
   if (logoBlobUrl) URL.revokeObjectURL(logoBlobUrl);
   logoBlobUrl = URL.createObjectURL(file);
   $('logo-preview').src = logoBlobUrl;
@@ -563,16 +569,16 @@ $('btn-save-settings').addEventListener('click', async () => {
       $('inp-logo-url').value = logoUrl;
     }
     await setDoc(doc(db, 'toko', uid), {
-      namaToko:  $('inp-username').value.trim(),
-      bio:       $('inp-bio').value.trim(),
-      wa:        $('inp-wa').value.trim(),
-      shopee:    $('inp-shopee').value.trim(),
-      tokopedia: $('inp-tokopedia').value.trim(),
-      instagram: $('inp-instagram').value.trim(),
-      tiktok:    $('inp-tiktok').value.trim(),
-      twitter:   $('inp-twitter').value.trim(),
-      facebook:  $('inp-facebook').value.trim(),
-      youtube:   $('inp-youtube').value.trim(),
+      namaToko:  sanitizeText($('inp-username').value, 100),
+      bio:       sanitizeText($('inp-bio').value, 200),
+      wa:        safeUrl($('inp-wa').value.trim()),
+      shopee:    safeUrl($('inp-shopee').value.trim()),
+      tokopedia: safeUrl($('inp-tokopedia').value.trim()),
+      instagram: safeUrl($('inp-instagram').value.trim()),
+      tiktok:    safeUrl($('inp-tiktok').value.trim()),
+      twitter:   safeUrl($('inp-twitter').value.trim()),
+      facebook:  safeUrl($('inp-facebook').value.trim()),
+      youtube:   safeUrl($('inp-youtube').value.trim()),
       logo:      logoUrl,
     }, { merge: true });
     // FIX: clear public cache so visitor sees updated settings
@@ -811,6 +817,7 @@ $('btn-download-qr')?.addEventListener('click', async () => {
 
 // ── BACKGROUND STUDIO ──────────────────────────────────────────────────────
 // FIX: guard to prevent duplicate listener registration on re-render
+let _premTplDelegated = false; // FIX: was undeclared — caused implicit global
 let _bgStudioInited = false;
 let _pendingBgUrl   = null;
 let _pendingBgType  = null;
@@ -984,7 +991,9 @@ function renderBgGalleryPicker() {
 }
 
 async function handleBgUpload(file) {
-  if (file.size > 5 * 1024 * 1024) { showToast('Ukuran foto maks 5MB', 'warn'); return; }
+  // SECURITY: validate MIME + size
+  const check = validateImageFile(file);
+  if (!check.ok) { showToast(check.reason, 'warn'); return; }
   const status = $('bg-upload-status');
   const zone   = $('bg-upload-zone');
   if (status) status.innerHTML = '<span style="color:var(--accent);">⏳ Mengupload foto...</span>';
@@ -1318,15 +1327,20 @@ $('btn-save-gallery')?.addEventListener('click', async () => {
   finally { _savingGallery = false; btn.disabled = false; }
 });
 
-// ── CLOUDINARY ─────────────────────────────────────────────────────────────
+// ── CLOUDINARY — with MIME + size guard ───────────────────────────────────────
 async function uploadCloudinary(file) {
+  // SECURITY: validate before upload
+  const check = validateImageFile(file);
+  if (!check.ok) { showToast(check.reason, 'warn'); return null; }
+
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', CLOUD_PRESET);
   try {
     const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (data.secure_url) return data.secure_url;
+    if (data.secure_url && /^https:\/\/res\.cloudinary\.com\//i.test(data.secure_url)) return data.secure_url;
     throw new Error(data.error?.message || 'Upload gagal');
   } catch (err) {
     showToast('Upload gagal: ' + err.message, 'error');
