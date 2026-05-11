@@ -152,15 +152,24 @@ window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClick
 async function loadSettings() {
   try {
     const cacheKey = `toko_${USER_ID}`;
-    let s;
+    let s = null;
 
-    // Check localStorage cache (5 minutes)
+    // Cache hanya untuk data statis (nama, bio, wa, logo, plan, status)
+    // Field premium.* (template, accent, bg) SELALU fetch fresh — tidak di-cache
+    // karena perubahan dari admin harus langsung terlihat saat refresh
     try {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed?.timestamp && parsed?.data && Date.now() - parsed.timestamp < 5 * 60 * 1000) {
-          s = parsed.data;
+        // TTL 2 menit — lebih pendek supaya perubahan admin cepat terlihat
+        if (parsed?.timestamp && parsed?.data && Date.now() - parsed.timestamp < 2 * 60 * 1000) {
+          // Hanya pakai cache jika BUKAN premium — user premium selalu fresh
+          // supaya template/accent/bg langsung update tanpa tunggu TTL
+          const cachedPlan = parsed.data?.plan;
+          const isPremCache = cachedPlan === 'premium' || parsed.data?.premium?.active;
+          if (!isPremCache) {
+            s = parsed.data;
+          }
         }
       }
     } catch { localStorage.removeItem(cacheKey); }
@@ -173,9 +182,14 @@ async function loadSettings() {
         return;
       }
       s = snap.data();
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({ data: s, timestamp: Date.now() }));
-      } catch { /* storage full — ok */ }
+      // Jangan cache user premium — supaya template perubahan langsung reflect
+      const planNow = s?.plan;
+      const isPremNow = planNow === 'premium' || s?.premium?.active;
+      if (!isPremNow) {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ data: s, timestamp: Date.now() }));
+        } catch { /* storage full — ok */ }
+      }
     }
 
     // SECURITY: block suspended accounts
