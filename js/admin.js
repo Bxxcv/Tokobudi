@@ -517,7 +517,10 @@ async function _initSettings(uid) {
     $('inp-facebook').value  = s.facebook  || '';
     $('inp-youtube').value   = s.youtube   || '';
     $('inp-logo-url').value  = s.logo      || '';
-    if (s.logo) $('logo-preview').src = s.logo;
+    if (s.logo) {
+      const lp = $('logo-preview');
+      if (lp) { lp.src = s.logo; lp.onerror = () => { lp.src = 'https://placehold.co/200x200/F3F4F6/999?text=Logo'; }; }
+    }
 
     updatePremiumUI();
     await loadTodayVisits(uid);
@@ -657,8 +660,21 @@ function updatePremiumUI() {
     const end   = planEndDate?.toDate ? planEndDate.toDate() : new Date(planEndDate);
     const label = end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     const exEl  = $('premium-expiry');
-    if (exEl) exEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Paket ${plan === 'premium' ? 'Premium' : 'Basic'} aktif sampai <strong>${label}</strong>`;
+    if (exEl) {
+      // label comes from toLocaleDateString - safe static content
+      exEl.innerHTML = '';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none');
+      svg.setAttribute('stroke','currentColor'); svg.setAttribute('stroke-width','2');
+      svg.setAttribute('stroke-linecap','round'); svg.setAttribute('width','13'); svg.setAttribute('height','13');
+      svg.innerHTML = '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>';
+      const planName = plan === 'premium' ? 'Premium' : 'Basic';
+      const strong = document.createElement('strong');
+      strong.textContent = label;
+      exEl.appendChild(svg);
+      exEl.append(` Paket ${planName} aktif sampai `);
+      exEl.appendChild(strong);
+    }
   }
 
   // FIX: Update badge text based on plan
