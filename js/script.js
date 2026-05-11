@@ -199,17 +199,20 @@ async function loadSettings() {
     const isBasic = plan === 'basic' || plan === 'premium';
     const isPrem  = plan === 'premium';
 
-    // Apply template (class + bg)
+    // Apply template class (styling font, warna, dll dari templateTheme)
     document.body.className = document.body.className.replace(/\btemplate-\S+/g, '').trim();
     const VALID_THEMES = ['fashion','kuliner','kecantikan','elektronik','kreator','reseller'];
     const themeId = isPrem ? (s.premium?.templateTheme || '') : '';
     if (themeId && VALID_THEMES.includes(themeId)) applyThemeTemplate(themeId);
 
-    const tplBg  = isPrem ? (s.premium?.templateBg  || '') : '';
-    const tplAcc = isPrem ? (s.premium?.templateAccent || '') : '';
-    applyBgLayer(tplBg);
+    // Logika prioritas background:
+    // 1. Jika user SET background custom via Background Studio (templateBg) → pakai itu
+    // 2. Jika tidak ada templateBg, tapi ada templateTheme → tidak ada bg foto (theme pakai warna/CSS)
+    // 3. Tidak ada keduanya → tidak ada bg
+    const customBg = isPrem ? (s.premium?.templateBg || '') : '';
+    applyBgLayer(customBg);
 
-    const accent = (isPrem && s.premium?.accentColor) ? s.premium.accentColor : (tplAcc || '#FF6B35');
+    const accent = (isPrem && s.premium?.accentColor) ? s.premium.accentColor : '#FF6B35';
     // Validate accent is a real hex color before applying
     if (/^#[0-9a-fA-F]{6}$/.test(accent)) {
       document.documentElement.style.setProperty('--idx-accent', accent);
