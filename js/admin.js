@@ -7,12 +7,13 @@
 
 import { auth, db, CONFIG } from '../firebase.js';
 import {
-  onAuthStateChanged, signOut, updatePassword, updateEmail,
+  onAuthStateChanged, signOut, updatePassword,
+  verifyBeforeUpdateEmail,
   EmailAuthProvider, reauthenticateWithCredential
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
   collection, getDocs, addDoc, doc, updateDoc, deleteDoc,
-  serverTimestamp, getDoc, query, orderBy, setDoc, where
+  serverTimestamp, getDoc, query, orderBy, where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
@@ -568,19 +569,19 @@ $('btn-save-settings').addEventListener('click', async () => {
       if (!logoUrl) throw new Error('Upload logo gagal.');
       $('inp-logo-url').value = logoUrl;
     }
-    await setDoc(doc(db, 'toko', uid), {
+    await updateDoc(doc(db, 'toko', uid), {
       namaToko:  sanitizeText($('inp-username').value, 100),
       bio:       sanitizeText($('inp-bio').value, 200),
-      wa:        safeUrl($('inp-wa').value.trim()),
-      shopee:    safeUrl($('inp-shopee').value.trim()),
-      tokopedia: safeUrl($('inp-tokopedia').value.trim()),
-      instagram: safeUrl($('inp-instagram').value.trim()),
-      tiktok:    safeUrl($('inp-tiktok').value.trim()),
-      twitter:   safeUrl($('inp-twitter').value.trim()),
-      facebook:  safeUrl($('inp-facebook').value.trim()),
-      youtube:   safeUrl($('inp-youtube').value.trim()),
+      wa:        $('inp-wa').value.trim() ? safeUrl($('inp-wa').value.trim()) : '',
+      shopee:    $('inp-shopee').value.trim() ? safeUrl($('inp-shopee').value.trim()) : '',
+      tokopedia: $('inp-tokopedia').value.trim() ? safeUrl($('inp-tokopedia').value.trim()) : '',
+      instagram: $('inp-instagram').value.trim() ? safeUrl($('inp-instagram').value.trim()) : '',
+      tiktok:    $('inp-tiktok').value.trim() ? safeUrl($('inp-tiktok').value.trim()) : '',
+      twitter:   $('inp-twitter').value.trim() ? safeUrl($('inp-twitter').value.trim()) : '',
+      facebook:  $('inp-facebook').value.trim() ? safeUrl($('inp-facebook').value.trim()) : '',
+      youtube:   $('inp-youtube').value.trim() ? safeUrl($('inp-youtube').value.trim()) : '',
       logo:      logoUrl,
-    }, { merge: true });
+    });
     // FIX: clear public cache so visitor sees updated settings
     clearPublicCache(uid);
     showToast('Pengaturan disimpan!');
@@ -612,7 +613,9 @@ $('btn-save-account').addEventListener('click', async () => {
     await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, oldPass));
     if (newEmail !== user.email) {
       if (!newEmail.includes('@')) throw new Error('Format email tidak valid!');
-      await updateEmail(user, newEmail);
+      // Firebase v10: verifyBeforeUpdateEmail kirim verifikasi dulu ke email baru
+      await verifyBeforeUpdateEmail(user, newEmail);
+      showToast('Email verifikasi dikirim ke alamat baru. Cek inbox & spam!', 'info');
     }
     if (newPass) {
       if (newPass.length < 6) throw new Error('Password minimal 6 karakter!');
@@ -621,7 +624,15 @@ $('btn-save-account').addEventListener('click', async () => {
     showToast('Akun diperbarui! Keluar otomatis...');
     setTimeout(() => signOut(auth), 1800);
   } catch (err) {
-    const msg = err.code === 'auth/wrong-password' ? 'Password lama salah!' : err.message;
+    const errMap = {
+      'auth/wrong-password':       'Password lama salah!',
+      'auth/invalid-credential':   'Password lama salah!',
+      'auth/email-already-in-use': 'Email ini sudah digunakan akun lain!',
+      'auth/invalid-email':        'Format email tidak valid!',
+      'auth/requires-recent-login':'Sesi habis, harap keluar lalu login ulang.',
+      'auth/too-many-requests':    'Terlalu banyak percobaan. Coba lagi nanti.',
+    };
+    const msg = errMap[err.code] || err.message;
     showToast(msg, 'error');
   } finally {
     _savingAccount = false;
@@ -738,7 +749,7 @@ async function loadStats(uid) {
     $('stat-visits').textContent = tV;
     $('stat-wa').textContent     = tW;
     $('stat-shopee').textContent = tS;
-    $('stat-visits-dash').textContent = data[today.toISOString().slice(0, 10)]?.visits || 0;
+    // stat-visits-dash dikelola oleh loadTodayVisits() agar konsisten
 
     const chartEl = $('stats-chart');
     if (!chartEl) return;
@@ -1463,6 +1474,9 @@ $('inp-gallery-file')?.addEventListener('change', async () => {
 
   let uploaded = 0;
   for (const file of toUpload) {
+    // FIX: validasi MIME + ukuran sebelum upload
+    const check = validateImageFile(file);
+    if (!check.ok) { showToast(`${file.name}: ${check.reason}`, 'warn'); continue; }
     const url = await uploadCloudinary(file);
     if (url) { galleryPhotos.push({ url, caption: '', kategori: '' }); uploaded++; }
     if (statusEl) statusEl.textContent = `Mengupload ${uploaded}/${toUpload.length}...`;

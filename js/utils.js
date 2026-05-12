@@ -14,13 +14,14 @@ export function escHtml(str) {
 
 // ── SECURITY: URL SANITIZE ─────────────────────────────────────────────────────
 export function safeUrl(url) {
-  if (!url || typeof url !== 'string') return '#';
+  // FIX: return '' (bukan '#') saat kosong — '#' tersimpan ke Firestore & merusak link storefront
+  if (!url || typeof url !== 'string') return '';
   const t = url.trim();
-  if (!t) return '#';
-  if (/^(javascript|data|vbscript|file|blob)\s*:/i.test(t)) return '#';
-  if (t.startsWith('//')) return '#';
-  if (!/^(https?:\/\/|tel:|mailto:|#)/i.test(t)) return '#';
-  if (t.length > 2048) return '#';
+  if (!t) return '';
+  if (/^(javascript|data|vbscript|file|blob)\s*:/i.test(t)) return '';
+  if (t.startsWith('//')) return '';
+  if (!/^(https?:\/\/|tel:|mailto:)/i.test(t)) return '';
+  if (t.length > 2048) return '';
   return t;
 }
 
