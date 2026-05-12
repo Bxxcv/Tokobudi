@@ -72,6 +72,11 @@ document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
     btn.classList.add('active-tab');
     $('tab-' + btn.dataset.tab)?.classList.add('show');
     closeSidebar();
+    // B9 FIX: refresh visits saat tab dashboard dibuka
+    if (btn.dataset.tab === 'dashboard') {
+      const uid = auth.currentUser?.uid;
+      if (uid) loadTodayVisits(uid);
+    }
   });
 });
 
@@ -126,12 +131,18 @@ onAuthStateChanged(auth, async user => {
   // FIX: loadProducts and loadDashboardStats both fetched produk — deduped below
   const prodSnap = await getDocs(query(collection(db, 'toko', user.uid, 'produk'), orderBy('createdAt', 'desc')));
 
-  await Promise.all([
-    _initProducts(user.uid, prodSnap),
-    _initSettings(user.uid),
-    loadStats(user.uid),
-    _initDashboardStats(user.uid, prodSnap),
-  ]);
+  // B6 FIX: try-catch guard — salah satu fail tidak crash semua
+  try {
+    await Promise.all([
+      _initProducts(user.uid, prodSnap),
+      _initSettings(user.uid),
+      loadStats(user.uid),
+      _initDashboardStats(user.uid, prodSnap),
+    ]);
+  } catch (e) {
+    console.error('Init error:', e);
+    showToast('Gagal memuat sebagian data. Coba refresh.', 'error');
+  }
 });
 
 // ── HELPERS ────────────────────────────────────────────────────────────────
@@ -463,6 +474,12 @@ $('product-form').addEventListener('submit', async e => {
     const data = { ...rawData, updatedAt: serverTimestamp() };
 
     if (id) {
+      // B8 FIX: jika stok baru > stok lama (restock), update stokAwal agar terjual terhitung benar
+      const existingProd = allProductsCache.find(p => p.id === id);
+      if (existingProd && stok > Number(existingProd.stok)) {
+        const diff = stok - Number(existingProd.stok);
+        data.stokAwal = (Number(existingProd.stokAwal) || Number(existingProd.stok)) + diff;
+      }
       await updateDoc(produkDoc(uid, id), data);
       showToast('Produk diperbarui!');
     } else {
@@ -531,14 +548,7 @@ async function _initSettings(uid) {
   } catch (e) { console.error('_initSettings:', e); }
 }
 
-async function loadSettings(uid) {
-  try {
-    const snap = await getDoc(doc(db, 'toko', uid));
-    if (!snap.exists()) return;
-    currentTokoData = snap.data();
-    await _initSettings(uid);
-  } catch (e) { console.error('loadSettings:', e); }
-}
+// B5 FIX: loadSettings() removed — dead code, use _initSettings() directly
 
 $('btn-logo-pick').addEventListener('click', () => $('inp-logo-file').click());
 $('inp-logo-file').addEventListener('change', () => {
@@ -568,6 +578,8 @@ $('btn-save-settings').addEventListener('click', async () => {
       logoUrl = await uploadCloudinary(file);
       if (!logoUrl) throw new Error('Upload logo gagal.');
       $('inp-logo-url').value = logoUrl;
+      // B4 FIX: revoke blob URL setelah upload sukses (cegah memory leak)
+      if (logoBlobUrl) { URL.revokeObjectURL(logoBlobUrl); logoBlobUrl = null; }
     }
     await updateDoc(doc(db, 'toko', uid), {
       namaToko:  sanitizeText($('inp-username').value, 100),
@@ -584,6 +596,21 @@ $('btn-save-settings').addEventListener('click', async () => {
     });
     // FIX: clear public cache so visitor sees updated settings
     clearPublicCache(uid);
+    // B2 FIX: sync currentTokoData in-memory agar UI (badge plan, logo, dll) up-to-date
+    currentTokoData = {
+      ...currentTokoData,
+      namaToko:  sanitizeText($('inp-username').value, 100),
+      bio:       sanitizeText($('inp-bio').value, 200),
+      wa:        $('inp-wa').value.trim() ? safeUrl($('inp-wa').value.trim()) : '',
+      shopee:    $('inp-shopee').value.trim() ? safeUrl($('inp-shopee').value.trim()) : '',
+      tokopedia: $('inp-tokopedia').value.trim() ? safeUrl($('inp-tokopedia').value.trim()) : '',
+      instagram: $('inp-instagram').value.trim() ? safeUrl($('inp-instagram').value.trim()) : '',
+      tiktok:    $('inp-tiktok').value.trim() ? safeUrl($('inp-tiktok').value.trim()) : '',
+      twitter:   $('inp-twitter').value.trim() ? safeUrl($('inp-twitter').value.trim()) : '',
+      facebook:  $('inp-facebook').value.trim() ? safeUrl($('inp-facebook').value.trim()) : '',
+      youtube:   $('inp-youtube').value.trim() ? safeUrl($('inp-youtube').value.trim()) : '',
+      logo:      logoUrl,
+    };
     showToast('Pengaturan disimpan!');
   } catch (err) { showToast('Gagal: ' + err.message, 'error'); }
   finally {
@@ -620,9 +647,17 @@ $('btn-save-account').addEventListener('click', async () => {
     if (newPass) {
       if (newPass.length < 6) throw new Error('Password minimal 6 karakter!');
       await updatePassword(user, newPass);
+      // B1 FIX: signOut hanya jika password berubah (email verify tidak perlu signOut)
+      showToast('Password diperbarui! Keluar otomatis...', 'success');
+      setTimeout(() => signOut(auth), 1800);
+      return; // sudah signOut, tidak perlu lanjut
     }
-    showToast('Akun diperbarui! Keluar otomatis...');
-    setTimeout(() => signOut(auth), 1800);
+    // Jika hanya email yang diminta ubah (sudah kirim verify), tidak perlu signOut
+    if (newEmail !== user.email) {
+      // Pesan sudah ditampilkan di blok atas, tidak perlu toast lagi
+    } else {
+      showToast('Tidak ada perubahan.', 'info');
+    }
   } catch (err) {
     const errMap = {
       'auth/wrong-password':       'Password lama salah!',
@@ -1224,7 +1259,9 @@ function renderPremiumTemplatePicker() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         Batalkan Template (Gunakan Default)
       </button>`;
-    $('btn-cancel-template')?.addEventListener('click', () => cancelTemplate());
+    // B3 FIX: hapus listener lama sebelum pasang baru (cancelWrap masih sama nodenya)
+    cancelWrap.querySelector('#btn-cancel-template')?.removeEventListener('click', cancelTemplate);
+    $('btn-cancel-template')?.addEventListener('click', cancelTemplate);
   } else {
     cancelWrap.innerHTML = '';
   }
@@ -1411,7 +1448,7 @@ function renderGalleryGrid() {
   const grid = $('gallery-grid');
   if (!grid) return;
   if (!galleryPhotos.length) {
-    grid.innerHTML = '<div style="grid-column:span 1;padding:20px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto gallery. Klik "+ Tambah Foto".</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:20px;text-align:center;font-size:12px;color:var(--text-3);">Belum ada foto gallery. Klik "+ Tambah Foto".</div>';
     return;
   }
 
