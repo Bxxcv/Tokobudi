@@ -1,7 +1,6 @@
 /**
  * LINKify — Utils (utils.js)
  * PATCHED: XSS hardening, URL sanitize, input limits, safer toast, MIME validate
- * FIX: safeUrl now returns '' instead of '#' to prevent database corruption
  */
 
 // ── SECURITY: HTML ESCAPE ─────────────────────────────────────────────────────
@@ -15,8 +14,7 @@ export function escHtml(str) {
 
 // ── SECURITY: URL SANITIZE ─────────────────────────────────────────────────────
 export function safeUrl(url) {
-  // FIX: return '' (NOT '#') saat kosong — '#' tersimpan ke Firestore & merusak link storefront
-  // Empty string is safe to check with `if (url !== '')`
+  // FIX: return '' (bukan '#') saat kosong — '#' tersimpan ke Firestore & merusak link storefront
   if (!url || typeof url !== 'string') return '';
   const t = url.trim();
   if (!t) return '';
@@ -44,12 +42,18 @@ export function sanitizeText(str, maxLen = 500) {
 
 // ── SECURITY: VALIDATE IMAGE FILE ────────────────────────────────────────────
 const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_EXT  = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function validateImageFile(file) {
   if (!file) return { ok: false, reason: 'Tidak ada file.' };
   if (!ALLOWED_MIME.includes(file.type)) {
     return { ok: false, reason: `Format tidak didukung (${file.type}). Gunakan JPG, PNG, atau WebP.` };
+  }
+  // Second layer: extension check (defense against MIME spoof)
+  const ext = ('.' + (file.name || '').split('.').pop()).toLowerCase();
+  if (!ALLOWED_EXT.includes(ext)) {
+    return { ok: false, reason: `Ekstensi file tidak valid (${ext}). Gunakan .jpg, .png, atau .webp.` };
   }
   if (file.size > MAX_FILE_SIZE) {
     return { ok: false, reason: 'Ukuran file terlalu besar (maks. 5 MB).' };
@@ -58,12 +62,12 @@ export function validateImageFile(file) {
   return { ok: true };
 }
 
-// ── RUPIAH FORMAT ─────────────────────────────────────────────────────────
+// ── RUPIAH FORMAT ─────────────────────────────────────────────────────────────
 export function rupiah(val) {
   return Number(val || 0).toLocaleString('id-ID');
 }
 
-// ── PLAN SYSTEM ──────────────────────────────────────────────────────────
+// ── PLAN SYSTEM ───────────────────────────────────────────────────────────────
 export function checkPlan(tokoData) {
   if (!tokoData) return 'free';
   const now = new Date();
@@ -94,7 +98,7 @@ export function checkPremium(tokoData) {
   return checkPlan(tokoData) === 'premium';
 }
 
-// ── HEX TO RGB ──────────────────────────────────────────────────────────
+// ── HEX TO RGB ────────────────────────────────────────────────────────────────
 export function hexToRgb(hex) {
   if (!hex || typeof hex !== 'string') return '255, 107, 53';
   const clean = hex.replace('#', '');
@@ -102,7 +106,7 @@ export function hexToRgb(hex) {
   return `${parseInt(clean.slice(0,2),16)}, ${parseInt(clean.slice(2,4),16)}, ${parseInt(clean.slice(4,6),16)}`;
 }
 
-// ── DATE HELPERS ─────────────────────────────────────────────────────────
+// ── DATE HELPERS ──────────────────────────────────────────────────────────────
 export const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
 export function formatDate(dateStr) {
@@ -112,7 +116,7 @@ export function formatDate(dateStr) {
   } catch { return '—'; }
 }
 
-// ── LISTS & CONSTANTS ───────────────────────────────────────────────────────
+// ── LISTS & CONSTANTS ─────────────────────────────────────────────────────────
 export const KATEGORI_LIST = [
   'Semua', 'Pakaian', 'Makanan & Minuman', 'Elektronik', 'Kecantikan',
   'Rumah Tangga', 'Olahraga', 'Aksesoris', 'Lainnya'
@@ -120,11 +124,11 @@ export const KATEGORI_LIST = [
 
 export const TEMPLATE_LIST = [
   { id: 'default', label: 'Midnight City', desc: 'Gelap modern, aksen neon',   bg: '',   accent: '#FF6B35', preview: '#0d0d1a' },
-  { id: 'forest',  label: 'Dark Forest',   desc: 'Hutan gelap misterius',      bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80&fit=crop&auto=format', accent: '#4ADE80', preview: '#1a3a1a' },
-  { id: 'ocean',   label: 'Deep Ocean',    desc: 'Lautan dalam yang tenang',   bg: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80&fit=crop&auto=format', accent: '#38BDF8', preview: '#0c2c4c' },
-  { id: 'aurora',  label: 'Aurora Night',  desc: 'Langit malam aurora',        bg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80&fit=crop&auto=format', accent: '#A78BFA', preview: '#2d1b4e' },
-  { id: 'desert',  label: 'Golden Desert', desc: 'Padang pasir golden hour',   bg: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80&fit=crop&auto=format', accent: '#FBBF24', preview: '#5c4033' },
-  { id: 'sakura',  label: 'Sakura Bloom',  desc: 'Taman bunga sakura',         bg: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&q=80&fit=crop&auto=format', accent: '#F472B6', preview: '#4a2c42' },
+  { id: 'forest',  label: 'Dark Forest',   desc: 'Hutan gelap misterius',      bg: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1200&q=80&fit=crop&auto=format', accent: '#4ADE80', preview: '#0d1a0f' },
+  { id: 'ocean',   label: 'Deep Ocean',    desc: 'Lautan dalam yang tenang',   bg: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1200&q=80&fit=crop&auto=format', accent: '#38BDF8', preview: '#030e1a' },
+  { id: 'aurora',  label: 'Aurora Night',  desc: 'Langit malam aurora',        bg: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80&fit=crop&auto=format', accent: '#A78BFA', preview: '#080d1e' },
+  { id: 'desert',  label: 'Golden Desert', desc: 'Padang pasir golden hour',   bg: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80&fit=crop&auto=format', accent: '#FBBF24', preview: '#1a0e00' },
+  { id: 'sakura',  label: 'Sakura Bloom',  desc: 'Taman bunga sakura',         bg: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&q=80&fit=crop&auto=format', accent: '#F472B6', preview: '#1a0a10' },
 ];
 
 export const ACCENT_COLORS = [
@@ -142,7 +146,7 @@ export const PLAN_FEATURES = {
   },
   premium: {
     label: 'Premium', color: '#FF6B35',
-    features: ['Semua fitur Basic','Analitik & statistik pengunjung real-time','Tema foto eksklusif (6 tema)','Badge Terverifikasi ✓','QR Code print-ready','Tombol kustom unlimited + deskripsi','Hapus branding LINKify','Custom accent color'],
+    features: ['Semua fitur Basic','Analitik & statistik pengunjung real-time','Tema foto eksklusif (6 tema)','Badge Terverifikasi ✓','QR Code print-ready','Tombol kustom unlimited + deskripsi','Hapus branding LINKify','Accent color kustom'],
     locked: []
   }
 };
@@ -157,7 +161,7 @@ export function showToast(msg, type = 'info', duration = 3200) {
     _toastEl.id = 'global-toast';
     _toastEl.setAttribute('role', 'status');
     _toastEl.setAttribute('aria-live', 'polite');
-    _toastEl.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:99999;color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:600;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;box-shadow:0 10px 24px rgba(0,0,0,0.25);';
+    _toastEl.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:99999;color:#fff;padding:11px 20px;border-radius:10px;font-size:13.5px;font-weight:500;max-width:min(340px,90vw);box-shadow:0 8px 32px rgba(0,0,0,.5);opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;text-align:center;word-break:break-word;border:1px solid rgba(255,255,255,.1);font-family:Inter,sans-serif;';
     document.body.appendChild(_toastEl);
   }
 
@@ -179,4 +183,42 @@ export function showToast(msg, type = 'info', duration = 3200) {
     _toastEl.style.transform = 'translateX(-50%) translateY(20px)';
     _toastEl.style.pointerEvents = 'none';
   }, duration);
+}
+// ── RATE LIMITER (frontend lightweight) ──────────────────────────────────────
+// Usage: const ok = rateLimit('save-settings', 3000); if (!ok) return;
+const _rlMap = new Map();
+export function rateLimit(key, ms = 2000) {
+  const now = Date.now();
+  const last = _rlMap.get(key) || 0;
+  if (now - last < ms) return false;
+  _rlMap.set(key, now);
+  return true;
+}
+
+// ── OFFLINE DETECTION ─────────────────────────────────────────────────────────
+let _offlineBannerEl = null;
+export function initOfflineDetection() {
+  const show = () => {
+    if (_offlineBannerEl) return;
+    _offlineBannerEl = document.createElement('div');
+    _offlineBannerEl.id = 'offline-banner';
+    _offlineBannerEl.setAttribute('role', 'alert');
+    _offlineBannerEl.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#EF4444;color:#fff;text-align:center;padding:9px 16px;font-size:13px;font-weight:600;font-family:Inter,sans-serif;letter-spacing:.01em;';
+    _offlineBannerEl.textContent = '⚠ Tidak ada koneksi internet. Perubahan tidak akan tersimpan.';
+    document.body.prepend(_offlineBannerEl);
+  };
+  const hide = () => {
+    if (_offlineBannerEl) { _offlineBannerEl.remove(); _offlineBannerEl = null; }
+  };
+  window.addEventListener('offline', show);
+  window.addEventListener('online', hide);
+  if (!navigator.onLine) show();
+}
+
+// ── ASYNC TIMEOUT WRAPPER ─────────────────────────────────────────────────────
+export function withTimeout(promise, ms = 10000, msg = 'Request timeout') {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))
+  ]);
 }

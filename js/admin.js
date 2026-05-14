@@ -17,7 +17,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
-  formatDate, TEMPLATE_LIST, showToast, validateImageFile, sanitizeText, safeUrl
+  formatDate, TEMPLATE_LIST, showToast, validateImageFile, sanitizeText, safeUrl,
+  initOfflineDetection, rateLimit, withTimeout
 } from './utils.js';
 import { PREMIUM_TEMPLATES, getTemplate, getAllTemplates, getThemePreviewData } from './templates.js';
 
@@ -54,7 +55,12 @@ function tickClock() {
   if (de) de.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 tickClock();
-setInterval(tickClock, 1000);
+const _clockInterval = setInterval(tickClock, 1000);
+// Cleanup on page hide — prevent memory leak in bfcache
+window.addEventListener('pagehide', () => clearInterval(_clockInterval), { once: true });
+
+// Offline detection
+initOfflineDetection();
 
 // ── SIDEBAR ────────────────────────────────────────────────────────────────
 const sidebar = $('sidebar');
@@ -103,7 +109,11 @@ $('btn-logout').addEventListener('click', () => {
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location.href = 'login-user.html'; return; }
 
-  const tokoSnap = await getDoc(doc(db, 'toko', user.uid));
+  const tokoSnap = await withTimeout(
+    getDoc(doc(db, 'toko', user.uid)),
+    8000,
+    'Koneksi timeout. Refresh halaman.'
+  );
   if (!tokoSnap.exists()) {
     showToast('Akun ini belum terdaftar sebagai toko! Hubungi admin.', 'error');
     setTimeout(() => signOut(auth), 2000);
@@ -300,11 +310,9 @@ function renderProductGrid(list, uid) {
     const stokNol = Number(p.stok) === 0;
     const div = document.createElement('div');
     div.className = 'p-card';
-    // FIX: add loading=lazy + decoding=async + proper onerror
     div.innerHTML = `
       <img class="p-img" src="${escHtml(p.img || '')}" alt="${escHtml(p.nama)}"
-           loading="lazy" decoding="async"
-           onerror="this.onerror=null;this.src='https://placehold.co/400x300/F4F4F4/AAA?text=Foto'">
+           loading="lazy" decoding="async" data-fallback="product">
       <div class="p-body">
         <div class="p-name">${escHtml(p.nama)}${p.unggulan ? ' <span style="color:#F59E0B;font-size:11px;">★</span>' : ''}</div>
         <div class="p-price">Rp${rupiah(p.harga)}${p.hargaAsli > p.harga ? `<span style="text-decoration:line-through;color:var(--text-3);font-size:11px;font-weight:400;margin-left:5px">Rp${rupiah(p.hargaAsli)}</span>` : ''}</div>
@@ -317,6 +325,16 @@ function renderProductGrid(list, uid) {
     frag.appendChild(div);
   });
   productsList.innerHTML = '';
+  // Delegated onerror — CSP-safe, no inline handlers
+  if (!productsList._imgErrBound) {
+    productsList._imgErrBound = true;
+    productsList.addEventListener('error', e => {
+      if (e.target.tagName === 'IMG' && e.target.dataset.fallback === 'product') {
+        e.target.onerror = null;
+        e.target.src = 'https://placehold.co/400x300/F4F4F4/AAA?text=Foto';
+      }
+    }, true);
+  }
   productsList.appendChild(frag);
 }
 
@@ -1366,7 +1384,7 @@ function renderCustomBtnList() {
     const clr = btn.color || '#3B82F6';
     return `<div class="custom-btn-item" data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;">
       <div style="display:flex;gap:8px;align-items:center;">
-        <div class="color-swatch-btn" data-idx="${i}" title="Ganti warna" style="width:28px;height:28px;border-radius:6px;background:${escHtml(clr)};cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);transition:transform .15s;" onclick="cycleColor(${i})"></div>
+        <div class="color-swatch-btn" data-action="cycle-color" data-idx="${i}" title="Ganti warna" style="width:28px;height:28px;border-radius:6px;background:${escHtml(clr)};cursor:pointer;flex-shrink:0;border:2px solid rgba(255,255,255,0.15);transition:transform .15s;" role="button" aria-label="Ganti warna tombol"></div>
         <input type="text" placeholder="Label (cth: GoFood)" value="${escHtml(btn.label || '')}" data-field="label" data-idx="${i}" style="flex:1;background:var(--input-bg,rgba(255,255,255,0.06));border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text);min-width:0;">
         <button type="button" class="cb-remove" data-idx="${i}" aria-label="Hapus" style="background:rgba(239,68,68,.12);border:none;border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#EF4444;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1385,14 +1403,31 @@ function renderCustomBtnList() {
       customBtns[idx][field] = inp.value;
     });
   });
-  list.querySelectorAll('.cb-remove').forEach(btn => {
-    btn.addEventListener('click', () => {
-      customBtns.splice(parseInt(btn.dataset.idx), 1);
-      renderCustomBtnList();
+
+  // Delegated: handle remove + cycle-color without inline onclick (CSP-safe)
+  if (!list._cbDelegated) {
+    list._cbDelegated = true;
+    list.addEventListener('click', e => {
+      const removeBtn = e.target.closest('.cb-remove');
+      if (removeBtn) {
+        customBtns.splice(parseInt(removeBtn.dataset.idx), 1);
+        renderCustomBtnList();
+        return;
+      }
+      const swatchBtn = e.target.closest('[data-action="cycle-color"]');
+      if (swatchBtn) {
+        const idx = parseInt(swatchBtn.dataset.idx);
+        if (!customBtns[idx]) return;
+        const cur = customBtns[idx].color || BTN_COLORS[0];
+        const pos = BTN_COLORS.indexOf(cur);
+        customBtns[idx].color = BTN_COLORS[(pos + 1) % BTN_COLORS.length];
+        renderCustomBtnList();
+      }
     });
-  });
+  }
 }
 
+// cycleColor kept for backward compat but no longer used via inline onclick
 window.cycleColor = function(idx) {
   if (!customBtns[idx]) return;
   const cur = customBtns[idx].color || BTN_COLORS[0];
@@ -1463,8 +1498,8 @@ function renderGalleryGrid() {
         <img src="${escHtml(p.url)}" alt="Gallery ${i + 1}" style="width:100%;height:100%;object-fit:cover;"
              loading="lazy" decoding="async"
              onerror="this.onerror=null;this.src='https://placehold.co/200x200/111/333?text=Error'">
-        <button type="button" onclick="removeGalleryPhoto(${i})"
-          style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;">
+        <button type="button" data-action="remove-gallery" data-idx="${i}"
+          style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;" aria-label="Hapus foto">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -1485,12 +1520,22 @@ function renderGalleryGrid() {
       if (galleryPhotos[idx]) galleryPhotos[idx][field] = inp.value;
     });
   });
+  // Delegated remove — replaces inline onclick (CSP-safe)
+  if (!grid._galDelegated) {
+    grid._galDelegated = true;
+    grid.addEventListener('click', e => {
+      const btn = e.target.closest('[data-action="remove-gallery"]');
+      if (!btn) return;
+      const idx = parseInt(btn.dataset.idx);
+      if (!isNaN(idx)) {
+        galleryPhotos.splice(idx, 1);
+        renderGalleryGrid();
+      }
+    });
+  }
 }
 
-window.removeGalleryPhoto = function(idx) {
-  galleryPhotos.splice(idx, 1);
-  renderGalleryGrid();
-};
+// removeGalleryPhoto handled via delegated listener in renderGalleryGrid
 
 $('btn-add-gallery')?.addEventListener('click', () => {
   if (galleryPhotos.length >= 12) { showToast('Maksimal 12 foto gallery.', 'warn'); return; }
@@ -1556,14 +1601,26 @@ async function uploadCloudinary(file) {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', CLOUD_PRESET);
+
+  const controller = new AbortController();
+  // 30 detik timeout untuk upload
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
   try {
-    const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: fd });
+    const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: fd,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (data.secure_url && /^https:\/\/res\.cloudinary\.com\//i.test(data.secure_url)) return data.secure_url;
     throw new Error(data.error?.message || 'Upload gagal');
   } catch (err) {
-    showToast('Upload gagal: ' + err.message, 'error');
+    clearTimeout(timeoutId);
+    const msg = err.name === 'AbortError' ? 'Upload timeout. Coba lagi.' : 'Upload gagal: ' + err.message;
+    showToast(msg, 'error');
     return null;
   }
 }

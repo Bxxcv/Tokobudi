@@ -4,4 +4,4 @@ Disallow: /admin.html
 Disallow: /admin-daftar.html
 Disallow: /maintenance.html
 
-Sitemap: https://linkbio.vercel.app/sitemap.xml
+Sitemap: https://linkify-linkbio.vercel.app/landingsitemap.xml

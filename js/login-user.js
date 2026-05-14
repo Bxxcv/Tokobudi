@@ -23,23 +23,52 @@ onAuthStateChanged(auth, async (user) => {
 
 function showError(msg) {
   const errorMsg = document.getElementById('errorMsg');
-  if (errorMsg) errorMsg.innerText = msg;
+  // SECURITY: textContent — never innerText/innerHTML
+  if (errorMsg) errorMsg.textContent = typeof msg === 'string' ? msg : 'Terjadi kesalahan.';
 }
 
 // ── LOGIN HANDLER ─────────────────────────────────────────────────────────────
-document.getElementById('loginBtn').onclick = () => {
+// Double-submit guard
+let _loginInProgress = false;
+
+// Rate limit: max 1 attempt per 2.5s
+let _lastLoginAttempt = 0;
+
+document.getElementById('loginBtn').addEventListener('click', handleLogin);
+// Support Enter key on password field
+document.getElementById('password')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+
+function handleLogin() {
+  if (_loginInProgress) return;
+
+  const now = Date.now();
+  if (now - _lastLoginAttempt < 2500) {
+    showError('Tunggu sebentar sebelum mencoba lagi.');
+    return;
+  }
+
   const btn      = document.getElementById('loginBtn');
   const errorMsg = document.getElementById('errorMsg');
   const email    = document.getElementById('email')?.value?.trim();
   const password = document.getElementById('password')?.value;
 
-  errorMsg.innerText = '';
+  if (errorMsg) errorMsg.textContent = '';
 
   if (!email || !password) {
-    errorMsg.innerText = 'Email dan password wajib diisi.';
+    showError('Email dan password wajib diisi.');
     return;
   }
 
+  // Basic email format guard
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showError('Format email tidak valid.');
+    return;
+  }
+
+  _loginInProgress  = true;
+  _lastLoginAttempt = now;
   btn.innerHTML = '<span class="spinner"></span> Memproses...';
   btn.disabled  = true;
 
@@ -55,8 +84,9 @@ document.getElementById('loginBtn').onclick = () => {
         'auth/user-disabled':          'Akun dinonaktifkan. Hubungi admin.',
         'auth/network-request-failed': 'Tidak ada koneksi internet',
       };
-      errorMsg.innerText = msgs[err.code] || 'Login gagal: ' + err.message;
+      showError(msgs[err.code] || 'Login gagal. Coba lagi.');
       btn.innerHTML = 'Masuk';
       btn.disabled  = false;
+      _loginInProgress = false;
     });
-};
+}

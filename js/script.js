@@ -10,11 +10,6 @@
  *  - UID regex stricter
  *  - safeUrl on all hrefs
  *  - no innerHTML with user data except through escHtml
- *  - SESSION CACHE: Fix double-init & memory leak in loadSettings
- *  - FIRESTORE LISTENER CLEANUP: Clean up Firestore query listeners on page unload
- *  - PREVENT RACE CONDITION: Abort previous requests when user changes
- *  - OPTIMIZE: Batch Firestore calls, reduce chattiness
- *  - MOBILE PERF: Reduce memory footprint via DocumentFragment, limit DOM operations
  */
 
 import { db, CONFIG } from '../firebase.js';
@@ -22,10 +17,10 @@ import {
   collection, getDocs, query, orderBy,
   doc, getDoc, setDoc, increment
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { escHtml, rupiah, checkPlan, hexToRgb, safeUrl } from './utils.js';
+import { escHtml, rupiah, checkPlan, hexToRgb, safeUrl, initOfflineDetection, withTimeout } from './utils.js';
 import { applyTemplate as applyThemeTemplate } from './templates.js';
 
-// ── STATE ────────────────────────────────────────────────────────────
+// ── STATE ────────────────────────────────────────────────────────────────────
 const urlParams    = new URLSearchParams(window.location.search);
 const _rawUID      = urlParams.get('uid') || '';
 // SECURITY: Firebase UIDs are 28 chars alphanumeric. Allow 10–128 for safety.
@@ -38,29 +33,19 @@ let katListenerSet = false;
 // Single shared observer — created once, reused
 let revealObserver = null;
 
-// Abort controller for race condition prevention
-let settingsAbortCtrl = null;
-
-// Track if bootstrap has already run
-let bootstrapDone = false;
-
-// ── INIT ────────────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initOfflineDetection();
   if (!USER_ID) { renderNoStore(); return; }
   initRevealObserver();
   initJellyHandler();
   bootstrap();
 });
 
-// Cleanup on unload to prevent memory leaks
-window.addEventListener('beforeunload', () => {
-  if (settingsAbortCtrl) settingsAbortCtrl.abort();
-});
-
 function renderNoStore() {
   document.body.innerHTML = '';
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0a0e27';
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);';
   const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('width','40'); svg.setAttribute('height','40');
   svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none');
@@ -80,7 +65,7 @@ function renderNoStore() {
 function renderBlockedStore() {
   document.body.innerHTML = '';
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0a0e27';
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;font-family:Inter,sans-serif;background:#0A0A0F;color:rgba(255,255,255,0.4);';
   const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('width','40'); svg.setAttribute('height','40');
   svg.setAttribute('viewBox','0 0 24 24'); svg.setAttribute('fill','none');
@@ -98,10 +83,6 @@ function renderBlockedStore() {
 }
 
 async function bootstrap() {
-  // Prevent duplicate init
-  if (bootstrapDone) return;
-  bootstrapDone = true;
-
   await loadSettings();
   await loadProducts();
 }
@@ -154,7 +135,7 @@ function initJellyHandler() {
   }, { passive: true });
 }
 
-// ── ANALYTICS ──────────────────────────────────────────────────────────
+// ── ANALYTICS ────────────────────────────────────────────────────────────────
 async function trackEvent(field) {
   try {
     const today = new Date().toISOString().slice(0, 10);
@@ -168,17 +149,9 @@ async function trackEvent(field) {
 
 window.trackClick = type => trackEvent(type === 'wa' ? 'waClicks' : 'shopeeClicks');
 
-// ── LOAD SETTINGS ─────────────────────────────────────────────────────────
+// ── LOAD SETTINGS ─────────────────────────────────────────────────────────────
 async function loadSettings() {
-  // Abort previous request if re-triggered (race condition prevention)
-  if (settingsAbortCtrl) settingsAbortCtrl.abort();
-  settingsAbortCtrl = new AbortController();
-  const signal = settingsAbortCtrl.signal;
-
   try {
-    // Check abort before starting heavy operations
-    if (signal.aborted) return;
-
     const cacheKey = `toko_${USER_ID}`;
     let s = null;
 
@@ -203,9 +176,11 @@ async function loadSettings() {
     } catch { localStorage.removeItem(cacheKey); }
 
     if (!s) {
-      const snap = await getDoc(doc(db, 'toko', USER_ID));
-      if (signal.aborted) return;
-      
+      const snap = await withTimeout(
+        getDoc(doc(db, 'toko', USER_ID)),
+        8000,
+        'Koneksi lambat. Refresh halaman.'
+      );
       if (!snap.exists()) {
         const uEl = document.getElementById('username');
         if (uEl) uEl.textContent = 'Toko tidak ditemukan';
@@ -270,8 +245,6 @@ async function loadSettings() {
     const profImg = document.getElementById('profileImg');
     if (profImg && s.logo && /^https?:\/\//i.test(s.logo)) {
       profImg.src = s.logo;
-      // Prevent memory leak: remove old handler before adding new
-      profImg.onerror = null;
       profImg.onerror = () => { profImg.style.display = 'none'; };
     }
 
@@ -317,20 +290,15 @@ async function loadSettings() {
 
     observeAll();
 
-    // Track visit — once per session
-    if (!sessionStorage.getItem('vf_' + USER_ID)) {
-      sessionStorage.setItem('vf_' + USER_ID, '1');
-      trackEvent('visits');
-    }
+    // Track visit — once per session (safe sessionStorage access)
+    try {
+      if (!sessionStorage.getItem('vf_' + USER_ID)) {
+        sessionStorage.setItem('vf_' + USER_ID, '1');
+        trackEvent('visits');
+      }
+    } catch { trackEvent('visits'); } // fallback if sessionStorage blocked
   } catch (err) {
-    if (err.name !== 'AbortError') {
-      console.error('[loadSettings]', err);
-    }
-  } finally {
-    // Clear abort controller after request completes
-    if (settingsAbortCtrl && signal.aborted === false) {
-      settingsAbortCtrl = null;
-    }
+    console.error('[loadSettings]', err);
   }
 }
 
@@ -352,7 +320,7 @@ function renderSocialIcons(s) {
   map.forEach(({ key, id, label, color }) => {
     if (!s[key]) return;
     const url = safeUrl(s[key]);
-    if (url === '') return; // skip invalid
+    if (!url) return; // skip empty/invalid
     has = true;
     const a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -379,7 +347,7 @@ function renderCustomButtons(buttons) {
   buttons.forEach(btn => {
     if (!btn.label || !btn.url) return;
     const url = safeUrl(btn.url);
-    if (url === '') return; // skip invalid URLs
+    if (!url) return; // skip empty/invalid URLs
     const a = document.createElement('a');
     a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     a.className = 'platform-btn custom-btn jelly-click';
@@ -390,7 +358,7 @@ function renderCustomButtons(buttons) {
     const iconBox = document.createElement('div');
     iconBox.className = 'icon-box';
     iconBox.style.background = 'rgba(0,0,0,.15)';
-    iconBox.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="white" aria-hidden="true"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 015.656 0l4-4a4 4 0 00-5.656-5.656l-1.101 1.101"/></svg>';
+    iconBox.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="white" aria-hidden="true"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>';
 
     const textDiv = document.createElement('div');
     textDiv.className = 'custom-btn-text';
@@ -435,8 +403,6 @@ function renderGalleryButton(photos, uid) {
       if (!url || !/^https?:\/\//i.test(url)) return;
       const img = document.createElement('img');
       img.src = url; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
-      // Prevent memory leak: clear handler before reassigning
-      img.onerror = null;
       img.onerror = () => { img.style.display = 'none'; };
       prev.appendChild(img);
     });
@@ -445,7 +411,7 @@ function renderGalleryButton(photos, uid) {
   wrap.style.display = '';
 }
 
-// ── LOAD PRODUCTS ─────────────────────────────────────────────────────────
+// ── LOAD PRODUCTS ─────────────────────────────────────────────────────────────
 async function loadProducts() {
   const container = document.getElementById('productList');
   if (!container) return;
@@ -490,7 +456,7 @@ async function loadProducts() {
   }
 }
 
-// ── KATEGORI ──────────────────────────────────────────────────────────
+// ── KATEGORI ──────────────────────────────────────────────────────────────────
 function renderKategoriFilter() {
   const el = document.getElementById('kategori-filter');
   if (!el) return;
@@ -568,7 +534,6 @@ function buildProductCard(p) {
   img.src = imgSrc || 'https://placehold.co/400x300/111/333?text=Foto';
   img.alt = nama; img.className = 'product-img';
   img.loading = 'lazy'; img.decoding = 'async';
-  // Prevent memory leak: use once() pattern or nullify
   img.onerror = function() { this.onerror = null; this.src = 'https://placehold.co/400x300/111/333?text=Foto'; };
   imgWrap.appendChild(img);
 
@@ -626,7 +591,7 @@ function buildProductCard(p) {
 
   if (p.shopee) {
     const shopeeUrl = safeUrl(p.shopee);
-    if (shopeeUrl !== '') {
+    if (shopeeUrl !== '#') {
       const shopeeLink = document.createElement('a');
       shopeeLink.href = shopeeUrl; shopeeLink.target = '_blank'; shopeeLink.rel = 'noopener noreferrer';
       shopeeLink.className = 'prod-btn prod-btn-shopee jelly-click';
@@ -642,7 +607,7 @@ function buildProductCard(p) {
   return card;
 }
 
-// ── BACKGROUND LAYER ────────────────────────────────────────────────────────
+// ── BACKGROUND LAYER ──────────────────────────────────────────────────────────
 function applyBgLayer(bgUrl) {
   let bgEl = document.getElementById('tpl-bg-layer');
   if (!bgEl) {

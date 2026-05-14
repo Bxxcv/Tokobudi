@@ -459,8 +459,10 @@ function switchPlanTab(tab) {
   if (saveBtn) saveBtn.textContent    = tab === 'basic'   ? 'Aktifkan Basic' : 'Aktifkan Premium';
 }
 
+let _savingPlan = false;
 async function savePlanModal() {
-  if (!premiumTargetUid) return;
+  if (!premiumTargetUid || _savingPlan) return;
+  _savingPlan = true;
   const days    = parseInt($('pm-days') ? $('pm-days').value : 30) || 30;
   const endDate = new Date();
   endDate.setDate(endDate.getDate() + days);
@@ -506,6 +508,7 @@ async function savePlanModal() {
   } catch (e) {
     toast('Gagal: ' + e.message, 'err');
   } finally {
+    _savingPlan = false;
     if (btn) { btn.disabled = false; btn.textContent = activePlanTab === 'basic' ? 'Aktifkan Basic' : 'Aktifkan Premium'; }
   }
 }
