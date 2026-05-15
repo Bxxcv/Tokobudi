@@ -1,0 +1,129 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── HELPERS ────────────────────────────────────────────────────────────────
+
+    // Cek apakah request berasal dari user yang sedang login
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Cek apakah user mengakses dokumen miliknya sendiri
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // Cek apakah user adalah admin (email hardcode — ganti sesuai email admin kamu)
+    function isAdmin() {
+      return isAuth() && request.auth.token.email == 'unrageunrage@gmail.com';
+    }
+
+    // Validasi string: tidak null, bertipe string, panjang dalam batas
+    function validStr(val, maxLen) {
+      return val is string && val.size() <= maxLen;
+    }
+
+    // Validasi URL dasar: harus string, dimulai https://, panjang wajar
+    function validUrl(val) {
+      return val is string && val.size() <= 2048 &&
+             (val == '' || val.matches('https?://.*'));
+    }
+
+    // Validasi data toko saat update settings
+    function validTokoUpdate(data) {
+      return (!('namaToko'  in data) || validStr(data.namaToko,  100))
+          && (!('bio'       in data) || validStr(data.bio,       200))
+          && (!('wa'        in data) || validUrl(data.wa))
+          && (!('shopee'    in data) || validUrl(data.shopee))
+          && (!('tokopedia' in data) || validUrl(data.tokopedia))
+          && (!('instagram' in data) || validUrl(data.instagram))
+          && (!('tiktok'    in data) || validUrl(data.tiktok))
+          && (!('twitter'   in data) || validUrl(data.twitter))
+          && (!('facebook'  in data) || validUrl(data.facebook))
+          && (!('youtube'   in data) || validUrl(data.youtube))
+          && (!('logo'      in data) || validUrl(data.logo));
+    }
+
+    // Validasi data produk
+    function validProduk(data) {
+      return validStr(data.nama, 100)
+          && data.harga is number && data.harga >= 0 && data.harga <= 100000000
+          && data.stok  is number && data.stok  >= 0
+          && (!('deskripsi' in data) || validStr(data.deskripsi, 500))
+          && (!('shopee'    in data) || validUrl(data.shopee))
+          && (!('wa'        in data) || validUrl(data.wa))
+          && (!('img'       in data) || validUrl(data.img))
+          && (!('kategori'  in data) || validStr(data.kategori, 50));
+    }
+
+    // ── /toko/{uid} ───────────────────────────────────────────────────────────
+    match /toko/{uid} {
+
+      // Publik boleh baca (untuk storefront visitor)
+      allow read: if true;
+
+      // Hanya owner yang boleh update field toko sendiri (settings)
+      // Admin boleh update semua field (plan, status, premium, dll)
+      allow update: if isOwner(uid)
+                       ? validTokoUpdate(request.resource.data.diff(resource.data).affectedKeys()
+                           .toList().hasOnly(['namaToko','bio','wa','shopee','tokopedia',
+                             'instagram','tiktok','twitter','facebook','youtube','logo',
+                             'premium','customButtons','gallery']))
+                           && validTokoUpdate(request.resource.data)
+                       : isAdmin();
+
+      // Hanya admin yang boleh create/delete dokumen toko
+      allow create, delete: if isAdmin();
+
+      // ── /toko/{uid}/produk/{produkId} ──────────────────────────────────────
+      match /produk/{produkId} {
+
+        // Publik boleh baca produk (untuk storefront)
+        allow read: if true;
+
+        // Owner boleh tambah produk baru (validasi field)
+        allow create: if isOwner(uid) && validProduk(request.resource.data);
+
+        // Owner boleh update produk miliknya (validasi field)
+        allow update: if isOwner(uid) && validProduk(request.resource.data);
+
+        // Owner boleh hapus produk miliknya
+        allow delete: if isOwner(uid);
+      }
+
+      // ── /toko/{uid}/stats/{date} ───────────────────────────────────────────
+      match /stats/{date} {
+
+        // Owner & admin boleh baca stats
+        allow read: if isOwner(uid) || isAdmin();
+
+        // Publik boleh increment stats (kunjungan, klik WA, Shopee)
+        // Dibatasi: hanya boleh merge increment field angka, max 3 field
+        allow create, update: if
+          request.resource.data.keys().hasOnly(['visits','waClicks','shopeeClicks'])
+          && request.resource.data.values().toList().size() <= 3;
+
+        // Tidak ada yang boleh hapus stats
+        allow delete: if false;
+      }
+    }
+
+    // ── /config/{docId} ───────────────────────────────────────────────────────
+    // Konfigurasi global (maintenance mode, dll)
+    match /config/{docId} {
+
+      // Semua boleh baca (maintenance.js butuh akses publik)
+      allow read: if true;
+
+      // Hanya admin yang boleh write
+      allow write: if isAdmin();
+    }
+
+    // ── Blokir semua koleksi lain ─────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
