@@ -329,7 +329,10 @@ function renderSocialIcons(s) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('width', '20'); svg.setAttribute('height', '20');
     svg.setAttribute('fill', 'currentColor'); svg.setAttribute('aria-hidden', 'true');
-    svg.innerHTML = `<use href="#${id}"/>`;
+    // SECURITY: use createElementNS instead of innerHTML to avoid XSS via SVG
+    const useEl = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    useEl.setAttribute('href', `#${id}`);
+    svg.appendChild(useEl);
     a.appendChild(svg);
     frag.appendChild(a);
   });
@@ -591,7 +594,7 @@ function buildProductCard(p) {
 
   if (p.shopee) {
     const shopeeUrl = safeUrl(p.shopee);
-    if (shopeeUrl !== '#') {
+    if (shopeeUrl) { // SECURITY: safeUrl returns '' (not '#') for invalid URLs
       const shopeeLink = document.createElement('a');
       shopeeLink.href = shopeeUrl; shopeeLink.target = '_blank'; shopeeLink.rel = 'noopener noreferrer';
       shopeeLink.className = 'prod-btn prod-btn-shopee jelly-click';

@@ -18,7 +18,7 @@ import {
 import {
   escHtml, checkPremium, checkPlan, hexToRgb, ACCENT_COLORS, DAY_NAMES,
   formatDate, TEMPLATE_LIST, showToast, validateImageFile, sanitizeText, safeUrl,
-  initOfflineDetection, rateLimit, withTimeout
+  safeImgUrl, initOfflineDetection, rateLimit, withTimeout
 } from './utils.js';
 import { PREMIUM_TEMPLATES, getTemplate, getAllTemplates, getThemePreviewData } from './templates.js';
 
@@ -310,16 +310,17 @@ function renderProductGrid(list, uid) {
     const stokNol = Number(p.stok) === 0;
     const div = document.createElement('div');
     div.className = 'p-card';
+    // SECURITY: safeImgUrl (not escHtml) for src — escHtml allows javascript:/data: URIs in attributes
     div.innerHTML = `
-      <img class="p-img" src="${escHtml(p.img || '')}" alt="${escHtml(p.nama)}"
+      <img class="p-img" src="${safeImgUrl(p.img || '') || 'https://placehold.co/200x200/111/333?text=Foto'}" alt="${escHtml(p.nama)}"
            loading="lazy" decoding="async" data-fallback="product">
       <div class="p-body">
         <div class="p-name">${escHtml(p.nama)}${p.unggulan ? ' <span style="color:#F59E0B;font-size:11px;">★</span>' : ''}</div>
         <div class="p-price">Rp${rupiah(p.harga)}${p.hargaAsli > p.harga ? `<span style="text-decoration:line-through;color:var(--text-3);font-size:11px;font-weight:400;margin-left:5px">Rp${rupiah(p.hargaAsli)}</span>` : ''}</div>
         <div class="p-stock">Stok: ${Number(p.stok)}${stokNol ? ' · <span style="color:var(--danger);font-weight:600">Habis</span>' : ''}${p.kategori ? ` · ${escHtml(p.kategori)}` : ''}</div>
         <div class="p-acts">
-          <button type="button" class="btn-ed" data-id="${p.id}">Edit</button>
-          <button type="button" class="btn-del" data-id="${p.id}">Hapus</button>
+          <button type="button" class="btn-ed" data-id="${escHtml(p.id)}">Edit</button>
+          <button type="button" class="btn-del" data-id="${escHtml(p.id)}">Hapus</button>
         </div>
       </div>`;
     frag.appendChild(div);
@@ -390,7 +391,9 @@ productsList.addEventListener('click', async e => {
       $('inp-prod-file').value        = '';
       if (prodBlobUrl) { URL.revokeObjectURL(prodBlobUrl); prodBlobUrl = null; }
       if (p.img) {
-        $('img-preview').src = p.img;
+        // SECURITY: safeImgUrl rejects javascript:/data: URIs, only allows https?://
+        const safeImg = safeImgUrl(p.img);
+        $('img-preview').src = safeImg || 'https://placehold.co/200x200/111/333?text=Foto';
         $('img-preview-wrap').style.display = 'block';
       } else {
         $('img-preview-wrap').style.display = 'none';
@@ -558,7 +561,8 @@ async function _initSettings(uid) {
     $('inp-logo-url').value  = s.logo      || '';
     if (s.logo) {
       const lp = $('logo-preview');
-      if (lp) { lp.src = s.logo; lp.onerror = () => { lp.src = 'https://placehold.co/200x200/F3F4F6/999?text=Logo'; }; }
+      // SECURITY: safeImgUrl rejects javascript:/data: URIs, only allows https?://
+      if (lp) { lp.src = safeImgUrl(s.logo) || 'https://placehold.co/200x200/F3F4F6/999?text=Logo'; lp.onerror = () => { lp.src = 'https://placehold.co/200x200/F3F4F6/999?text=Logo'; }; }
     }
 
     updatePremiumUI();
@@ -1089,7 +1093,8 @@ function bgRenderGallery() {
       `transition:border-color .18s;position:relative;`;
 
     const img = document.createElement('img');
-    img.src = p.url; img.alt = p.caption || `Foto ${i + 1}`;
+    // SECURITY: safeImgUrl rejects javascript:/data: URIs, only allows https?://
+    img.src = safeImgUrl(p.url) || 'https://placehold.co/200x200/111/333?text=Error'; img.alt = p.caption || `Foto ${i + 1}`;
     img.loading = 'lazy'; img.decoding = 'async';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
     img.onerror = () => { img.onerror = null; img.src = 'https://placehold.co/200x200/111/333?text=Error'; };
@@ -1490,28 +1495,67 @@ function renderGalleryGrid() {
   const cats = getGalleryKategoriList();
   const datalistId = 'gal-kat-list';
 
-  grid.innerHTML = `
-    <datalist id="${datalistId}">${cats.map(c => `<option value="${escHtml(c)}">`).join('')}</datalist>
-    ${galleryPhotos.map((p, i) => `
-    <div class="gal-edit-card" data-idx="${i}" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="position:relative;aspect-ratio:1;overflow:hidden;background:rgba(0,0,0,.3);flex-shrink:0;">
-        <img src="${escHtml(p.url)}" alt="Gallery ${i + 1}" style="width:100%;height:100%;object-fit:cover;"
-             loading="lazy" decoding="async"
-             onerror="this.onerror=null;this.src='https://placehold.co/200x200/111/333?text=Error'">
-        <button type="button" data-action="remove-gallery" data-idx="${i}"
-          style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;" aria-label="Hapus foto">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <div style="padding:8px 8px 10px;display:flex;flex-direction:column;gap:5px;">
-        <input type="text" placeholder="Kategori (cth: Interior)" value="${escHtml(p.kategori)}"
-          data-field="kategori" data-idx="${i}" list="${datalistId}"
-          style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;">
-        <input type="text" placeholder="Caption foto..." value="${escHtml(p.caption)}"
-          data-field="caption" data-idx="${i}"
-          style="width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;">
-      </div>
-    </div>`).join('')}`;
+  // SECURITY: Build via DOM — eliminates inline onerror= (CSP violation) and
+  // uses safeImgUrl instead of escHtml for src (escHtml allows javascript: URIs in attrs)
+  const frag = document.createDocumentFragment();
+
+  // Datalist for kategori autocomplete
+  const datalist = document.createElement('datalist');
+  datalist.id = datalistId;
+  cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; datalist.appendChild(opt); });
+  frag.appendChild(datalist);
+
+  galleryPhotos.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'gal-edit-card';
+    card.dataset.idx = i;
+    card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;';
+
+    const imgWrap = document.createElement('div');
+    imgWrap.style.cssText = 'position:relative;aspect-ratio:1;overflow:hidden;background:rgba(0,0,0,.3);flex-shrink:0;';
+
+    const img = document.createElement('img');
+    img.src = safeImgUrl(p.url) || 'https://placehold.co/200x200/111/333?text=Error';
+    img.alt = `Gallery ${i + 1}`;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    img.loading = 'lazy'; img.decoding = 'async';
+    // SECURITY: property assignment (not inline attr) — CSP-safe
+    img.onerror = function() { this.onerror = null; this.src = 'https://placehold.co/200x200/111/333?text=Error'; };
+    imgWrap.appendChild(img);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.dataset.action = 'remove-gallery';
+    removeBtn.dataset.idx = i;
+    removeBtn.style.cssText = 'position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.75);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:2;';
+    removeBtn.setAttribute('aria-label', 'Hapus foto');
+    removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" width="10" height="10"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    imgWrap.appendChild(removeBtn);
+    card.appendChild(imgWrap);
+
+    const inputWrap = document.createElement('div');
+    inputWrap.style.cssText = 'padding:8px 8px 10px;display:flex;flex-direction:column;gap:5px;';
+
+    const inpKat = document.createElement('input');
+    inpKat.type = 'text'; inpKat.placeholder = 'Kategori (cth: Interior)';
+    inpKat.value = p.kategori || '';
+    inpKat.dataset.field = 'kategori'; inpKat.dataset.idx = i;
+    inpKat.setAttribute('list', datalistId);
+    inpKat.style.cssText = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;';
+
+    const inpCap = document.createElement('input');
+    inpCap.type = 'text'; inpCap.placeholder = 'Caption foto...';
+    inpCap.value = p.caption || '';
+    inpCap.dataset.field = 'caption'; inpCap.dataset.idx = i;
+    inpCap.style.cssText = 'width:100%;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:11.5px;color:var(--text);outline:none;';
+
+    inputWrap.append(inpKat, inpCap);
+    card.appendChild(inputWrap);
+    frag.appendChild(card);
+  });
+
+  grid.innerHTML = '';
+  grid.appendChild(frag);
 
   grid.querySelectorAll('input[data-field]').forEach(inp => {
     inp.addEventListener('input', () => {
